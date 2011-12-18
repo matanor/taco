@@ -71,7 +71,7 @@ function iteration = confidenceSSL...
 
         for vertex_i=1:num_vertices
             isPositive = ismember(vertex_i, labeled.positive);
-            isNegative = isMember(vertex_i, labeled.negative);
+            isNegative = ismember(vertex_i, labeled.negative);
             isLabeled = isPositive | isNegative;
             y_i =   isPositive * positiveInitialValue + ...
                     isNegative * negativeInitialValue;
