@@ -1,5 +1,5 @@
 function [ outGraph, labeled ] =...
-    load_graph_amar(    classToLabelMap, ...
+    load_graph_amar(    graphFileName, classToLabelMap, ...
                         K, numLabeledRequired, numInstancesPerClass )
 %LOADAMARGRAPH Summary of this function goes here
 %   Detailed explanation goes here
@@ -11,8 +11,10 @@ LABEL_VALUE = 2;
 
 %% Load the graph
 
-load webkb_amar.mat;
-graph = webkb_amar;
+% load 'C:\courses\theses\WebKB\data\From Amar\webkb_amar.mat';
+% graph = webkb_amar;
+graph = load( graphFileName, 'graph' );
+graph = graph.graph;
 
 %% select only required classes
 requiredClasses = classToLabelMap(:, CLASS_VALUE);
