@@ -1,11 +1,12 @@
 function selected = selectClasses(graph, requiredLabels)
-%SELECTCLASSES Summary of this function goes here
-%   Detailed explanation goes here
+%SELECTCLASSES Select only nodes with specific labels from the graph.
+% graph - the graph structure, containing weights matrix
+% and labels vector
+% requiredLabeles - a vector containing the labels
+%                   to select
 
 w = graph.weights;
 l = graph.labels;
-
-%[~, requiredIndices] = ismember(requiredLabels, l);
 
 requiredIndices = [];
 for label_i=1:length(l)
@@ -14,7 +15,6 @@ for label_i=1:length(l)
         requiredIndices = [requiredIndices; label_i];
     end
 end
-%[~, requiredIndexes, ~] = intersect(l, requiredLabels);
 
 selected.labels = l(requiredIndices);
 selected.weights = w(requiredIndices, requiredIndices);
