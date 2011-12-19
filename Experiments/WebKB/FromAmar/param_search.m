@@ -1,12 +1,12 @@
 %% global shared parameters
-numRunsPerExperiment = 5;
+numRunsPerExperiment = 10;
 showResultsDuringRun = 0;
 graphFileName = 'C:\courses\theses\WebKB\data\From Amar\webkb_amar.mat';
 
 %% define parameter properties
 
-% K.range = [1,2,5,10,20,50,100,500];
-K.range = [20];
+K.range = [1,2,5,10,20,50,100,500];
+% K.range = [20];
 K.name = 'K';
 alpha.range = [0.1,1,10];
 alpha.name = 'alpha';
@@ -24,7 +24,7 @@ paramStructs = createParamStructs(paramProperties, params);
 
 %%
 
-tic;
+ticID = tic;
 numStructs = length(paramStructs);
 allExperiments = [];
 for struct_i=1:numStructs
@@ -45,7 +45,7 @@ for struct_i=1:numStructs
     experiment.fileName = graphFileName;
     allExperiments = [ allExperiments; experiment ];
 end
-toc;
+toc(ticID);
 
 %% Define which result figures to display
 figuresToShow.predictionAndConfidence = 0;
@@ -56,6 +56,6 @@ figuresToShow.assumulativeLoss = 1;
 numExperiments = length( allExperiments );
 for experiment_i=1:numExperiments
     singleExperiment = allExperiments(experiment_i);
-    showResults( singleExperiment, figuresToShow );
+    showResults( singleExperiment, figuresToShow, experiment_i );
     %close all;
 end
