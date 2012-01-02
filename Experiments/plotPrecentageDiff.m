@@ -1,4 +1,5 @@
 function plotPrecentageDiff( numMistakes_1, numMistakes_2,...
+                             numMistakes_final,...
                              paramsOrder, figurePath)
 %PLOTPRECENTAGEDIFF Summary of this function goes here
 %   Detailed explanation goes here
@@ -16,7 +17,7 @@ diff = precentMistakes.second - precentMistakes.first;
 figure('name',figurePath);
 len = length(sorted);
 
-plotIndex.rows = 3;
+plotIndex.rows = 4;
 plotIndex.cols = 2;
 plotIndex.current = 1;
 
@@ -25,6 +26,13 @@ plotIndex.current = plotIndex.current + 1;
 
 t = 'Precentage difference';
 scatter(1:len, sorted) ;
+title(t);
+ylabel('# mistakes');
+
+subplot(plotIndex.rows, plotIndex.cols, plotIndex.current);
+plotIndex.current = plotIndex.current + 1;
+t = 'Total mistakes';
+scatter(1:len, numMistakes_final(experiment_id_sorted_by_diff)) ;
 title(t);
 ylabel('# mistakes');
 
