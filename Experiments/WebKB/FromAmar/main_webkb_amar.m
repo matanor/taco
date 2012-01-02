@@ -1,32 +1,63 @@
-%%
+%% Prepare common params
+
+constructionParams.numLabeled = 50;
+constructionParams.numInstancesPerClass = 500;
+
+algorithmParams.numIterations = 50;
+algorithmParams.labeledConfidence = 0.1;
+algorithmParams.alpha = 1;
+algorithmParams.beta = 1;
 
 numExperiments = 1;
-numLabeled = 50;
-numInstancesPerClass = 500;
-numIterations = 50;
-k10  = avg_experiment(numExperiments,   10, numLabeled, numInstancesPerClass, numIterations);
-k20  = avg_experiment(numExperiments,   20, numLabeled, numInstancesPerClass, numIterations);
-k100 = avg_experiment(numExperiments,  100, numLabeled, numInstancesPerClass, numIterations);
+showResults = 1;
+
+graphFileName = 'C:\technion\theses\Experiments\WebKB\data\From Amar\webkb_amar.mat';
+
+%% Run different values of k
+
+constructionParams.K = 10;
+k10.exp  = run_multiple_experiments ...
+        (graphFileName, numExperiments, ...
+         constructionParams, algorithmParams);
+
+constructionParams.K = 20;
+k20.exp  = run_multiple_experiments ...
+        (graphFileName, numExperiments, ...
+         constructionParams, algorithmParams);
+
+constructionParams.K = 100;
+k100.exp  = run_multiple_experiments ...
+        (graphFileName, numExperiments, ...
+         constructionParams, algorithmParams);
+
+%%
+     
+k10.analyzed  = analyzeResults( k10.exp.experimentsOutput(1) );
+k20.analyzed  = analyzeResults( k20.exp.experimentsOutput(1) );
+k100.analyzed = analyzeResults( k100.exp.experimentsOutput(1) );
 
 %% Compare K
+numLabeled = constructionParams.numLabeled;
 numRows = 2;
 numCols = 1;
+
 t = ['effect of K-nn graph.'...
-     ' numExperiments = ' num2str(numExperiments)...
-     ', numLabeled = ' num2str(numLabeled)];
+     ' numExperiments = '   num2str(numExperiments)...
+     ', numLabeled = '      num2str(numLabeled)];
 figure('name', t);
 subplot(numRows,numCols,1);
 hold on;
-plot(k10.accumulativeLoss,  'r');
-plot(k20.accumulativeLoss,  'g');
-plot(k100.accumulativeLoss,  'b');
+
+plot(k10.analyzed.sorted.by_confidence.accumulative,  'r');
+plot(k20.analyzed.sorted.by_confidence.accumulative,  'g');
+plot(k100.analyzed.sorted.by_confidence.accumulative,  'b');
 title('accumulative loss sorted by confidence');
 legend('k=10','k=20','k=100');
 subplot(numRows,numCols,2);
 hold on;
-plot(k10.sortedConfidence,  'r');
-plot(k20.sortedConfidence,  'g');
-plot(k100.sortedConfidence,  'b');
+plot(k10.analyzed.sorted.by_confidence.confidence,  'r');
+plot(k20.analyzed.sorted.by_confidence.confidence,  'g');
+plot(k100.analyzed.sorted.by_confidence.confidence,  'b');
 title('sorted confidence');
 legend('k=10','k=20','k=100');
 
@@ -63,11 +94,11 @@ K = 20;
 numInstancesPerClass = 500;
 numIterations = 50;
 
-l20  = avg_experiment(numExperiments, K,  20, ...
+l20  = run_multiple_experiments(numExperiments, K,  20, ...
                    numInstancesPerClass, numIterations);
-l50  = avg_experiment(numExperiments, K,  50, ...
+l50  = run_multiple_experiments(numExperiments, K,  50, ...
                    numInstancesPerClass, numIterations);
-l100 = avg_experiment(numExperiments, K, 100, ...
+l100 = run_multiple_experiments(numExperiments, K, 100, ...
                    numInstancesPerClass, numIterations);
 
 %%
@@ -77,9 +108,9 @@ t = ['effect of nuber of labeled vertices.'...
 figure('name', t);
 subplot(2,1,1);
 hold on;
-plot(l20.accumulativeLoss,  'r');
-plot(l50.accumulativeLoss,  'g');
-plot(l100.accumulativeLoss,  'b');
+plot(l20.sortedAccumulativeLoss,  'r');
+plot(l50.sortedAccumulativeLoss,  'g');
+plot(l100.sortedAccumulativeLoss,  'b');
 title('accumulative loss sorted by confidence');
 legend('#labeled=20','#labeled=50','#labeled=100');
 subplot(2,1,2);
