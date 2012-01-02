@@ -1,17 +1,18 @@
 %% global shared parameters
-numRunsPerExperiment = 5;
+numRunsPerExperiment = 10;
 graphFileName = 'C:\technion\theses\Experiments\WebKB\data\From Amar\webkb_amar.mat';
+groupName = 'large_beta_symetric';
 
 %% define parameter properties
 
 %K.range = [1,2,5,10,20,50,100,500];
-K.range = [10];
+K.range = [5,7,10];
 K.name = 'K';
 %alpha.range = [0.0001, 0.001, 0.01,0.1,1];
 alpha.range = [ 0.1 ];
 alpha.name = 'alpha';
 %beta.range = [1,10, 100,1000,10000];
-beta.range = [100];
+beta.range = [10, 100, 10^3, 10^4,10^5, 10^6, 10^7, 10^8];
 beta.name = 'beta';
 %labeledConfidence.range = [0.01,0.1];
 labeledConfidence.range = [0.1];
@@ -49,8 +50,7 @@ end
 toc(ticID);
 
 %% Define which result figures to display
-figuresToShow.predictionAndConfidence = 1;
-figuresToShow.marginAndConfidence = 1;
+figuresToShow.singleRuns = 0;
 figuresToShow.assumulativeLoss = 1;
 
 %% get total number of experiment
@@ -63,9 +63,7 @@ resultsDir = 'C:\technion\theses\Experiments\WebKB\results params\';
 % sorted by precentage 100 vs 900: 161 164 171 175 176 177
 % experiment id 90 106 97 98 88 89
 
-
-groupName = 'test';
-%%
+%% Create result figures per experiment
 
 %experimentRange =[24 88 89 90 97 98 106 193] % good expoeriments from 216
 %experiments
@@ -82,28 +80,29 @@ for experimentID = experimentRange
     showMultipleExperimentsResults...
         (singleExperiment , figuresToShow, experimentID );
     experimentFigurePath = ...
-        [resultsDir 'experiment.' num2str(experimentID) '.' groupName '.fig'];
+        [resultsDir groupName '.experiment.' num2str(experimentID) '.fig'];
     saveas(gcf, experimentFigurePath);
-    %close(gcf);
+    close(gcf);
 end
 
-%%
-numMistakes     = zeros(numExperiments,1);
+%% 
+
 paramsOrder.K   = zeros(numExperiments,1);
 for experimentID=1:numExperiments
     singleExperiment = allExperiments(experimentID);
+    multipleRuns = singleExperiment.result;
     numMistakes.final(experimentID) = ...
-        singleExperiment.result.sortedAccumulativeLoss(end);
+        multipleRuns.sorted_by_confidence.accumulative(end);
     numMistakes.after100(experimentID) = ...
-        singleExperiment.result.sortedAccumulativeLoss(100);
+        multipleRuns.sorted_by_confidence.accumulative(100);
     numMistakes.after200(experimentID) = ...
-        singleExperiment.result.sortedAccumulativeLoss(200);
+        multipleRuns.sorted_by_confidence.accumulative(200);
 	numMistakes.after300(experimentID) = ...
-        singleExperiment.result.sortedAccumulativeLoss(300);
+        multipleRuns.sorted_by_confidence.accumulative(300);
    	numMistakes.after500(experimentID) = ...
-        singleExperiment.result.sortedAccumulativeLoss(500);
+        multipleRuns.sorted_by_confidence.accumulative(500);
     numMistakes.after900(experimentID) = ...
-        singleExperiment.result.sortedAccumulativeLoss(900);
+        multipleRuns.sorted_by_confidence.accumulative(900);
     paramsOrder.K(experimentID) =...
         singleExperiment.params.constructionParams.K;
     paramsOrder.alpha(experimentID) =...
@@ -125,33 +124,33 @@ paramsOrder.experimentID = 1:numExperiments;
 
 %% Plot effect of parameters on total number of mistakes
 
-figurePath = [resultsDir 'params.vs.num_mistakes.fig']; 
+figurePath = [resultsDir groupName '.params.vs.num_mistakes.fig']; 
 plotParamsEffect(numMistakes.final, ...
     sorted, sortOrder, 'total #mistakes', figurePath );
 
 %% Plot effect of parameters on total number of mistakes
 %  after 100 most confident vertices
 
-figurePath = [resultsDir 'params.vs.num_mistakes.after.100.fig']; 
+figurePath = [resultsDir groupName '.params.vs.num_mistakes.after.100.fig']; 
 title = '#mistakes after 100 most confident vertices';
 plotParamsEffect(numMistakes.after100, ...
     sorted, sortOrder, title ,figurePath );
 
 %% after 200 most confident vertices
-figurePath = [resultsDir 'params.vs.num_mistakes.after.200.fig']; 
+figurePath = [resultsDir groupName '.params.vs.num_mistakes.after.200.fig']; 
 title = '#mistakes after 200 most confident vertices';
 plotParamsEffect(numMistakes.after200, ...
     sorted, sortOrder, title, figurePath );
 
 %% after 300 most confident vertices
-figurePath = [resultsDir 'params.vs.num_mistakes.after.300.fig']; 
+figurePath = [resultsDir groupName '.params.vs.num_mistakes.after.300.fig']; 
 title = '#mistakes after 300 most confident vertices';
 plotParamsEffect(numMistakes.after300, ...
     sorted, sortOrder, title, figurePath );
 
 
 %%
-figurePath = [resultsDir 'precentage.100_vs_500.from_50.fig']; 
+figurePath = [resultsDir groupName '.precentage.100_vs_500.fig']; 
 plotPrecentageDiff( numMistakes.after100 / 100, ...
                     numMistakes.after500 / 500, ...
                     numMistakes.final, ...
@@ -159,7 +158,7 @@ plotPrecentageDiff( numMistakes.after100 / 100, ...
                 
 %%
 
-figurePath = [resultsDir 'precentage.100_vs_900.from_50.fig']; 
+figurePath = [resultsDir groupName '.precentage.100_vs_900.fig']; 
 plotPrecentageDiff( numMistakes.after100 / 100, ...
                     numMistakes.after900 / 900,...
                     numMistakes.final, ...

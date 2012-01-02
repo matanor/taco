@@ -35,9 +35,12 @@ if (figuresToShow.assumulativeLoss)
     plot(sorted.by_confidence.accumulative,  'b');
     title( [paramsString ...
             '\newline accumulative loss sorted by final confidence' ]);
+    ylabel('# mistakes');
+        
     subplot(numRows,numCols,2);
-    plot(sorted.by_confidence.confidence,  'r');
+    plot(log(sorted.by_confidence.confidence),  'r');
     title('sorted final confidence');
+    ylabel('log(confidence)');
 end
 
 end

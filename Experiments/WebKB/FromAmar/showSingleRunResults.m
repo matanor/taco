@@ -34,7 +34,7 @@ lastSlash = slashes(end);
 outputFolder = graphFileName(1:lastSlash);
 
 %% Show final prediction & confidence
-if (figuresToShow.predictionAndConfidence) 
+if (figuresToShow.singleRuns) 
     final_mu            = runOutput.unlabeled_final_mu();
     final_confidence    = runOutput.unlabeled_final_confidence();
     margin              = runOutput.unlabeled_margin();
@@ -43,30 +43,59 @@ if (figuresToShow.predictionAndConfidence)
     t = [ 'unlabeled (prediction & confidence & margin).' paramsString ];
 
     numRows = 3;
-    numCols = 1;
+    numCols = 2;
     
     figure('name', t);
     
-    subplot(numRows, numCols, 1);
+    current = 1;
+    subplot(numRows, numCols, current);
     scatter(1:numVertices, final_mu, 'b');
-    title( ['unlabeled prediction (mu).' paramsString] );
+    title( ['unlabeled prediction (mu).\newline' paramsString] );
     xlabel('vertex #i');
     ylabel('prediction (mu)');
+    current = current + numCols;
     
-    subplot(numRows, numCols, 2);
+    subplot(numRows, numCols, current);
     scatter(1:numVertices, final_confidence, 'r');
-    title( ['unlabeled confidence (v).' paramsString] );
+    title( 'unlabeled confidence (v).' );
     xlabel('vertex #i');
     ylabel('confidence (v)');
+    current = current + numCols;
     
- 	subplot(numRows, numCols, 3);
-    scatter(1:numVertices, margin, 'r');
-    title( ['unlabeled margin (mu*y).' paramsString] );
+ 	subplot(numRows, numCols, current);
+    scatter(1:numVertices, margin, 'g');
+    title( 'unlabeled margin (mu*y).' );
     xlabel('vertex #i');
     ylabel('margin (mu*y)');
     
-    filename = [ outputFolder t '.' num2str(run_i) '.fig'];
+    current = 2;
+    
+    sorted.by_confidence = runOutput.sorted_by_confidence();
+    
+    subplot(numRows, numCols, current);
+    plot(sorted.by_confidence.accumulative, 'r');
+    title( 'accumulative (sorted by confidence)' );
+    xlabel('vertex #i');
+    ylabel('# mistakes');
+    current = current + numCols;
+
+    subplot(numRows, numCols, current);
+    plot(sorted.by_confidence.confidence, 'b');
+    title( 'confidence (sorted)' );
+    xlabel('vertex #i');
+    ylabel('confidence (v)');
+    current = current + numCols;
+
+    subplot(numRows, numCols, current);
+    scatter(1:numVertices, sorted.by_confidence.margin, 'g');
+    title( 'margin (sorted by confidence)' );
+    xlabel('vertex #i');
+    ylabel('margin (mu*y)');
+    
+    filename = [ outputFolder 'singleResults.' ...
+                 num2str(experimentID) '.' num2str(run_i) '.fig'];
     saveas(gcf, filename);
+    close(gcf);
     
 end
 

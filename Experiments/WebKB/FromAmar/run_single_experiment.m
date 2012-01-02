@@ -21,6 +21,8 @@ numInstancesPerClass = constructionParams.numInstancesPerClass;
 w_nn = graph.weights;
 lbls = graph.labels;
 
+w_nn = makeSymetric(w_nn);
+
 %% Prepare algorithm parameters
 
 positiveInitialValue = +1;
@@ -40,14 +42,14 @@ paramsString = ...
 
  disp(paramsString);
  
-%% Run the algorithm
+%% Run the algorithm - confidence SSL
 labeledPositive = labeled(:, 1);
 labeledNegative = labeled(:, 2);
 result = confidenceSSL...
     ( w_nn, numIterations, labeledPositive, labeledNegative, ...
         positiveInitialValue,negativeInitialValue, ...
         labeledConfidence, alpha, beta);
-
+    
 %% Create a single run object for results.
 
 singleRun = SingleRun;
