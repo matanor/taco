@@ -10,6 +10,7 @@ classdef SingleRun < handle
         negativeInitialValue;
         classToLabelMap;
         result;
+        LP;
     end
     
     properties (Access=private)
@@ -21,6 +22,10 @@ classdef SingleRun < handle
         m_unlabeled_margin;
         m_unlabeled_is_correct;
         m_unlabeled_sorted;
+        m_unlabeled_correct_label;
+        m_unlabeled_LP_prediction;
+        m_unlabeled_num_mistakes_LP;
+        m_unlabeled_num_mistakes_CSSL;
     end
     
     methods (Access=public)
@@ -33,6 +38,10 @@ classdef SingleRun < handle
             this.m_unlabeled_margin = [];
             this.m_unlabeled_is_correct = [];
             this.m_unlabeled_sorted.by_confidence = [];
+            this.m_unlabeled_correct_label = [];
+            this.m_unlabeled_LP_prediction = [];
+            this.m_unlabeled_num_mistakes_LP = [];
+            this.m_unlabeled_num_mistakes_CSSL = [];
         end
        
         %% Return final mu for unlabeled vertices
@@ -86,13 +95,59 @@ classdef SingleRun < handle
             r = this.m_unlabeled_sorted.by_confidence;
         end
         
-    end % (Access=public)
-    
-    methods (Access = private)
-
         function r = final_mu(this)
             r = this.result.mu(:,end);
         end
+        
+        %% get correct label for unalbeled vertices
+        
+        function r = unlabeled_correct_label(this)
+            if isempty(this.m_unlabeled_correct_label)
+                this.m_unlabeled_correct_label = this.correctLabels;
+                this.m_unlabeled_correct_label( this.labeled() ) = [];
+            end
+            r = this.m_unlabeled_correct_label;
+        end
+        
+        %% get prediction for unalbeled vertices (LP algorithm)
+        
+        function r = unlabeled_LP_prediction(this)
+            if isempty(this.m_unlabeled_LP_prediction)
+                this.m_unlabeled_LP_prediction = this.LP.Y;
+                this.m_unlabeled_LP_prediction( this.labeled() ) = [];
+            end
+            r = this.m_unlabeled_LP_prediction;
+        end
+        
+        %% get number of mistakes (on unlabeled data) using LP algorithm
+        
+        function r = unlabeled_num_mistakes_LP(this)
+            if isempty(this.m_unlabeled_num_mistakes_LP)
+                prediction = this.unlabeled_LP_prediction();
+                correct    = this.unlabeled_correct_label();
+                isCorrect  = (sign(prediction) == correct);
+                isWrong    = 1 - isCorrect;
+                this.m_unlabeled_num_mistakes_LP = sum(isWrong);
+            end
+            r = this.m_unlabeled_num_mistakes_LP ;
+        end
+        
+        %% get number of mistakes (on unlabeled data) using CSSL algorithm
+        
+        function r = unlabeled_num_mistakes_CSSL(this)
+            if isempty(this.m_unlabeled_num_mistakes_CSSL)
+                prediction = this.unlabeled_final_mu();
+                correct    = this.unlabeled_correct_label();
+                isCorrect = (sign(prediction) == correct);
+                isWrong    = 1 - isCorrect;
+                this.m_unlabeled_num_mistakes_CSSL = sum(isWrong);
+            end
+            r = this.m_unlabeled_num_mistakes_CSSL ;
+        end
+        
+    end % (Access=public)
+    
+    methods (Access = private)
         
         function r = final_confidence(this)
             r = this.result.v(:,end);
