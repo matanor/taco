@@ -1,0 +1,412 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Mathematica 8.0' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       157,          7]
+NotebookDataLength[     14763,        403]
+NotebookOptionsPosition[     13949,        370]
+NotebookOutlinePosition[     14332,        386]
+CellTagsIndexPosition[     14289,        383]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+
+Cell[CellGroupData[{
+Cell[BoxData[{
+ RowBox[{"Needs", "[", "\"\<PlotLegends`\>\"", "]"}], "\[IndentingNewLine]", 
+ RowBox[{"Manipulate", "[", "\[IndentingNewLine]", "\t\t", 
+  RowBox[{
+   RowBox[{"Plot", "[", "\t\t", 
+    RowBox[{
+     RowBox[{"{", 
+      RowBox[{
+       RowBox[{
+        RowBox[{"Log", " ", "[", "b", "]"}], " ", "/", " ", 
+        RowBox[{"Log", "[", " ", 
+         RowBox[{"b", " ", "+", " ", 
+          RowBox[{"Exp", "[", "x", "]"}]}], "]"}]}], ",", " ", 
+       RowBox[{"Exp", "[", 
+        RowBox[{"-", "x"}], "]"}]}], "}"}], ",", "\[IndentingNewLine]", 
+     "\t\t\t\t\t", 
+     RowBox[{"{", 
+      RowBox[{"x", ",", "0", ",", 
+       RowBox[{"Log", "[", "k", "]"}]}], "}"}], ",", 
+     RowBox[{"PlotLegend", "\[Rule]", 
+      RowBox[{"{", 
+       RowBox[{"\"\<f(x)\>\"", ",", "\"\<e^(-x)\>\""}], "}"}]}], ",", 
+     "\[IndentingNewLine]", "\t\t\t\t\t", 
+     RowBox[{"LegendPosition", "\[Rule]", 
+      RowBox[{"{", 
+       RowBox[{"1.1", ",", 
+        RowBox[{"-", "0.4"}]}], "}"}]}]}], "]"}], "\[IndentingNewLine]", "\t",
+    ",", 
+   RowBox[{"{", 
+    RowBox[{
+     RowBox[{"{", 
+      RowBox[{"b", ",", "2"}], "}"}], ",", "1.5", ",", "10", ",", "0.1"}], 
+    "}"}], "\[IndentingNewLine]", "\t", ",", 
+   RowBox[{"{", 
+    RowBox[{
+     RowBox[{"{", 
+      RowBox[{"k", ",", "1000"}], "}"}], ",", "2", ",", "5000", ",", "1"}], 
+    "}"}]}], "]"}], "\[IndentingNewLine]"}], "Input",
+ CellChangeTimes->{{3.534587252431677*^9, 3.534587360549921*^9}, {
+   3.53458740055962*^9, 3.5345874364250746`*^9}, {3.5345875803349276`*^9, 
+   3.5345876151202817`*^9}, {3.5345876540980268`*^9, 
+   3.5345876586014595`*^9}, {3.534587702090635*^9, 3.534587721115457*^9}, {
+   3.534587886026246*^9, 3.534587886675306*^9}, {3.534587929531402*^9, 
+   3.5345879970699077`*^9}, {3.534588245902361*^9, 3.5345882842319326`*^9}, {
+   3.5345884019802094`*^9, 3.5345884491753907`*^9}, {3.5345886594752607`*^9, 
+   3.534588719594825*^9}, 3.5345890357295485`*^9, {3.53458906684037*^9, 
+   3.534589080407621*^9}, {3.53458911488269*^9, 3.5345891227224207`*^9}, {
+   3.5345891838859344`*^9, 3.534589198317314*^9}, {3.5345896802785444`*^9, 
+   3.5345896808845654`*^9}, {3.5345905887377987`*^9, 3.5345906276605377`*^9}}],
+
+Cell[BoxData[
+ TagBox[
+  StyleBox[
+   DynamicModuleBox[{$CellContext`b$$ = 2, $CellContext`k$$ = 1000, 
+    Typeset`show$$ = True, Typeset`bookmarkList$$ = {}, 
+    Typeset`bookmarkMode$$ = "Menu", Typeset`animator$$, Typeset`animvar$$ = 
+    1, Typeset`name$$ = "\"untitled\"", Typeset`specs$$ = {{{
+       Hold[$CellContext`b$$], 2}, 1.5, 10, 0.1}, {{
+       Hold[$CellContext`k$$], 1000}, 2, 5000, 1}}, Typeset`size$$ = {
+    504., {102., 111.}}, Typeset`update$$ = 0, Typeset`initDone$$, 
+    Typeset`skipInitDone$$ = True, $CellContext`b$26558$$ = 
+    0, $CellContext`k$26559$$ = 0}, 
+    DynamicBox[Manipulate`ManipulateBoxes[
+     1, StandardForm, 
+      "Variables" :> {$CellContext`b$$ = 2, $CellContext`k$$ = 1000}, 
+      "ControllerVariables" :> {
+        Hold[$CellContext`b$$, $CellContext`b$26558$$, 0], 
+        Hold[$CellContext`k$$, $CellContext`k$26559$$, 0]}, 
+      "OtherVariables" :> {
+       Typeset`show$$, Typeset`bookmarkList$$, Typeset`bookmarkMode$$, 
+        Typeset`animator$$, Typeset`animvar$$, Typeset`name$$, 
+        Typeset`specs$$, Typeset`size$$, Typeset`update$$, Typeset`initDone$$,
+         Typeset`skipInitDone$$}, "Body" :> 
+      Plot[{Log[$CellContext`b$$]/Log[$CellContext`b$$ + Exp[$CellContext`x]], 
+         Exp[-$CellContext`x]}, {$CellContext`x, 0, 
+         Log[$CellContext`k$$]}, PlotLegends`PlotLegend -> {"f(x)", "e^(-x)"},
+         PlotLegends`LegendPosition -> {1.1, -0.4}], 
+      "Specifications" :> {{{$CellContext`b$$, 2}, 1.5, 10, 
+         0.1}, {{$CellContext`k$$, 1000}, 2, 5000, 1}}, "Options" :> {}, 
+      "DefaultOptions" :> {}],
+     ImageSizeCache->{569., {219., 226.}},
+     SingleEvaluation->True],
+    Deinitialization:>None,
+    DynamicModuleValues:>{},
+    SynchronousInitialization->True,
+    UnsavedVariables:>{Typeset`initDone$$},
+    UntrackedVariables:>{Typeset`size$$}], "Manipulate",
+   Deployed->True,
+   StripOnInput->False],
+  Manipulate`InterpretManipulate[1]]], "Output",
+ CellChangeTimes->{3.5345906649201117`*^9}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"\[IndentingNewLine]", 
+  RowBox[{"D", "[", 
+   RowBox[{
+    RowBox[{
+     RowBox[{"Log", " ", "[", "c", "]"}], " ", "/", " ", 
+     RowBox[{"Log", "[", " ", 
+      RowBox[{"c", " ", "+", " ", 
+       RowBox[{"Exp", "[", "x", "]"}]}], "]"}]}], ",", "x"}], "]"}], 
+  " "}]], "Input",
+ CellChangeTimes->{{3.5345906794655123`*^9, 3.534590679794544*^9}}],
+
+Cell[BoxData[
+ RowBox[{"-", 
+  FractionBox[
+   RowBox[{
+    SuperscriptBox["\[ExponentialE]", "x"], " ", 
+    RowBox[{"Log", "[", "c", "]"}]}], 
+   RowBox[{
+    RowBox[{"(", 
+     RowBox[{"c", "+", 
+      SuperscriptBox["\[ExponentialE]", "x"]}], ")"}], " ", 
+    SuperscriptBox[
+     RowBox[{"Log", "[", 
+      RowBox[{"c", "+", 
+       SuperscriptBox["\[ExponentialE]", "x"]}], "]"}], "2"]}]]}]], "Output",
+ CellChangeTimes->{3.534590680679628*^9}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"\[IndentingNewLine]", 
+  RowBox[{"Manipulate", "[", "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"Plot", "[", 
+     RowBox[{
+      RowBox[{"-", 
+       FractionBox[
+        RowBox[{
+         SuperscriptBox["\[ExponentialE]", "x"], " ", 
+         RowBox[{"Log", "[", "b", "]"}]}], 
+        RowBox[{
+         RowBox[{"(", 
+          RowBox[{"b", "+", 
+           SuperscriptBox["\[ExponentialE]", "x"]}], ")"}], " ", 
+         SuperscriptBox[
+          RowBox[{"Log", "[", 
+           RowBox[{"b", "+", 
+            SuperscriptBox["\[ExponentialE]", "x"]}], "]"}], "2"]}]]}], ",", 
+      RowBox[{"{", 
+       RowBox[{"x", ",", "0", ",", "7"}], "}"}]}], "]"}], ",", 
+    RowBox[{"{", 
+     RowBox[{"b", ",", "2", ",", "10"}], "}"}]}], "]"}]}]], "Input",
+ CellChangeTimes->{{3.5345906888764153`*^9, 3.53459068922645*^9}}],
+
+Cell[BoxData[
+ TagBox[
+  StyleBox[
+   DynamicModuleBox[{$CellContext`b$$ = 2, Typeset`show$$ = True, 
+    Typeset`bookmarkList$$ = {}, Typeset`bookmarkMode$$ = "Menu", 
+    Typeset`animator$$, Typeset`animvar$$ = 1, Typeset`name$$ = 
+    "\"untitled\"", Typeset`specs$$ = {{
+      Hold[$CellContext`b$$], 2, 10}}, Typeset`size$$ = {504., {144., 152.}}, 
+    Typeset`update$$ = 0, Typeset`initDone$$, Typeset`skipInitDone$$ = 
+    True, $CellContext`b$26702$$ = 0}, 
+    DynamicBox[Manipulate`ManipulateBoxes[
+     1, StandardForm, "Variables" :> {$CellContext`b$$ = 2}, 
+      "ControllerVariables" :> {
+        Hold[$CellContext`b$$, $CellContext`b$26702$$, 0]}, 
+      "OtherVariables" :> {
+       Typeset`show$$, Typeset`bookmarkList$$, Typeset`bookmarkMode$$, 
+        Typeset`animator$$, Typeset`animvar$$, Typeset`name$$, 
+        Typeset`specs$$, Typeset`size$$, Typeset`update$$, Typeset`initDone$$,
+         Typeset`skipInitDone$$}, "Body" :> 
+      Plot[-(E^$CellContext`x 
+         Log[$CellContext`b$$]/(($CellContext`b$$ + E^$CellContext`x) 
+         Log[$CellContext`b$$ + E^$CellContext`x]^2)), {$CellContext`x, 0, 
+         7}], "Specifications" :> {{$CellContext`b$$, 2, 10}}, 
+      "Options" :> {}, "DefaultOptions" :> {}],
+     ImageSizeCache->{569., {224., 231.}},
+     SingleEvaluation->True],
+    Deinitialization:>None,
+    DynamicModuleValues:>{},
+    SynchronousInitialization->True,
+    UnsavedVariables:>{Typeset`initDone$$},
+    UntrackedVariables:>{Typeset`size$$}], "Manipulate",
+   Deployed->True,
+   StripOnInput->False],
+  Manipulate`InterpretManipulate[1]]], "Output",
+ CellChangeTimes->{3.5345906901845417`*^9}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"\[IndentingNewLine]", 
+  RowBox[{"D", "[", 
+   RowBox[{
+    RowBox[{"D", "[", 
+     RowBox[{
+      RowBox[{
+       RowBox[{"Log", " ", "[", "c", "]"}], " ", "/", " ", 
+       RowBox[{"Log", "[", " ", 
+        RowBox[{"c", " ", "+", " ", 
+         RowBox[{"Exp", "[", "x", "]"}]}], "]"}]}], ",", "x"}], "]"}], ",", 
+    "x"}], " ", "]"}]}]], "Input",
+ CellChangeTimes->{{3.5345907125467777`*^9, 3.5345907128358064`*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  FractionBox[
+   RowBox[{"2", " ", 
+    SuperscriptBox["\[ExponentialE]", 
+     RowBox[{"2", " ", "x"}]], " ", 
+    RowBox[{"Log", "[", "c", "]"}]}], 
+   RowBox[{
+    SuperscriptBox[
+     RowBox[{"(", 
+      RowBox[{"c", "+", 
+       SuperscriptBox["\[ExponentialE]", "x"]}], ")"}], "2"], " ", 
+    SuperscriptBox[
+     RowBox[{"Log", "[", 
+      RowBox[{"c", "+", 
+       SuperscriptBox["\[ExponentialE]", "x"]}], "]"}], "3"]}]], "+", 
+  FractionBox[
+   RowBox[{
+    SuperscriptBox["\[ExponentialE]", 
+     RowBox[{"2", " ", "x"}]], " ", 
+    RowBox[{"Log", "[", "c", "]"}]}], 
+   RowBox[{
+    SuperscriptBox[
+     RowBox[{"(", 
+      RowBox[{"c", "+", 
+       SuperscriptBox["\[ExponentialE]", "x"]}], ")"}], "2"], " ", 
+    SuperscriptBox[
+     RowBox[{"Log", "[", 
+      RowBox[{"c", "+", 
+       SuperscriptBox["\[ExponentialE]", "x"]}], "]"}], "2"]}]], "-", 
+  FractionBox[
+   RowBox[{
+    SuperscriptBox["\[ExponentialE]", "x"], " ", 
+    RowBox[{"Log", "[", "c", "]"}]}], 
+   RowBox[{
+    RowBox[{"(", 
+     RowBox[{"c", "+", 
+      SuperscriptBox["\[ExponentialE]", "x"]}], ")"}], " ", 
+    SuperscriptBox[
+     RowBox[{"Log", "[", 
+      RowBox[{"c", "+", 
+       SuperscriptBox["\[ExponentialE]", "x"]}], "]"}], "2"]}]]}]], "Output",
+ CellChangeTimes->{3.534590714044927*^9}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"\[IndentingNewLine]", 
+  RowBox[{"Manipulate", "[", "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"Plot", "[", 
+     RowBox[{
+      RowBox[{
+       FractionBox[
+        RowBox[{"2", " ", 
+         SuperscriptBox["\[ExponentialE]", 
+          RowBox[{"2", " ", "x"}]], " ", 
+         RowBox[{"Log", "[", "c", "]"}]}], 
+        RowBox[{
+         SuperscriptBox[
+          RowBox[{"(", 
+           RowBox[{"c", "+", 
+            SuperscriptBox["\[ExponentialE]", "x"]}], ")"}], "2"], " ", 
+         SuperscriptBox[
+          RowBox[{"Log", "[", 
+           RowBox[{"c", "+", 
+            SuperscriptBox["\[ExponentialE]", "x"]}], "]"}], "3"]}]], "+", 
+       FractionBox[
+        RowBox[{
+         SuperscriptBox["\[ExponentialE]", 
+          RowBox[{"2", " ", "x"}]], " ", 
+         RowBox[{"Log", "[", "c", "]"}]}], 
+        RowBox[{
+         SuperscriptBox[
+          RowBox[{"(", 
+           RowBox[{"c", "+", 
+            SuperscriptBox["\[ExponentialE]", "x"]}], ")"}], "2"], " ", 
+         SuperscriptBox[
+          RowBox[{"Log", "[", 
+           RowBox[{"c", "+", 
+            SuperscriptBox["\[ExponentialE]", "x"]}], "]"}], "2"]}]], "-", 
+       FractionBox[
+        RowBox[{
+         SuperscriptBox["\[ExponentialE]", "x"], " ", 
+         RowBox[{"Log", "[", "c", "]"}]}], 
+        RowBox[{
+         RowBox[{"(", 
+          RowBox[{"c", "+", 
+           SuperscriptBox["\[ExponentialE]", "x"]}], ")"}], " ", 
+         SuperscriptBox[
+          RowBox[{"Log", "[", 
+           RowBox[{"c", "+", 
+            SuperscriptBox["\[ExponentialE]", "x"]}], "]"}], "2"]}]]}], ",", 
+      RowBox[{"{", 
+       RowBox[{"x", ",", "0", ",", "7"}], "}"}]}], "]"}], ",", 
+    RowBox[{"{", 
+     RowBox[{"c", ",", "2", ",", "10"}], "}"}]}], "]"}]}]], "Input",
+ CellChangeTimes->{{3.5345904357297525`*^9, 3.5345904650061636`*^9}, {
+  3.5345904957410145`*^9, 3.534590499698394*^9}}],
+
+Cell[BoxData[
+ TagBox[
+  StyleBox[
+   DynamicModuleBox[{$CellContext`c$$ = 2, Typeset`show$$ = True, 
+    Typeset`bookmarkList$$ = {}, Typeset`bookmarkMode$$ = "Menu", 
+    Typeset`animator$$, Typeset`animvar$$ = 1, Typeset`name$$ = 
+    "\"untitled\"", Typeset`specs$$ = {{
+      Hold[$CellContext`c$$], 2, 10}}, Typeset`size$$ = {504., {145., 154.}}, 
+    Typeset`update$$ = 0, Typeset`initDone$$, Typeset`skipInitDone$$ = 
+    True, $CellContext`c$26733$$ = 0}, 
+    DynamicBox[Manipulate`ManipulateBoxes[
+     1, StandardForm, "Variables" :> {$CellContext`c$$ = 2}, 
+      "ControllerVariables" :> {
+        Hold[$CellContext`c$$, $CellContext`c$26733$$, 0]}, 
+      "OtherVariables" :> {
+       Typeset`show$$, Typeset`bookmarkList$$, Typeset`bookmarkMode$$, 
+        Typeset`animator$$, Typeset`animvar$$, Typeset`name$$, 
+        Typeset`specs$$, Typeset`size$$, Typeset`update$$, Typeset`initDone$$,
+         Typeset`skipInitDone$$}, "Body" :> 
+      Plot[2 E^(2 $CellContext`x) 
+         Log[$CellContext`c$$]/(($CellContext`c$$ + E^$CellContext`x)^2 
+         Log[$CellContext`c$$ + E^$CellContext`x]^3) + 
+        E^(2 $CellContext`x) 
+         Log[$CellContext`c$$]/(($CellContext`c$$ + E^$CellContext`x)^2 
+         Log[$CellContext`c$$ + E^$CellContext`x]^2) - E^$CellContext`x 
+        Log[$CellContext`c$$]/(($CellContext`c$$ + E^$CellContext`x) 
+        Log[$CellContext`c$$ + E^$CellContext`x]^2), {$CellContext`x, 0, 7}], 
+      "Specifications" :> {{$CellContext`c$$, 2, 10}}, "Options" :> {}, 
+      "DefaultOptions" :> {}],
+     ImageSizeCache->{569., {207., 214.}},
+     SingleEvaluation->True],
+    Deinitialization:>None,
+    DynamicModuleValues:>{},
+    SynchronousInitialization->True,
+    UnsavedVariables:>{Typeset`initDone$$},
+    UntrackedVariables:>{Typeset`size$$}], "Manipulate",
+   Deployed->True,
+   StripOnInput->False],
+  Manipulate`InterpretManipulate[1]]], "Output",
+ CellChangeTimes->{{3.5345904517031565`*^9, 3.534590465833246*^9}, 
+   3.5345905019086075`*^9, 3.5345907341519375`*^9}]
+}, Open  ]]
+},
+WindowSize->{1084, 829},
+WindowMargins->{{225, Automatic}, {Automatic, 20}},
+Magnification->1.4000000953674316`,
+FrontEndVersion->"8.0 for Microsoft Windows (64-bit) (February 23, 2011)",
+StyleDefinitions->"Default.nb"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[CellGroupData[{
+Cell[579, 22, 2192, 48, 217, "Input"],
+Cell[2774, 72, 2006, 40, 468, "Output"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[4817, 117, 373, 10, 67, "Input"],
+Cell[5193, 129, 450, 14, 66, "Output"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[5680, 148, 844, 23, 143, "Input"],
+Cell[6527, 173, 1647, 34, 478, "Output"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[8211, 212, 443, 12, 67, "Input"],
+Cell[8657, 226, 1311, 42, 68, "Output"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[10005, 273, 1899, 52, 185, "Input"],
+Cell[11907, 327, 2026, 40, 444, "Output"]
+}, Open  ]]
+}
+]
+*)
+
+(* End of internal cache information *)
