@@ -3,19 +3,19 @@ clear classes;
 %% global shared parameters
 numRunsPerExperiment = 10;
 graphFileName = 'C:\technion\theses\Experiments\WebKB\data\From Amar\webkb_amar.mat';
-groupName = 'confidence_vs_lp_params';
+groupName = '2012_01_03 confidence_vs_lp_params_2';
 
 %% define parameter properties
 
 %K.range = [1,2,5,10,20,50,100,500];
-K.range = [5,7,10];
+K.range = [3,4,5];
 K.name = 'K';
 %alpha.range = [0.0001, 0.001, 0.01,0.1,1];
-alpha.range = [0.001, 0.01,0.1,  1 ];
+alpha.range = [10^(-5), 10^(-4), 0.001, 0.01,  1 ];
 alpha.name = 'alpha';
 %beta.range = [1,10, 100,1000,10000];
 %beta.range = [10, 100, 10^3, 10^4,10^5, 10^6, 10^7, 10^8];
-beta.range = [0.001, 0.01,0.1,  1 ];;
+beta.range = [10^(-5), 10^(-4), 0.001, 0.01,0.1,  1 ];
 beta.name = 'beta';
 %labeledConfidence.range = [0.01,0.1];
 labeledConfidence.range = [0.1, 0.5];
@@ -28,7 +28,7 @@ paramProperties = [K, alpha, beta, labeledConfidence];
 params = createParamsVector(paramProperties);
 paramStructs = createParamStructs(paramProperties, params);
 
-%%
+%% run all experiments with all the parameter combinations
 
 ticID = tic;
 numStructs = length(paramStructs);
@@ -55,13 +55,14 @@ toc(ticID);
 
 %% Define which result figures to display
 figuresToShow.singleRuns = 1;
-figuresToShow.assumulativeLoss = 1;
+figuresToShow.accumulativeLoss = 1;
 
 %% get total number of experiment
 numExperiments = length( allExperiments );
 
 %%
-resultsDir = 'C:\technion\theses\Experiments\WebKB\results params\';
+resultsDir = 'C:\technion\theses\Experiments\WebKB\results\';
+mkdir(resultsDir,groupName)
 figuresToShow.resultDir = resultsDir;
 figuresToShow.groupName = groupName;
 
@@ -86,7 +87,7 @@ for experimentID = experimentRange
     showMultipleExperimentsResults...
         (singleExperiment , figuresToShow, experimentID );
     experimentFigurePath = ...
-        [resultsDir groupName '.experiment.' num2str(experimentID) '.fig'];
+        [resultsDir groupName '\experiment.' num2str(experimentID) '.fig'];
     saveas(gcf, experimentFigurePath);
     close(gcf);
 end
@@ -130,33 +131,33 @@ paramsOrder.experimentID = 1:numExperiments;
 
 %% Plot effect of parameters on total number of mistakes
 
-figurePath = [resultsDir groupName '.params.vs.num_mistakes.fig']; 
+figurePath = [resultsDir groupName '\params.vs.num_mistakes.fig']; 
 plotParamsEffect(numMistakes.final, ...
     sorted, sortOrder, 'total #mistakes', figurePath );
 
 %% Plot effect of parameters on total number of mistakes
 %  after 100 most confident vertices
 
-figurePath = [resultsDir groupName '.params.vs.num_mistakes.after.100.fig']; 
+figurePath = [resultsDir groupName '\params.vs.num_mistakes.after.100.fig']; 
 title = '#mistakes after 100 most confident vertices';
 plotParamsEffect(numMistakes.after100, ...
     sorted, sortOrder, title ,figurePath );
 
 %% after 200 most confident vertices
-figurePath = [resultsDir groupName '.params.vs.num_mistakes.after.200.fig']; 
+figurePath = [resultsDir groupName '\params.vs.num_mistakes.after.200.fig']; 
 title = '#mistakes after 200 most confident vertices';
 plotParamsEffect(numMistakes.after200, ...
     sorted, sortOrder, title, figurePath );
 
 %% after 300 most confident vertices
-figurePath = [resultsDir groupName '.params.vs.num_mistakes.after.300.fig']; 
+figurePath = [resultsDir groupName '\params.vs.num_mistakes.after.300.fig']; 
 title = '#mistakes after 300 most confident vertices';
 plotParamsEffect(numMistakes.after300, ...
     sorted, sortOrder, title, figurePath );
 
 
 %%
-figurePath = [resultsDir groupName '.precentage.100_vs_500.fig']; 
+figurePath = [resultsDir groupName '\precentage.100_vs_500.fig']; 
 plotPrecentageDiff( numMistakes.after100 / 100, ...
                     numMistakes.after500 / 500, ...
                     numMistakes.final, ...
@@ -164,7 +165,7 @@ plotPrecentageDiff( numMistakes.after100 / 100, ...
                 
 %%
 
-figurePath = [resultsDir groupName '.precentage.100_vs_900.fig']; 
+figurePath = [resultsDir groupName '\precentage.100_vs_900.fig']; 
 plotPrecentageDiff( numMistakes.after100 / 100, ...
                     numMistakes.after900 / 900,...
                     numMistakes.final, ...

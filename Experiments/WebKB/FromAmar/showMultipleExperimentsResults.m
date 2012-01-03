@@ -24,7 +24,7 @@ paramsString = ...
 
 %% Show accumulative loss sorted by confidence
 
-if (figuresToShow.assumulativeLoss)
+if (figuresToShow.accumulativeLoss)
     sorted.by_confidence = multipleRuns.sorted_by_confidence();
 
     t = [ 'Results (sorted by confidence).' paramsString ];

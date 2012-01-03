@@ -107,7 +107,7 @@ ylabel('margin (mu*y)');
 
 outputFolder = figuresToShow.resultDir;
 groupName    = figuresToShow.groupName;
-filename = [ outputFolder groupName '.singleResults.' ...
+filename = [ outputFolder groupName '\singleResults.' ...
              num2str(experimentID) '.' num2str(run_i) '.fig'];
 saveas(gcf, filename);
 close(gcf);
@@ -154,7 +154,7 @@ current = current + numCols;
 
 outputFolder = figuresToShow.resultDir;
 groupName    = figuresToShow.groupName;
-filename = [ outputFolder groupName '.singleResults.' ...
+filename = [ outputFolder groupName '\singleResults.' ...
              num2str(experimentID) '.' num2str(run_i) '.LP_vs_CSSL.fig'];
 saveas(gcf, filename);
 close(gcf);
