@@ -43,7 +43,7 @@ circle.labeled.negative = 5;
 %% run 
 
 %mainObject.graph = line;
-mainObject.graph = circle;
+mainObject.set_graph( circle );
   
 mainObject.runAlgorithm();
 mainObject.plotGraph(1);

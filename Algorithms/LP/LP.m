@@ -27,13 +27,15 @@ classdef LP < handle
 
             finished = 0;
             diff_epsilon = 0.01;
+            maxIterations = 150;
             iter_i = 1;
             while ( 0 == finished)
                 Y_t_plus1 = D_inv_matrix * W * Y;
                 Y_t_plus1( labeledPositive ) = positiveInitialValue;
                 Y_t_plus1( labeledNegative ) = negativeInitialValue;
                 diff = norm( Y - Y_t_plus1 , 2);
-                if diff < diff_epsilon
+                if diff < diff_epsilon || ... 
+                   iter_i > maxIterations
                     finished = 1;
                 end
                 Y = Y_t_plus1;

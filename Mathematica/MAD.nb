@@ -10,10 +10,10 @@
 NotebookFileLineBreakTest
 NotebookFileLineBreakTest
 NotebookDataPosition[       157,          7]
-NotebookDataLength[     14763,        403]
-NotebookOptionsPosition[     13949,        370]
-NotebookOutlinePosition[     14332,        386]
-CellTagsIndexPosition[     14289,        383]
+NotebookDataLength[     15208,        413]
+NotebookOptionsPosition[     14397,        380]
+NotebookOutlinePosition[     14777,        396]
+CellTagsIndexPosition[     14734,        393]
 WindowFrame->Normal*)
 
 (* Beginning of Notebook Content *)
@@ -33,6 +33,10 @@ Cell[BoxData[{
         RowBox[{"Log", "[", " ", 
          RowBox[{"b", " ", "+", " ", 
           RowBox[{"Exp", "[", "x", "]"}]}], "]"}]}], ",", " ", 
+       RowBox[{
+        RowBox[{"Log", " ", "[", "b", "]"}], " ", "/", " ", 
+        RowBox[{"Log", "[", " ", 
+         RowBox[{"b", " ", "+", " ", "x"}], "]"}]}], ",", " ", 
        RowBox[{"Exp", "[", 
         RowBox[{"-", "x"}], "]"}]}], "}"}], ",", "\[IndentingNewLine]", 
      "\t\t\t\t\t", 
@@ -41,8 +45,9 @@ Cell[BoxData[{
        RowBox[{"Log", "[", "k", "]"}]}], "}"}], ",", 
      RowBox[{"PlotLegend", "\[Rule]", 
       RowBox[{"{", 
-       RowBox[{"\"\<f(x)\>\"", ",", "\"\<e^(-x)\>\""}], "}"}]}], ",", 
-     "\[IndentingNewLine]", "\t\t\t\t\t", 
+       RowBox[{
+       "\"\<f(x)\>\"", ",", "\"\<~f(x)\>\"", ",", " ", "\"\<e^(-x)\>\""}], 
+       "}"}]}], ",", "\[IndentingNewLine]", "\t\t\t\t\t", 
      RowBox[{"LegendPosition", "\[Rule]", 
       RowBox[{"{", 
        RowBox[{"1.1", ",", 
@@ -68,7 +73,9 @@ Cell[BoxData[{
    3.534588719594825*^9}, 3.5345890357295485`*^9, {3.53458906684037*^9, 
    3.534589080407621*^9}, {3.53458911488269*^9, 3.5345891227224207`*^9}, {
    3.5345891838859344`*^9, 3.534589198317314*^9}, {3.5345896802785444`*^9, 
-   3.5345896808845654`*^9}, {3.5345905887377987`*^9, 3.5345906276605377`*^9}}],
+   3.5345896808845654`*^9}, {3.5345905887377987`*^9, 
+   3.5345906276605377`*^9}, {3.534757130126171*^9, 3.53475718172433*^9}, {
+   3.534757213960553*^9, 3.534757221095267*^9}}],
 
 Cell[BoxData[
  TagBox[
@@ -79,28 +86,30 @@ Cell[BoxData[
     1, Typeset`name$$ = "\"untitled\"", Typeset`specs$$ = {{{
        Hold[$CellContext`b$$], 2}, 1.5, 10, 0.1}, {{
        Hold[$CellContext`k$$], 1000}, 2, 5000, 1}}, Typeset`size$$ = {
-    504., {102., 111.}}, Typeset`update$$ = 0, Typeset`initDone$$, 
-    Typeset`skipInitDone$$ = True, $CellContext`b$26558$$ = 
-    0, $CellContext`k$26559$$ = 0}, 
+    504., {105., 113.}}, Typeset`update$$ = 0, Typeset`initDone$$, 
+    Typeset`skipInitDone$$ = True, $CellContext`b$1243$$ = 
+    0, $CellContext`k$1244$$ = 0}, 
     DynamicBox[Manipulate`ManipulateBoxes[
      1, StandardForm, 
       "Variables" :> {$CellContext`b$$ = 2, $CellContext`k$$ = 1000}, 
       "ControllerVariables" :> {
-        Hold[$CellContext`b$$, $CellContext`b$26558$$, 0], 
-        Hold[$CellContext`k$$, $CellContext`k$26559$$, 0]}, 
+        Hold[$CellContext`b$$, $CellContext`b$1243$$, 0], 
+        Hold[$CellContext`k$$, $CellContext`k$1244$$, 0]}, 
       "OtherVariables" :> {
        Typeset`show$$, Typeset`bookmarkList$$, Typeset`bookmarkMode$$, 
         Typeset`animator$$, Typeset`animvar$$, Typeset`name$$, 
         Typeset`specs$$, Typeset`size$$, Typeset`update$$, Typeset`initDone$$,
          Typeset`skipInitDone$$}, "Body" :> 
-      Plot[{Log[$CellContext`b$$]/Log[$CellContext`b$$ + Exp[$CellContext`x]], 
+      Plot[{Log[$CellContext`b$$]/Log[$CellContext`b$$ + Exp[$CellContext`x]],
+          Log[$CellContext`b$$]/Log[$CellContext`b$$ + $CellContext`x], 
          Exp[-$CellContext`x]}, {$CellContext`x, 0, 
-         Log[$CellContext`k$$]}, PlotLegends`PlotLegend -> {"f(x)", "e^(-x)"},
-         PlotLegends`LegendPosition -> {1.1, -0.4}], 
+         Log[$CellContext`k$$]}, 
+        PlotLegends`PlotLegend -> {"f(x)", "~f(x)", "e^(-x)"}, 
+        PlotLegends`LegendPosition -> {1.1, -0.4}], 
       "Specifications" :> {{{$CellContext`b$$, 2}, 1.5, 10, 
          0.1}, {{$CellContext`k$$, 1000}, 2, 5000, 1}}, "Options" :> {}, 
       "DefaultOptions" :> {}],
-     ImageSizeCache->{569., {219., 226.}},
+     ImageSizeCache->{569., {222., 229.}},
      SingleEvaluation->True],
     Deinitialization:>None,
     DynamicModuleValues:>{},
@@ -110,7 +119,8 @@ Cell[BoxData[
    Deployed->True,
    StripOnInput->False],
   Manipulate`InterpretManipulate[1]]], "Output",
- CellChangeTimes->{3.5345906649201117`*^9}]
+ CellChangeTimes->{3.5347571832974873`*^9, 3.534757216834841*^9, 
+  3.534757383165472*^9}]
 }, Open  ]],
 
 Cell[CellGroupData[{
@@ -190,12 +200,12 @@ Cell[BoxData[
         Typeset`animator$$, Typeset`animvar$$, Typeset`name$$, 
         Typeset`specs$$, Typeset`size$$, Typeset`update$$, Typeset`initDone$$,
          Typeset`skipInitDone$$}, "Body" :> 
-      Plot[-(E^$CellContext`x 
-         Log[$CellContext`b$$]/(($CellContext`b$$ + E^$CellContext`x) 
-         Log[$CellContext`b$$ + E^$CellContext`x]^2)), {$CellContext`x, 0, 
+      Plot[-(E^$CellContext`x (
+          Log[$CellContext`b$$]/(($CellContext`b$$ + E^$CellContext`x) 
+          Log[$CellContext`b$$ + E^$CellContext`x]^2))), {$CellContext`x, 0, 
          7}], "Specifications" :> {{$CellContext`b$$, 2, 10}}, 
       "Options" :> {}, "DefaultOptions" :> {}],
-     ImageSizeCache->{569., {224., 231.}},
+     ImageSizeCache->{569., {206., 213.}},
      SingleEvaluation->True],
     Deinitialization:>None,
     DynamicModuleValues:>{},
@@ -369,7 +379,7 @@ Cell[BoxData[
 }, Open  ]]
 },
 WindowSize->{1084, 829},
-WindowMargins->{{225, Automatic}, {Automatic, 20}},
+WindowMargins->{{5, Automatic}, {Automatic, 7}},
 Magnification->1.4000000953674316`,
 FrontEndVersion->"8.0 for Microsoft Windows (64-bit) (February 23, 2011)",
 StyleDefinitions->"Default.nb"
@@ -386,24 +396,24 @@ CellTagsIndex->{}
 (*NotebookFileOutline
 Notebook[{
 Cell[CellGroupData[{
-Cell[579, 22, 2192, 48, 217, "Input"],
-Cell[2774, 72, 2006, 40, 468, "Output"]
+Cell[579, 22, 2503, 55, 217, "Input"],
+Cell[3085, 79, 2139, 43, 474, "Output"]
 }, Open  ]],
 Cell[CellGroupData[{
-Cell[4817, 117, 373, 10, 67, "Input"],
-Cell[5193, 129, 450, 14, 66, "Output"]
+Cell[5261, 127, 373, 10, 67, "Input"],
+Cell[5637, 139, 450, 14, 66, "Output"]
 }, Open  ]],
 Cell[CellGroupData[{
-Cell[5680, 148, 844, 23, 143, "Input"],
-Cell[6527, 173, 1647, 34, 478, "Output"]
+Cell[6124, 158, 844, 23, 143, "Input"],
+Cell[6971, 183, 1651, 34, 442, "Output"]
 }, Open  ]],
 Cell[CellGroupData[{
-Cell[8211, 212, 443, 12, 67, "Input"],
-Cell[8657, 226, 1311, 42, 68, "Output"]
+Cell[8659, 222, 443, 12, 93, "Input"],
+Cell[9105, 236, 1311, 42, 95, "Output"]
 }, Open  ]],
 Cell[CellGroupData[{
-Cell[10005, 273, 1899, 52, 185, "Input"],
-Cell[11907, 327, 2026, 40, 444, "Output"]
+Cell[10453, 283, 1899, 52, 362, "Input"],
+Cell[12355, 337, 2026, 40, 869, "Output"]
 }, Open  ]]
 }
 ]

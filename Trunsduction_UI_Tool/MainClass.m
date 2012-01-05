@@ -4,12 +4,13 @@ classdef MainClass < handle
     % http://stackoverflow.com/questions/106086/in-matlab-can-a-class-method-act-as-a-uicontrol-callback-without-being-public
     
     properties (Access=public)
-        graph;
+        %graph;
     end
 
     properties (Access=private)
+        graph;
         figureHandle;
-        iterations;
+        algorithm_result;
         plotInfo;
         numIterations;
         alpha;
@@ -31,12 +32,21 @@ classdef MainClass < handle
             this.algorithmType = CSSL.name();
         end
         
+        function set_graph( this, graphStruct )
+            this.graph = Graph;
+            this.graph.loadFromStruct(graphStruct);
+        end
+        
         function runAlgorithm(this)   
             disp( ['algorithm type = ' this.algorithmType ] );
             if (strcmp( this.algorithmType,LP.name() ) == 1)
                 this.runLP();
-            else
+            elseif (strcmp( this.algorithmType,CSSL.name() ) == 1)
                 this.runCSSL();
+            elseif (strcmp( this.algorithmType,MAD.name() ) == 1)
+                this.runMAD();
+            else
+                disp('Error: unknown algorithm');
             end
         end
         
@@ -45,22 +55,15 @@ classdef MainClass < handle
             disp(['plotGraph: ' num2str(iter_i)]);
             if (isempty( this.figureHandle ) )
                 disp('Creating figure...');
-                this.figureHandle  = createFigureToolbar(this);
-                this.plotInfo = createPlotInfo(this);
+                this.figureHandle  = this.createFigureToolbar();
+                this.createPlotInfo();
                 this.addParamsUI();
             end
             
-            this.plotInfo.Edges = MainClass.createEdges(this.graph.W);
-            this.plotInfo.v_coordinates = this.graph.v_coordinates;
-            
-%             disp(size(this.plotInfo.v_coordinates(:,3)));
-%             disp(size(this.iterations.mu(:, iter_i)));
-            this.plotInfo.v_coordinates(:,3) = this.iterations.mu(:, iter_i);
-            this.plotInfo.v_coordinates(:,4) = this.iterations.v(:, iter_i);
+            this.plotInfo.Edges = MainClass.createEdges(this.graph.weights());
             
             newplot;
-            this.grPlot( this.plotInfo.v_coordinates,...
-                    this.plotInfo.Edges, '(%6.4f,%6.4f)','');
+            this.doPlot( this.plotInfo.Edges, iter_i );
                 
             this.addVerticesContextMenu();
             this.addEdgesContextMenu();
@@ -112,8 +115,8 @@ classdef MainClass < handle
             fileName = uigetfile;
             if (0 ~= fileName)
                 disp(['Opening file: ' fileName]);
-                loadData = load(fileName, 'graph');
-                this.graph = loadData.graph;
+                this.graph = Graph;
+                this.graph.load( filename );
                 this.run();
             end
         end
@@ -152,21 +155,18 @@ classdef MainClass < handle
             if (this.leftButtonDownPosition.x == leftButtonUpPosition.x && ...
                 this.leftButtonDownPosition.y == leftButtonUpPosition.y)
             
-                existing_vertex = MainClass.findNearbyVertex ...
-                    ( this.leftButtonDownPosition, ...
-                      this.graph.v_coordinates );
+                existing_vertex = this.findNearbyVertex ...
+                    ( this.leftButtonDownPosition);
                 if (~isempty(existing_vertex))
                     disp('Error: can not add new vertex. too close to an existing vertex');
                     return;
                 end
                 addVertex( this, leftButtonUpPosition );
             else
-                v1 = MainClass.findNearbyVertex ...
-                        (   this.leftButtonDownPosition, ...
-                            this.graph.v_coordinates );
-                v2 = MainClass.findNearbyVertex ...
-                        (   leftButtonUpPosition, ...
-                            this.graph.v_coordinates );
+                v1 = this.findNearbyVertex ...
+                        (   this.leftButtonDownPosition );
+                v2 = this.findNearbyVertex ...
+                        (   leftButtonUpPosition );
                         
                 if (~isempty(v1) && ~isempty(v2))
                     % two vertices - add adge
@@ -178,6 +178,25 @@ classdef MainClass < handle
             end
             this.leftButtonDownPosition = [];
             this.plotGraph(this.plotInfo.currentIter);
+        end
+        
+        function closestVertex = findNearbyVertex( this, position )
+            closestVertex = [];
+            radius = 0.05;
+            numVertices = this.graph.numVertices();
+            minDistance = 100^1000;
+            for v_idx=1:numVertices
+                v_pos = this.graph.vertexPosition( v_idx );
+                X = 1; Y = 2;
+                dx = position.x - v_pos(X);
+                dy = position.y - v_pos(Y);
+                distance = sqrt( dx^2 + dy^2 );
+                if (distance < minDistance && ...
+                    distance < radius )
+                    minDistance = distance;
+                    closestVertex = v_idx;
+                end
+            end
         end
         
         function deleteVertex(this, ~, ~)
@@ -254,44 +273,17 @@ classdef MainClass < handle
 
 %********************** Private helpers ***************************
 
-        function grPlot(this, V,E,vkind,ekind)
-            %function h=grPlot(V,E,kind,vkind,ekind,sa) % Matan: removed figure handle
-            % Function h=grPlot(V,E,kind,vkind,ekind,sa) 
-            % draw the plot of the graph (digraph).
-            % Input parameters: 
-            %   V(n,2) or (n,3) - the coordinates of vertexes
-            %     (1st column - x, 2nd - y) and, maybe, 3rd - the weights;
-            %     n - number of vertexes.
-            %     If V(n,2), we write labels: numbers of vertexes,
-            %     if V(n,3), we write labels: the weights of vertexes.
-            %     If V=[], use regular n-angle.
-            %   E(m,2) or (m,3) - the edges of graph (arrows of digraph)
-            %     and their weight; 1st and 2nd elements of each row 
-            %     is numbers of vertexes;
-            %     3rd elements of each row is weight of arrow;
-            %     m - number of arrows.
-            %     If E(m,2), we write labels: numbers of edges (arrows);
-            %     if E(m,3), we write labels: weights of edges (arrows).
-            %     For disconnected graph use E=[] or h=PlotGraph(V).
-            %   kind - the kind of graph.
-            %   kind = 'g' (to draw the graph) or 'd' (to draw digraph);
-            %   (optional, 'g' default).
-            %   vkind - kind of labels for vertexes (optional).
-            %   ekind - kind of labels for edges or arrows (optional);
-            %   For vkind and ekind use the format of function FPRINTF,
-            %   for example, '%8.3f', '%14.10f' etc. Default value is '%d'.
-            %   Use '' (empty string) for don't draw labels.
-
-            wv=min(4,size(V,2)); % 3 for weighted vertexes %Matan: 4 for (mean, variance)
-            vkind = lower(vkind);
-            ekind = lower(ekind);
-            numVertices = size(V,1);
-
+        function doPlot(this, E, iteration_i)
+         
+            numVertices = this.graph.numVertices();
+            
             md=inf; % the minimal distance between vertexes
             for k1=1:numVertices-1,
-              for k2=k1+1:numVertices,
-                md=min(md,sum((V(k1,:)-V(k2,:)).^2)^0.5);
-              end
+                for k2=k1+1:numVertices,
+                    k1_pos = this.graph.vertexPosition(k1);
+                    k2_pos = this.graph.vertexPosition(k2);
+                    md=min(md,sum((k1_pos-k2_pos).^2)^0.5);
+                end
             end
             if md<eps, % identical vertexes
               error('The array V has identical rows!')
@@ -304,15 +296,24 @@ classdef MainClass < handle
             
             hold on
             axis equal
-            
+
             % edges (arrows)
             numEdges = size(E,1);
             for currentEdge_i=1:numEdges,
                 edgeVertices = E(currentEdge_i,:);
-                edge = V( edgeVertices , 1:2); % numbers of vertexes 1, 2
-                plot(edge(:,1),edge(:,2),'k-',      ...
-                  'UserData'     , edgeVertices,   ... 
-                  'ButtonDownFcn', {@(src, event)onButtonDown(this, src, event)});
+                
+                edge_start_idx = edgeVertices(1);
+                edge_end_idx   = edgeVertices(2);
+                
+                edge = [    this.graph.vertexPosition( edge_start_idx );
+                            this.graph.vertexPosition( edge_end_idx ) ];
+                        
+                X = 1; Y = 2;
+                plot(edge(:,X),edge(:,Y),'k-',      ...
+                        'UserData'     , edgeVertices,   ... 
+                        'ButtonDownFcn', ...
+                        {@(src, event)onButtonDown(this, src, event)});
+              
 %                 if ~isempty(ekind), % labels of edges (arrows)
 %                     if we==3,
 %                         s=sprintf(ekind,E2(currentEdge_i+k2-1,5));
@@ -324,30 +325,29 @@ classdef MainClass < handle
             end
         
             % we paint the graph
-            scatter( V(:,1), V(:,2), ... zeros(numVertices,1),...
-                ones(numVertices, 1) * 40, V(:,3), ...
+            
+            verticesPosition = this.graph.allVerticesPositions();
+            
+            X = 1;
+            Y = 2;
+            color = this.algorithm_result.allColors( iteration_i );
+            scatter( verticesPosition(:,X), ...
+                     verticesPosition(:,Y), ... 
+                ones(numVertices, 1) * 40, color, ...
                 'filled', ...
                 'ButtonDownFcn', {@(src, event)onButtonDown(this, src, event)});
             colorbar;
-%             plot(  V(:,1),V(:,2),'k.',  ...
-%                 'MarkerSize',20,        ...
-%                 'DisplayName','vertices',   ...
-%                 'ButtonDownFcn', ...
-%                 {@(src, event)onButtonDown(this, src, event)} );
 
-            if ~isempty(vkind), % labels of vertexes
-              for vertex_i=1:numVertices,
-                if wv==3,
-                  s=sprintf(vkind,V(vertex_i,3));
-                elseif wv==4    % Matan: added option
-                  s=sprintf(vkind,V(vertex_i,3),V(vertex_i,4));
-                else
-                  s=sprintf(vkind,vertex_i);
-                end
-                text(V(vertex_i,1)+0.05,V(vertex_i,2)-0.07,s, ...
-                        'DisplayName', ['text_v_' num2str(vertex_i)], ...
-                        'UserData'   , vertex_i );
-              end
+            for vertex_i=1:numVertices,
+               vertexText = this.algorithm_result.asText ...
+                                    ( vertex_i, iteration_i );
+               v_pos = this.graph.vertexPosition( vertex_i );
+               X = 1; Y = 2;
+               text_pos.x = v_pos(X)+0.05;
+               text_pos.y = v_pos(Y)-0.07;
+               text( text_pos.x, text_pos.y, vertexText, ...
+                     'DisplayName', ['text_v_' num2str(vertex_i)], ...
+                     'UserData'   , vertex_i );
             end
             
             hold off
@@ -355,65 +355,37 @@ classdef MainClass < handle
         end
 
         function addVertex( this, position )
-            old_num_vertices = size(this.graph.v_coordinates,1);
+            old_num_vertices = this.graph.numVertices();
             disp(['Old num vertices: ' num2str(old_num_vertices)]);
             disp(['Adding vertex:(' num2str(position.x) ',' num2str(position.y) ')']);
+
+            this.graph.addVertex( position );
+            this.algorithm_result.add_vertex();
             
-            this.graph.v_coordinates = [this.graph.v_coordinates; ...
-                                        position.x, position.y, 0, 0];
-            this.graph.W = [this.graph.W; zeros(1,old_num_vertices)];
-            this.graph.W = [this.graph.W  zeros(old_num_vertices+1,1)];
-            
-            %this.graph.v_coordinates 
-            
-            this.iterations.mu = [this.iterations.mu; ...
-                                  zeros(1,this.numIterations)];
-            this.iterations.v = [this.iterations.v; ...
-                                  zeros(1,this.numIterations)];
-                              
-            new_num_vertices = size(this.graph.v_coordinates,1);
+            new_num_vertices = this.graph.numVertices();
             disp(['New num vertices: ' num2str(new_num_vertices)]);
         end
         
         function removeVertex(this, vertex_i )
             disp('removeVertex');
             if (~isempty(vertex_i))
-                updateVertexIndex(this, 'none', vertex_i)
-                this.graph.v_coordinates(vertex_i,:)=[];
-                this.graph.W(vertex_i,:)=[];
-                this.graph.W(:,vertex_i)=[];
-                this.iterations.mu(vertex_i,:)=[];
-                this.iterations.v(vertex_i,:)=[];
+                this.graph.removeVertex(vertex_i);
+                this.algorithm_result.remove_vertex(vertex_i);
             else
                 disp('No nearby vertex');
             end
         end
         
         function moveVertex(this, v, newPosition)
-            this.graph.v_coordinates(v,1) = newPosition.x;
-            this.graph.v_coordinates(v,2) = newPosition.y;
+            this.graph.moveVertex( v, newPosition );
         end
         
         function removeEdge(this, v1, v2)
-            disp(['Removing edge between vertices ' ...
-                    num2str(v1) ' ' num2str(v2)]);
-            if (v1 == v2)
-                disp('Error: Single node loop edge, skipping');
-                return;
-            end
-            this.graph.W(v1, v2) = 0;
-            this.graph.W(v2, v1) = 0;            
+            this.graph.removeEdge( v1, v2 );
         end
 
         function addEdge(this, v1, v2 )
-            disp(['Adding edge between vertices ' ...
-                    num2str(v1) ' ' num2str(v2)]);
-            if (v2 == v1)
-                disp('Single node loop, skipping');
-                return ;
-            end
-            this.graph.W(v1, v2) = 1;
-            this.graph.W(v2, v1) = 1;
+            this.graph.addEdge( v1, v2 );
         end
         
         function updateVertex(this, updateType)
@@ -427,28 +399,18 @@ classdef MainClass < handle
                 return;
             end
             
-            positive = this.graph.labeled.positive;
-            negative = this.graph.labeled.negative;
-            
-            % remove from positive and negative lists
-            positive( positive == vertex_i ) = [];
-            negative( negative == vertex_i ) = [];
-            
             switch updateType
                 case 'positive'
-                    positive = [positive vertex_i];
+                    this.graph.setVertexLabel...
+                        ( vertex_i, this.graph.positiveLabel() );
                 case 'negative'
-                    negative = [negative vertex_i];
+                    this.graph.setVertexLabel...
+                        ( vertex_i, this.graph.negativeLabel() );
                 case 'none'
-                    
+                    this.graph.clearLabels(vertex_i);
                 otherwise
                     disp(['Error: unknown update type: ''' updateType ''''] );
-                    
             end
-            
-            % update graph info
-            this.graph.labeled.positive = positive;
-            this.graph.labeled.negative = negative;
             
             this.run();
         end
@@ -483,10 +445,9 @@ classdef MainClass < handle
                 'open', {@(src, event)open(this, src, event)});
         end
         
-        function plotInfo = createPlotInfo(this)
-            plotInfo = MainClass.createPlotInfo_ ...
-                        (   this.graph.v_coordinates, ...
-                            this.graph.W );
+        function createPlotInfo(this)
+            this.plotInfo.Edges = MainClass.createEdges(this.graph.weights());
+            this.plotInfo.currentIter = 1;
         end
         
         function addVerticesContextMenu(this)
@@ -560,7 +521,7 @@ classdef MainClass < handle
             controlPos.left = controlPos.left + controlPos.width + margin;
             
             MainClass.addComboParam( controlPos, 'algorithm', ... 
-                            [CSSL.name() '|' LP.name() ], ...
+                            [CSSL.name() '|' LP.name() '|' MAD.name()], ...
                   @(src, event)updateAlgorithm(this, src, event) );
         end
         
@@ -568,51 +529,58 @@ classdef MainClass < handle
             
             cssl = CSSL;
             
-            cssl.m_W = this.graph.W;
+            cssl.m_W = this.graph.weights();
             cssl.m_num_iterations = this.numIterations;
             cssl.m_alpha = this.alpha;
             cssl.m_beta = this.beta;
             
             positiveInitialValue = +1;
             negativeInitialValue = -1;
-            this.iterations = cssl.runBinary ...
-                          ( this.graph.labeled.positive, ...
-                            this.graph.labeled.negative, ...
+            this.algorithm_result = CSSL_Result;
+            R = cssl.runBinary ...
+                          ( this.graph.labeled_positive(), ...
+                            this.graph.labeled_negative(), ...
                             positiveInitialValue,...
                             negativeInitialValue,...
                             this.labeledConfidence );
+            this.algorithm_result.set_results( R );
         end
         
         function runLP(this)
             lp = LP;
-            this.iterations.mu = ...
-                lp.run( this.graph.W, this.graph.labeled.positive,...
-                                  this.graph.labeled.negative );
-            this.iterations.v = ones( size( this.iterations.mu) );
-            this.numIterations = 1;
+            this.algorithm_result = LP_Results;
+            R = lp.run( this.graph.weights(),...
+                        this.graph.labeled_positive(),...
+                        this.graph.labeled_negative() );
+            this.algorithm_result.set_results( R );
+        end
+        
+        function runMAD(this)
+            mad = MAD;
+            
+            params.mu1 = 1;
+            params.mu2 = 1;
+            params.mu3 = 1;
+            params.numIterations = this.numIterations;
+            
+            numVertices = this.graph.numVertices();
+            numLabels   = this.graph.numLabels();
+            Y = zeros( numVertices, numLabels);
+            NEGATIVE = 1; POSITIVE = 2;
+            Y( this.graph.labeled_negative(), NEGATIVE ) = 1;
+            Y( this.graph.labeled_positive(), POSITIVE ) = 1;
+            
+            labeledVertices = this.graph.labeled();
+            this.algorithm_result = MAD_Results;
+            R = mad.run...
+                ( this.graph.weights(), Y, params, labeledVertices );
+            this.algorithm_result.set_results( R );
         end
     end % private methods
     
 %********************** STATIC ***************************
     
     methods(Static)
-
-        function closestVertex = findNearbyVertex( position, V )
-            closestVertex = [];
-            radius = 0.05;
-            numVertices = size(V, 1);
-            minDistance = 100^1000;
-            for i=1:numVertices
-                dx = position.x - V(i,1);
-                dy = position.y - V(i,2);
-                distance = sqrt( dx^2 + dy^2 );
-                if (distance < minDistance && ...
-                    distance < radius )
-                    minDistance = distance;
-                    closestVertex = i;
-                end
-            end
-        end
         
         function curPos = getClickPosition()
             coordinates = get(gca,'CurrentPoint');
@@ -655,11 +623,6 @@ classdef MainClass < handle
             end
         end
         
-        function plotInfo = createPlotInfo_(v_coordinates, W)
-            plotInfo.Edges = MainClass.createEdges(W);
-            plotInfo.v_coordinates = v_coordinates;
-            plotInfo.currentIter = 1;
-        end
         
         function addParam( controlPos, label, value, callback)
             margin = 5;

@@ -2,12 +2,23 @@ classdef MAD < handle
     properties (Access=public)
     end
     
+    methods(Static)
+        function r = name()
+            r = 'MAD';
+        end
+    end
+    
     methods (Access=public)
-        function    Yout = run( W, Y, params, labeledVertices )
+        function    Yout = run( this, W, Y, params, labeledVertices )
             %MAD Modified ADsorption
             %   W - graph weights
             %   Y - prior labeling, its size should be
             %        number of vertices X number of labels.
+            %   params - a structure containing:
+            %               mu1
+            %               mu2
+            %               mu3
+            %               numIterations
             % Reference: New regularized algorithms for transductive learning
             % Talukdar, P. and Crammer, Koby. pages 10.
 
@@ -21,7 +32,7 @@ classdef MAD < handle
             numVertices = size(W, 1);
 
             disp('Calculating probabilities...');
-            p = calcProbabilities(W, labeledVertices);
+            p = MAD.calcProbabilities(W, labeledVertices);
             disp('done');
 
             % add dummy label. initialy no vertex is
@@ -32,7 +43,7 @@ classdef MAD < handle
             % Line (2) of MAD page 10 in reference 
 
             disp('Calculating M(v)...');
-            M = calcM(W, p, params);
+            M = MAD.calcM(W, p, params);
             disp('done');
 
             D = zeros( size(Y) );
@@ -47,7 +58,7 @@ classdef MAD < handle
 
                 % line (4) of MAD page 10 in reference 
                 for vertex_i=1:numVertices
-                    Dv = calcDv(W, p, Y, vertex_i);
+                    Dv = MAD.calcDv(W, p, Y, vertex_i);
                     D( vertex_i, :) = Dv.';
                 end
 
@@ -145,7 +156,7 @@ classdef MAD < handle
             beta = 2;
             for vertex_i=1:numVertices
                 neighbours = getNeighbours( W, vertex_i );
-                transitions = calcTransitions( neighbours.weights );
+                transitions = MAD.calcTransitions( neighbours.weights );
                 entropy = - sum( transitions .* log(transitions) );
                 % use log2 ad done is scala code downloaded from http://talukdar.net/
                 %cv = log(beta) / log2( beta + exp( entropy) ) ;
@@ -160,7 +171,7 @@ classdef MAD < handle
             end
         end
         
-        function transitions = calcTransitions( neighboursWeigths )
+        function transitions = calcTransitions(neighboursWeigths )
             %CALCTRANSITIONS Calculate transition probabilitis from neighbours weights
             %   Detailed explanation goes here
 
