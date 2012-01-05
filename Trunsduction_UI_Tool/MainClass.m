@@ -16,17 +16,61 @@ classdef MainClass < handle
         beta;
         labeledConfidence;
         leftButtonDownPosition;
+        algorithmType;
 %         rightButtonDownPosition;
     end
 
-    methods
+%********************** PUBLIC ***************************
+
+    methods (Access = public)
         function this = MainClass() % Constructor
             this.numIterations = 100;
             this.beta = 1;
             this.alpha = 1;
             this.labeledConfidence = 0.1;
+            this.algorithmType = CSSL.name();
         end
-    end
+        
+        function runAlgorithm(this)   
+            disp( ['algorithm type = ' this.algorithmType ] );
+            if (strcmp( this.algorithmType,LP.name() ) == 1)
+                this.runLP();
+            else
+                this.runCSSL();
+            end
+        end
+        
+        function plotGraph(this, iter_i)
+
+            disp(['plotGraph: ' num2str(iter_i)]);
+            if (isempty( this.figureHandle ) )
+                disp('Creating figure...');
+                this.figureHandle  = createFigureToolbar(this);
+                this.plotInfo = createPlotInfo(this);
+                this.addParamsUI();
+            end
+            
+            this.plotInfo.Edges = MainClass.createEdges(this.graph.W);
+            this.plotInfo.v_coordinates = this.graph.v_coordinates;
+            
+%             disp(size(this.plotInfo.v_coordinates(:,3)));
+%             disp(size(this.iterations.mu(:, iter_i)));
+            this.plotInfo.v_coordinates(:,3) = this.iterations.mu(:, iter_i);
+            this.plotInfo.v_coordinates(:,4) = this.iterations.v(:, iter_i);
+            
+            newplot;
+            this.grPlot( this.plotInfo.v_coordinates,...
+                    this.plotInfo.Edges, '(%6.4f,%6.4f)','');
+                
+            this.addVerticesContextMenu();
+            this.addEdgesContextMenu();
+            
+            this.plotInfo.currentIter = iter_i;
+            
+            drawnow expose;
+        end
+     
+    end % public methods
     
 %********************** Private Event Handlers ***************************
 
@@ -196,6 +240,15 @@ classdef MainClass < handle
             disp('updateLabeledConfidence');
             newValue = get(gco,'string');
             this.labeledConfidence = str2double(newValue);
+            this.run();
+        end
+        
+        function updateAlgorithm(this, hObj, ~)
+            disp('updateAlgorithm');
+            selectedIndex = get(hObj,'Value');
+            values        = get(hObj,'String');
+            this.algorithmType = values(selectedIndex,:);
+            this.algorithmType( this.algorithmType == ' ') = [];
             this.run();
         end
 
@@ -483,27 +536,60 @@ classdef MainClass < handle
         end
         
         function addParamsUI(this)
-            editBoxPos.left = 30;
-            editBoxPos.bottom = 0;
-            editBoxPos.width = 100;
-            editBoxPos.height = 20;
+            controlPos.left = 30;
+            controlPos.bottom = 0;
+            controlPos.width = 100;
+            controlPos.height = 20;
             margin = 5;
             
-            MainClass.addParam( editBoxPos, 'iterations', this.numIterations, ...
+            MainClass.addParam( controlPos, 'iterations', this.numIterations, ...
                             @(src, event)updateIterations(this, src, event) );
-            editBoxPos.left = editBoxPos.left + editBoxPos.width + margin;
+            controlPos.left = controlPos.left + controlPos.width + margin;
             
-            MainClass.addParam( editBoxPos, 'alpha', this.alpha, ...
+            MainClass.addParam( controlPos, 'alpha', this.alpha, ...
                             @(src, event)updateAlpha(this, src, event) );
-            editBoxPos.left = editBoxPos.left + editBoxPos.width + margin;
+            controlPos.left = controlPos.left + controlPos.width + margin;
             
-            MainClass.addParam( editBoxPos, 'beta', this.beta, ...
+            MainClass.addParam( controlPos, 'beta', this.beta, ...
                             @(src, event)updateBeta(this, src, event) );
-            editBoxPos.left = editBoxPos.left + editBoxPos.width + margin;
+            controlPos.left = controlPos.left + controlPos.width + margin;
             
-            MainClass.addParam( editBoxPos, 'labeled confidence', ... 
+            MainClass.addParam( controlPos, 'labeled confidence', ... 
                             this.labeledConfidence, ...
                   @(src, event)updateLabeledConfidence(this, src, event) );
+            controlPos.left = controlPos.left + controlPos.width + margin;
+            
+            MainClass.addComboParam( controlPos, 'algorithm', ... 
+                            [CSSL.name() '|' LP.name() ], ...
+                  @(src, event)updateAlgorithm(this, src, event) );
+        end
+        
+        function runCSSL(this)
+            
+            cssl = CSSL;
+            
+            cssl.m_W = this.graph.W;
+            cssl.m_num_iterations = this.numIterations;
+            cssl.m_alpha = this.alpha;
+            cssl.m_beta = this.beta;
+            
+            positiveInitialValue = +1;
+            negativeInitialValue = -1;
+            this.iterations = cssl.runBinary ...
+                          ( this.graph.labeled.positive, ...
+                            this.graph.labeled.negative, ...
+                            positiveInitialValue,...
+                            negativeInitialValue,...
+                            this.labeledConfidence );
+        end
+        
+        function runLP(this)
+            lp = LP;
+            this.iterations.mu = ...
+                lp.run( this.graph.W, this.graph.labeled.positive,...
+                                  this.graph.labeled.negative );
+            this.iterations.v = ones( size( this.iterations.mu) );
+            this.numIterations = 1;
         end
     end % private methods
     
@@ -575,10 +661,10 @@ classdef MainClass < handle
             plotInfo.currentIter = 1;
         end
         
-        function addParam( editBoxPos, label, value, callback)
+        function addParam( controlPos, label, value, callback)
             margin = 5;
-            labelPos = editBoxPos;
-            labelPos.bottom = labelPos.bottom + editBoxPos.height + margin;
+            labelPos = controlPos;
+            labelPos.bottom = labelPos.bottom + controlPos.height + margin;
             uicontrol('style','text',...
                  'units','pix',...
                  'position',[labelPos.left  labelPos.bottom ...
@@ -588,9 +674,29 @@ classdef MainClass < handle
 
             uicontrol('style','edit',...
                  'units','pix',...
-                 'position',[editBoxPos.left  editBoxPos.bottom ...
-                             editBoxPos.width editBoxPos.height],...
+                 'position',[controlPos.left  controlPos.bottom ...
+                             controlPos.width controlPos.height],...
                  'string',num2str(value),...
+                 'fontsize',11,...
+                 'callback',callback);
+        end
+        
+        function addComboParam( controlPos, label, values, callback)
+            margin = 5;
+            labelPos = controlPos;
+            labelPos.bottom = labelPos.bottom + controlPos.height + margin;
+            uicontrol('style','text',...
+                 'units','pix',...
+                 'position',[labelPos.left  labelPos.bottom ...
+                             labelPos.width labelPos.height],...
+                 'string',label,...
+                 'fontsize',8);
+
+            uicontrol('style','popupmenu',...
+                 'units','pix',...
+                 'position',[controlPos.left  controlPos.bottom ...
+                             controlPos.width controlPos.height],...
+                 'string',values,...
                  'fontsize',11,...
                  'callback',callback);
         end
@@ -615,105 +721,5 @@ classdef MainClass < handle
         end
     end % Static methods
     
-%********************** PUBLIC ***************************
-
-    methods (Access = public)
-        function runAlgorithm(this)          
-
-            W = this.graph.W;
-            
-            num_vertices = size(W,1);
-            disp(['runAlgorithm. num vertices: ' num2str(num_vertices)]);
-
-            num_iter = this.numIterations;
-            iteration.mu = zeros( num_vertices, num_iter );
-            iteration.v = ones( num_vertices, num_iter );
-
-            labeled.positive = this.graph.labeled.positive;
-            labeled.negative = this.graph.labeled.negative;
-            first_iteration = 1;
-
-            iteration.mu( labeled.positive, first_iteration)  = +1;
-            iteration.mu( labeled.negative, first_iteration ) = -1;
-
-            iteration.v( labeled.positive, first_iteration)  ...
-                = this.labeledConfidence;
-            iteration.v( labeled.negative, first_iteration ) ...
-                = this.labeledConfidence;
-
-            beta = this.beta;
-            alpha = this.alpha;
-
-            % note iteration index starts from 2
-            for iter_i = 2:num_iter
-
-                prev_mu = iteration.mu( :, iter_i - 1) ;
-                prev_v =  iteration.v ( :, iter_i - 1) ;
-
-                for vertex_i=1:num_vertices
-                    neighbours = find( W(vertex_i, :) ~= 0 );
-                    ni = length(neighbours);
-                    B = sum( prev_mu( neighbours ) );
-                    C = sum( prev_mu( neighbours ) ./ prev_v( neighbours ) );
-                    D = sum( 1 ./ prev_v( neighbours ) );
-                    iteration.mu(vertex_i, iter_i) = ...
-                        (B + prev_v(vertex_i) * C) / (ni + prev_v(vertex_i) * D);
-                end
-
-                iteration.mu( labeled.positive, iter_i)  = +1;
-                iteration.mu( labeled.negative,  iter_i ) = -1;
-                
-                for vertex_i=1:num_vertices
-                    neighbours = find( W(vertex_i, :) ~= 0 );
-                    A = sum ( (prev_mu(vertex_i) - prev_mu( neighbours )).^2 );
-
-                    iteration.v(vertex_i, iter_i) = ...
-                        (beta + sqrt( beta^2 + 4 * alpha * A)) / (2 * alpha);
-                end
-                
-                iteration.v( labeled.positive, iter_i) ...
-                    = this.labeledConfidence;
-                iteration.v( labeled.negative, iter_i ) ...
-                    = this.labeledConfidence;
-
-            end
-            
-            disp('size(iteration.v)=');
-            disp(size(iteration.v));
-            this.iterations = iteration;
-        end
-        
-        function plotGraph(this, iter_i)
-
-            disp(['plotGraph: ' num2str(iter_i)]);
-            if (isempty( this.figureHandle ) )
-                disp('Creating figure...');
-                this.figureHandle  = createFigureToolbar(this);
-                this.plotInfo = createPlotInfo(this);
-                this.addParamsUI();
-            end
-            
-            this.plotInfo.Edges = MainClass.createEdges(this.graph.W);
-            this.plotInfo.v_coordinates = this.graph.v_coordinates;
-            
-%             disp(size(this.plotInfo.v_coordinates(:,3)));
-%             disp(size(this.iterations.mu(:, iter_i)));
-            this.plotInfo.v_coordinates(:,3) = this.iterations.mu(:, iter_i);
-            this.plotInfo.v_coordinates(:,4) = this.iterations.v(:, iter_i);
-            
-            newplot;
-            this.grPlot( this.plotInfo.v_coordinates,...
-                    this.plotInfo.Edges, '(%6.4f,%6.4f)','');
-                
-            this.addVerticesContextMenu();
-            this.addEdgesContextMenu();
-            
-            this.plotInfo.currentIter = iter_i;
-            
-            drawnow expose;
-        end
-     
-    end % public methods
-
 end
 

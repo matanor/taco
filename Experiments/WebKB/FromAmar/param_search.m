@@ -8,14 +8,14 @@ groupName = '2012_01_03 confidence_vs_lp_params_2';
 %% define parameter properties
 
 %K.range = [1,2,5,10,20,50,100,500];
-K.range = [3,4,5];
+K.range = [3,5];
 K.name = 'K';
 %alpha.range = [0.0001, 0.001, 0.01,0.1,1];
 alpha.range = [10^(-5), 10^(-4), 0.001, 0.01,  1 ];
 alpha.name = 'alpha';
 %beta.range = [1,10, 100,1000,10000];
 %beta.range = [10, 100, 10^3, 10^4,10^5, 10^6, 10^7, 10^8];
-beta.range = [10^(-5), 10^(-4), 0.001, 0.01,0.1,  1 ];
+beta.range = [10^(-5), 10^(-4), 0.001, 0.01, 1 ];
 beta.name = 'beta';
 %labeledConfidence.range = [0.01,0.1];
 labeledConfidence.range = [0.1, 0.5];
