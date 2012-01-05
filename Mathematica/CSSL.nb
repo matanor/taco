@@ -1,0 +1,322 @@
+(* Content-type: application/mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Mathematica 7.0' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       145,          7]
+NotebookDataLength[     11820,        312]
+NotebookOptionsPosition[     11066,        282]
+NotebookOutlinePosition[     11446,        298]
+CellTagsIndexPosition[     11403,        295]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+
+Cell[CellGroupData[{
+Cell[BoxData[
+ RowBox[{"Manipulate", "[", 
+  RowBox[{
+   RowBox[{"Plot", "[", " ", 
+    RowBox[{
+     RowBox[{
+      RowBox[{"a", " ", 
+       RowBox[{"(", 
+        RowBox[{"1", "/", "x"}], ")"}]}], " ", "-", " ", 
+      RowBox[{"b", " ", 
+       RowBox[{"Log", "[", "x", "]"}]}]}], ",", 
+     RowBox[{"{", 
+      RowBox[{"x", ",", "0.1", ",", "1000"}], "}"}]}], "]"}], ",", 
+   RowBox[{"{", 
+    RowBox[{
+     RowBox[{"{", 
+      RowBox[{"a", ",", "1"}], "}"}], ",", "0", ",", " ", "1000"}], "}"}], 
+   ",", 
+   RowBox[{"{", 
+    RowBox[{
+     RowBox[{"{", 
+      RowBox[{"b", ",", "1"}], "}"}], ",", "0", ",", " ", "1000"}], "}"}]}], 
+  "]"}]], "Input",
+ CellChangeTimes->{{3.534687753625*^9, 3.534687816828125*^9}, {
+  3.534687864734375*^9, 3.53468790509375*^9}, {3.534688215734375*^9, 
+  3.5346882208125*^9}}],
+
+Cell[BoxData[
+ TagBox[
+  StyleBox[
+   DynamicModuleBox[{$CellContext`a$$ = 251., $CellContext`b$$ = 438., 
+    Typeset`show$$ = True, Typeset`bookmarkList$$ = {}, 
+    Typeset`bookmarkMode$$ = "Menu", Typeset`animator$$, Typeset`animvar$$ = 
+    1, Typeset`name$$ = "\"untitled\"", Typeset`specs$$ = {{{
+       Hold[$CellContext`a$$], 1}, 0, 1000}, {{
+       Hold[$CellContext`b$$], 1}, 0, 1000}}, Typeset`size$$ = {
+    504., {145., 154.}}, Typeset`update$$ = 0, Typeset`initDone$$, 
+    Typeset`skipInitDone$$ = True, $CellContext`a$3954$$ = 
+    0, $CellContext`b$3955$$ = 0}, 
+    DynamicBox[Manipulate`ManipulateBoxes[
+     1, StandardForm, 
+      "Variables" :> {$CellContext`a$$ = 1, $CellContext`b$$ = 1}, 
+      "ControllerVariables" :> {
+        Hold[$CellContext`a$$, $CellContext`a$3954$$, 0], 
+        Hold[$CellContext`b$$, $CellContext`b$3955$$, 0]}, 
+      "OtherVariables" :> {
+       Typeset`show$$, Typeset`bookmarkList$$, Typeset`bookmarkMode$$, 
+        Typeset`animator$$, Typeset`animvar$$, Typeset`name$$, 
+        Typeset`specs$$, Typeset`size$$, Typeset`update$$, Typeset`initDone$$,
+         Typeset`skipInitDone$$}, "Body" :> 
+      Plot[$CellContext`a$$ (1/$CellContext`x) - $CellContext`b$$ 
+        Log[$CellContext`x], {$CellContext`x, 0.1, 1000}], 
+      "Specifications" :> {{{$CellContext`a$$, 1}, 0, 
+         1000}, {{$CellContext`b$$, 1}, 0, 1000}}, "Options" :> {}, 
+      "DefaultOptions" :> {}],
+     ImageSizeCache->{568., {232., 239.}},
+     SingleEvaluation->True],
+    Deinitialization:>None,
+    DynamicModuleValues:>{},
+    SynchronousInitialization->True,
+    UnsavedVariables:>{Typeset`initDone$$},
+    UntrackedVariables:>{Typeset`size$$}], "Manipulate",
+   Deployed->True,
+   StripOnInput->False],
+  Manipulate`InterpretManipulate[1]]], "Output",
+ CellChangeTimes->{3.534687906359375*^9, 3.534688221796875*^9}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"Solve", "[", 
+   RowBox[{
+    RowBox[{"D", "[", 
+     RowBox[{
+      RowBox[{
+       RowBox[{"a", " ", 
+        RowBox[{"(", 
+         RowBox[{"1", "/", "x"}], ")"}]}], " ", "-", " ", 
+       RowBox[{"b", " ", 
+        RowBox[{"Log", "[", "x", "]"}]}]}], ",", "x"}], "]"}], "\[Equal]", 
+    "0"}], "]"}], "\[IndentingNewLine]"}]], "Input",
+ CellChangeTimes->{{3.534688292296875*^9, 3.534688307484375*^9}, {
+  3.53468834153125*^9, 3.534688348234375*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"Solve", "::", "\<\"svars\"\>"}], 
+  RowBox[{
+  ":", " "}], "\<\"\\!\\(\\*StyleBox[\\\"\\\\\\\"Equations may not give \
+solutions for all \\\\\\\\\\\\\\\"solve\\\\\\\\\\\\\\\" \
+variables.\\\\\\\"\\\", \\\"MT\\\"]\\) \
+\\!\\(\\*ButtonBox[\\\"\[RightSkeleton]\\\", ButtonStyle->\\\"Link\\\", \
+ButtonFrame->None, ButtonData:>\\\"paclet:ref/message/Solve/svars\\\", \
+ButtonNote -> \\\"Solve::svars\\\"]\\)\"\>"}]], "Message", "MSG",
+ CellChangeTimes->{3.534688349046875*^9}],
+
+Cell[BoxData[
+ RowBox[{"{", 
+  RowBox[{"{", 
+   RowBox[{"a", "\[Rule]", 
+    RowBox[{
+     RowBox[{"-", "b"}], " ", "x"}]}], "}"}], "}"}]], "Output",
+ CellChangeTimes->{{3.534688296734375*^9, 3.534688307921875*^9}, 
+   3.534688349046875*^9}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"Manipulate", "[", 
+  RowBox[{
+   RowBox[{"Plot", "[", " ", 
+    RowBox[{
+     RowBox[{
+      RowBox[{"a", " ", "x"}], " ", "-", " ", 
+      RowBox[{"b", " ", 
+       RowBox[{"Log", "[", "x", "]"}]}]}], ",", 
+     RowBox[{"{", 
+      RowBox[{"x", ",", "0", ",", "1000"}], "}"}]}], "]"}], ",", 
+   RowBox[{"{", 
+    RowBox[{
+     RowBox[{"{", 
+      RowBox[{"a", ",", "1"}], "}"}], ",", "0", ",", " ", "1000", ",", "1"}], 
+    "}"}], ",", 
+   RowBox[{"{", 
+    RowBox[{
+     RowBox[{"{", 
+      RowBox[{"b", ",", "1"}], "}"}], ",", "0", ",", " ", "1000", ",", "1"}], 
+    "}"}]}], "]"}]], "Input",
+ CellChangeTimes->{{3.5346879388125*^9, 3.534687940234375*^9}, {
+  3.534688017578125*^9, 3.534688059234375*^9}, {3.534688097421875*^9, 
+  3.53468810021875*^9}, {3.5346884354375*^9, 3.534688446203125*^9}, {
+  3.534688501109375*^9, 3.534688504375*^9}}],
+
+Cell[BoxData[
+ TagBox[
+  StyleBox[
+   DynamicModuleBox[{$CellContext`a$$ = 1, $CellContext`b$$ = 100, 
+    Typeset`show$$ = True, Typeset`bookmarkList$$ = {}, 
+    Typeset`bookmarkMode$$ = "Menu", Typeset`animator$$, Typeset`animvar$$ = 
+    1, Typeset`name$$ = "\"untitled\"", Typeset`specs$$ = {{{
+       Hold[$CellContext`a$$], 1}, 0, 1000, 1}, {{
+       Hold[$CellContext`b$$], 1}, 0, 1000, 1}}, Typeset`size$$ = {
+    504., {142., 151.}}, Typeset`update$$ = 0, Typeset`initDone$$, 
+    Typeset`skipInitDone$$ = True, $CellContext`a$15959$$ = 
+    0, $CellContext`b$15960$$ = 0}, 
+    DynamicBox[Manipulate`ManipulateBoxes[
+     1, StandardForm, 
+      "Variables" :> {$CellContext`a$$ = 1, $CellContext`b$$ = 1}, 
+      "ControllerVariables" :> {
+        Hold[$CellContext`a$$, $CellContext`a$15959$$, 0], 
+        Hold[$CellContext`b$$, $CellContext`b$15960$$, 0]}, 
+      "OtherVariables" :> {
+       Typeset`show$$, Typeset`bookmarkList$$, Typeset`bookmarkMode$$, 
+        Typeset`animator$$, Typeset`animvar$$, Typeset`name$$, 
+        Typeset`specs$$, Typeset`size$$, Typeset`update$$, Typeset`initDone$$,
+         Typeset`skipInitDone$$}, "Body" :> 
+      Plot[$CellContext`a$$ $CellContext`x - $CellContext`b$$ 
+        Log[$CellContext`x], {$CellContext`x, 0, 1000}], 
+      "Specifications" :> {{{$CellContext`a$$, 1}, 0, 1000, 
+         1}, {{$CellContext`b$$, 1}, 0, 1000, 1}}, "Options" :> {}, 
+      "DefaultOptions" :> {}],
+     ImageSizeCache->{568., {269., 276.}},
+     SingleEvaluation->True],
+    Deinitialization:>None,
+    DynamicModuleValues:>{},
+    SynchronousInitialization->True,
+    UnsavedVariables:>{Typeset`initDone$$},
+    UntrackedVariables:>{Typeset`size$$}], "Manipulate",
+   Deployed->True,
+   StripOnInput->False],
+  Manipulate`InterpretManipulate[1]]], "Output",
+ CellChangeTimes->{{3.534688436609375*^9, 3.534688446703125*^9}, {
+  3.53468849725*^9, 3.534688522171875*^9}}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ TagBox[
+  StyleBox[
+   DynamicModuleBox[{$CellContext`a$$ = 20, $CellContext`b$$ = 1000., 
+    Typeset`show$$ = True, Typeset`bookmarkList$$ = {}, 
+    Typeset`bookmarkMode$$ = "Menu", Typeset`animator$$, Typeset`animvar$$ = 
+    1, Typeset`name$$ = "\"untitled\"", Typeset`specs$$ = {{{
+       Hold[$CellContext`a$$], 1}, 0, 1000}, {{
+       Hold[$CellContext`b$$], 1}, 0, 1000}}, Typeset`size$$ = {
+    504., {141., 149.}}, Typeset`update$$ = 0, Typeset`initDone$$, 
+    Typeset`skipInitDone$$ = True, $CellContext`a$1619$$ = 
+    0, $CellContext`b$1620$$ = 0}, 
+    DynamicBox[Manipulate`ManipulateBoxes[
+     1, StandardForm, 
+      "Variables" :> {$CellContext`a$$ = 1, $CellContext`b$$ = 1}, 
+      "ControllerVariables" :> {
+        Hold[$CellContext`a$$, $CellContext`a$1619$$, 0], 
+        Hold[$CellContext`b$$, $CellContext`b$1620$$, 0]}, 
+      "OtherVariables" :> {
+       Typeset`show$$, Typeset`bookmarkList$$, Typeset`bookmarkMode$$, 
+        Typeset`animator$$, Typeset`animvar$$, Typeset`name$$, 
+        Typeset`specs$$, Typeset`size$$, Typeset`update$$, Typeset`initDone$$,
+         Typeset`skipInitDone$$}, "Body" :> 
+      Plot[$CellContext`a$$ $CellContext`x - $CellContext`b$$ 
+        Log[$CellContext`x], {$CellContext`x, 0.1, 1000}], 
+      "Specifications" :> {{{$CellContext`a$$, 1}, 0, 
+         1000}, {{$CellContext`b$$, 1}, 0, 1000}}, "Options" :> {}, 
+      "DefaultOptions" :> {}],
+     ImageSizeCache->{568., {267., 274.}},
+     SingleEvaluation->True],
+    Deinitialization:>None,
+    DynamicModuleValues:>{},
+    SynchronousInitialization->True,
+    UnsavedVariables:>{Typeset`initDone$$},
+    UntrackedVariables:>{Typeset`size$$}], "Manipulate",
+   Deployed->True,
+   StripOnInput->False],
+  Manipulate`InterpretManipulate[1]]], "Input"],
+
+Cell[BoxData[
+ TagBox[
+  StyleBox[
+   DynamicModuleBox[{$CellContext`a$$ = 20, $CellContext`b$$ = 1000., 
+    Typeset`show$$ = True, Typeset`bookmarkList$$ = {}, 
+    Typeset`bookmarkMode$$ = "Menu", Typeset`animator$$, Typeset`animvar$$ = 
+    1, Typeset`name$$ = "\"untitled\"", Typeset`specs$$ = {{{
+       Hold[$CellContext`a$$], 20}, 0, 1000}, {{
+       Hold[$CellContext`b$$], 1000.}, 0, 1000}}, Typeset`size$$ = {
+    504., {141., 149.}}, Typeset`update$$ = 0, Typeset`initDone$$, 
+    Typeset`skipInitDone$$ = True, $CellContext`a$3866$$ = 
+    0, $CellContext`b$3867$$ = 0}, 
+    DynamicBox[Manipulate`ManipulateBoxes[
+     1, StandardForm, 
+      "Variables" :> {$CellContext`a$$ = 20, $CellContext`b$$ = 1000.}, 
+      "ControllerVariables" :> {
+        Hold[$CellContext`a$$, $CellContext`a$3866$$, 0], 
+        Hold[$CellContext`b$$, $CellContext`b$3867$$, 0]}, 
+      "OtherVariables" :> {
+       Typeset`show$$, Typeset`bookmarkList$$, Typeset`bookmarkMode$$, 
+        Typeset`animator$$, Typeset`animvar$$, Typeset`name$$, 
+        Typeset`specs$$, Typeset`size$$, Typeset`update$$, Typeset`initDone$$,
+         Typeset`skipInitDone$$}, "Body" :> 
+      Plot[$CellContext`a$$ $CellContext`x - $CellContext`b$$ 
+        Log[$CellContext`x], {$CellContext`x, 0.1, 1000}], 
+      "Specifications" :> {{{$CellContext`a$$, 20}, 0, 
+         1000}, {{$CellContext`b$$, 1000.}, 0, 1000}}, "Options" :> {}, 
+      "DefaultOptions" :> {}],
+     ImageSizeCache->{568., {267., 274.}},
+     SingleEvaluation->True],
+    Deinitialization:>None,
+    DynamicModuleValues:>{},
+    SynchronousInitialization->True,
+    UnsavedVariables:>{Typeset`initDone$$},
+    UntrackedVariables:>{Typeset`size$$}], "Manipulate",
+   Deployed->True,
+   StripOnInput->False],
+  Manipulate`InterpretManipulate[1]]], "Output",
+ CellChangeTimes->{{3.534688147453125*^9, 3.53468815465625*^9}}]
+}, Open  ]]
+},
+WindowSize->{1272, 899},
+WindowMargins->{{0, Automatic}, {Automatic, 0}},
+Magnification->1.4000000953674316`,
+FrontEndVersion->"7.0 for Microsoft Windows (32-bit) (November 10, 2008)",
+StyleDefinitions->"Default.nb"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[CellGroupData[{
+Cell[567, 22, 813, 25, 41, "Input"],
+Cell[1383, 49, 1861, 38, 494, "Output"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[3281, 92, 488, 14, 67, "Input"],
+Cell[3772, 108, 507, 10, 29, "Message"],
+Cell[4282, 120, 241, 7, 41, "Output"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[4560, 132, 870, 24, 41, "Input"],
+Cell[5433, 158, 1914, 39, 568, "Output"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[7384, 202, 1791, 37, 564, InheritFromParent],
+Cell[9178, 241, 1872, 38, 564, "Output"]
+}, Open  ]]
+}
+]
+*)
+
+(* End of internal cache information *)
+
