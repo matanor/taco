@@ -31,6 +31,14 @@ classdef LP_Results < handle
             r = this.m_Y;
         end
         
+        function r = legend(~)
+            r = '(y)';
+        end
+        
+        function r = numIterations(this)
+            r = 1;
+        end
+        
     end % (Access = public)
     
 end

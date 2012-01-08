@@ -36,13 +36,20 @@ classdef CSSL_Result < handle
         function r = allColors(this, iteration_i)
             r = this.m_mu(:, iteration_i);
         end
-    end % (Access = public)
-    
-    methods (Access = private)
+        
+        function r = legend(~)
+            r = '(mu,v)';
+        end
+        
         function r = numIterations(this)
             r = size( this.m_mu, 2);
         end
-    end
+        
+    end % (Access = public)
+    
+    methods (Access = private)
+
+    end % (Access = private)
     
 end
 

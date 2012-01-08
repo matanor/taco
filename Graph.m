@@ -22,13 +22,18 @@ classdef Graph < handle
             this.X = 1;
             this.Y = 2;
         end
+        
+        function save( this, fileName )
+            graphAsStruct = this.asStruct();
+            Graph.saveStruct( graphAsStruct, fileName );
+        end
 
-        function load(this) 
+        function load(this, fileName) 
            loadData = load(fileName, 'graph');
            this.loadFromStruct( loadData.graph );
         end
         
-        function loadFromStruct( this, graphStrcut )
+                function loadFromStruct( this, graphStrcut )
             this.m_W = graphStrcut.W;
             numVertices = this.numVertices();
             this.m_labels         = zeros(numVertices, this.BINARY_NUM_LABELS);
@@ -52,7 +57,7 @@ classdef Graph < handle
                    graphStrcut.v_coordinates(v_idx,this.Y);
             end
         end
-        
+            
         function r = weights(this)
             r = this.m_W;
         end
@@ -148,8 +153,21 @@ classdef Graph < handle
         end
 
     end % methods (Access = public)
-    
+
+    methods ( Static )
+        function saveStruct(graph,fileName)
+            save(fileName, 'graph' );
+        end
+    end
     methods (Access = private)
+        
+        function r = asStruct(this)
+            r.W = this.m_W;
+            r.labeled.positive = this.labeled_positive();
+            r.labeled.negative = this.labeled_negative();
+            r.v_coordinates = this.m_vertexPosition;
+        end
+        
         function setEdgeWeight(this, v1_idx, v2_idx, weight )
             disp([  'Setting edge between vertices ' ...
                     num2str(v1_idx) ' ' num2str(v2_idx) ...

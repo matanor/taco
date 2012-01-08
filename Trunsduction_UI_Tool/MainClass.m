@@ -12,7 +12,13 @@ classdef MainClass < handle
         figureHandle;
         algorithm_result;
         plotInfo;
+        
         numIterations;
+        iterationsUI;
+        
+        currentIteration;
+        currentIterationUI;
+        
         alpha;
         beta;
         labeledConfidence;
@@ -35,6 +41,16 @@ classdef MainClass < handle
         function set_graph( this, graphStruct )
             this.graph = Graph;
             this.graph.loadFromStruct(graphStruct);
+        end
+        
+        function set_numIterations(this, value)
+            this.numIterations = value;
+            set(this.iterationsUI, 'String', num2str( value ) );
+        end
+        
+        function set_currentIteration(this, value)
+            this.currentIteration = value;
+            set(this.currentIterationUI, 'String', num2str( value ) );
         end
         
         function runAlgorithm(this)   
@@ -68,7 +84,7 @@ classdef MainClass < handle
             this.addVerticesContextMenu();
             this.addEdgesContextMenu();
             
-            this.plotInfo.currentIter = iter_i;
+            this.set_currentIteration( iter_i );
             
             drawnow expose;
         end
@@ -80,15 +96,15 @@ classdef MainClass < handle
     methods (Access = private)
         
         function back(this, ~, ~)
-            if (this.plotInfo.currentIter > 1)
-                plotGraph(this, this.plotInfo.currentIter - 1);
+            if (this.currentIteration > 1)
+                plotGraph(this, this.currentIteration - 1);
             end
             disp('back');
         end
         
         function forward(this, ~, ~)
-            if (this.plotInfo.currentIter < this.numIterations)
-                plotGraph(this, this.plotInfo.currentIter + 1);
+            if (this.currentIteration < this.numIterations)
+                plotGraph(this, this.currentIteration + 1);
             end
             disp('forward');
         end
@@ -96,8 +112,8 @@ classdef MainClass < handle
         function run(this, ~, ~)
             disp('run');
             this.runAlgorithm();
-            this.plotInfo.currentIter = 1;
-            plotGraph(this, this.plotInfo.currentIter);
+            this.set_currentIteration( 1 );
+            plotGraph(this, this.currentIteration);
         end
         
         function save(this, ~, ~)
@@ -105,8 +121,9 @@ classdef MainClass < handle
             fileName = uiputfile;
             if (0 ~= fileName)
                 disp(['Saving to file: ' fileName]);
-                graph = this.graph;
-                save(fileName, 'graph' );
+                this.graph.save( fileName );
+                %graph = this.graph;
+                %save(fileName, 'graph' );
             end
         end
         
@@ -116,7 +133,7 @@ classdef MainClass < handle
             if (0 ~= fileName)
                 disp(['Opening file: ' fileName]);
                 this.graph = Graph;
-                this.graph.load( filename );
+                this.graph.load( fileName );
                 this.run();
             end
         end
@@ -177,7 +194,7 @@ classdef MainClass < handle
                 end
             end
             this.leftButtonDownPosition = [];
-            this.plotGraph(this.plotInfo.currentIter);
+            this.plotGraph(this.currentIteration);
         end
         
         function closestVertex = findNearbyVertex( this, position )
@@ -203,14 +220,14 @@ classdef MainClass < handle
             disp('deleteVertex');
             vertex_i = get(gco,'UserData');
             this.removeVertex( vertex_i );
-            this.plotGraph(this.plotInfo.currentIter);
+            this.plotGraph(this.currentIteration);
         end
         
         function deleteEdge(this,~,~)
             disp('deleteEdge');
             edgeVertices = get(gco,'UserData');
             this.removeEdge(edgeVertices(1), edgeVertices(2));
-            this.plotGraph(this.plotInfo.currentIter);
+            this.plotGraph(this.currentIteration);
         end
         
         function setVertexPositive(this, ~, ~)
@@ -229,8 +246,8 @@ classdef MainClass < handle
             this.updateVertex('none');
         end
         
-        function updateIterations(this, ~, ~)
-            disp('updateIterations');
+        function updateNumIterations(this, ~, ~)
+            disp('updateNumIterations');
             newValue = get(gco,'string');
             newNumericValue = str2double(newValue);
             if ceil(newNumericValue) == floor(newNumericValue)
@@ -239,6 +256,23 @@ classdef MainClass < handle
                 disp(['Error: new value ' newValue ' is not an integer']);
             end
             this.run();
+        end
+        
+        function updateCurrentIteration(this,~,~)
+            disp('updateCurrentIteration');
+            newValue = get(gco,'string');
+            newNumericValue = str2double(newValue);
+            if ceil(newNumericValue) == floor(newNumericValue)
+                if newNumericValue <= this.numIterations
+                    this.currentIteration = newNumericValue;
+                else
+                    disp(['Error: new value ' newValue ' is larger then '...
+                          'maximal value ' num2str( this.numIterations )]);
+                end
+            else
+                disp(['Error: new value ' newValue ' is not an integer']);
+            end
+            this.plotGraph(this.currentIteration);
         end
         
         function updateAlpha(this, ~, ~)
@@ -337,6 +371,9 @@ classdef MainClass < handle
                 'filled', ...
                 'ButtonDownFcn', {@(src, event)onButtonDown(this, src, event)});
             colorbar;
+            
+            % write vertex legend
+            text(0,0,this.algorithm_result.legend(),'Units','pixels');
 
             for vertex_i=1:numVertices,
                vertexText = this.algorithm_result.asText ...
@@ -447,7 +484,7 @@ classdef MainClass < handle
         
         function createPlotInfo(this)
             this.plotInfo.Edges = MainClass.createEdges(this.graph.weights());
-            this.plotInfo.currentIter = 1;
+            this.currentIteration = 1;
         end
         
         function addVerticesContextMenu(this)
@@ -503,8 +540,9 @@ classdef MainClass < handle
             controlPos.height = 20;
             margin = 5;
             
-            MainClass.addParam( controlPos, 'iterations', this.numIterations, ...
-                            @(src, event)updateIterations(this, src, event) );
+            this.iterationsUI = ...
+            MainClass.addParam( controlPos, 'total iterations', this.numIterations, ...
+                            @(src, event)updateNumIterations(this, src, event) );
             controlPos.left = controlPos.left + controlPos.width + margin;
             
             MainClass.addParam( controlPos, 'alpha', this.alpha, ...
@@ -523,6 +561,12 @@ classdef MainClass < handle
             MainClass.addComboParam( controlPos, 'algorithm', ... 
                             [CSSL.name() '|' LP.name() '|' MAD.name()], ...
                   @(src, event)updateAlgorithm(this, src, event) );
+              controlPos.left = controlPos.left + controlPos.width + margin;
+
+            this.currentIterationUI = ...
+            MainClass.addParam( controlPos, 'iteration', ... 
+                            this.labeledConfidence, ...
+                  @(src, event)updateCurrentIteration(this, src, event) );
         end
         
         function runCSSL(this)
@@ -575,6 +619,7 @@ classdef MainClass < handle
             R = mad.run...
                 ( this.graph.weights(), Y, params, labeledVertices );
             this.algorithm_result.set_results( R );
+            this.set_numIterations( this.algorithm_result.numIterations() );
         end
     end % private methods
     
@@ -624,7 +669,7 @@ classdef MainClass < handle
         end
         
         
-        function addParam( controlPos, label, value, callback)
+        function h = addParam( controlPos, label, value, callback)
             margin = 5;
             labelPos = controlPos;
             labelPos.bottom = labelPos.bottom + controlPos.height + margin;
@@ -635,7 +680,7 @@ classdef MainClass < handle
                  'string',label,...
                  'fontsize',8);
 
-            uicontrol('style','edit',...
+            h = uicontrol('style','edit',...
                  'units','pix',...
                  'position',[controlPos.left  controlPos.bottom ...
                              controlPos.width controlPos.height],...

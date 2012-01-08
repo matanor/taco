@@ -9,7 +9,7 @@ classdef MAD < handle
     end
     
     methods (Access=public)
-        function    Yout = run( this, W, Y, params, labeledVertices )
+        function    result = run( this, W, Y, params, labeledVertices )
             %MAD Modified ADsorption
             %   W - graph weights
             %   Y - prior labeling, its size should be
@@ -33,6 +33,7 @@ classdef MAD < handle
 
             disp('Calculating probabilities...');
             p = MAD.calcProbabilities(W, labeledVertices);
+            result.p = p;
             disp('done');
 
             % add dummy label. initialy no vertex is
@@ -50,18 +51,30 @@ classdef MAD < handle
             r = zeros(numLabels, 1);
             r(end) = 1;
 
-            for iter_i=1:numIterations
+            Y_hat = Y;
+            result.Y(:,:,1) = Y_hat;
+            
+            iteration_diff = 10^1000;
+            diff_epsilon = 0.0001;
+            
+            % note iteration index starts from 2
+            for iter_i=2:numIterations
 
+                if iteration_diff < diff_epsilon
+                    break;
+                end
+                
                 if ( mod(iter_i, 10) == 0 )
                     disp(['#Iteration = ' num2str(iter_i)]);
                 end
 
                 % line (4) of MAD page 10 in reference 
                 for vertex_i=1:numVertices
-                    Dv = MAD.calcDv(W, p, Y, vertex_i);
+                    Dv = MAD.calcDv(W, p, Y_hat, vertex_i);
                     D( vertex_i, :) = Dv.';
                 end
 
+                Y_hat_pre = Y_hat;
                 % lines (5)-(6)-(7) of MAD page 10 in reference 
                 for vertex_i = 1:numVertices
                     p_inject   = p.inject(vertex_i); 
@@ -70,29 +83,29 @@ classdef MAD < handle
                     Yv = Y( vertex_i, : ).';
                     Dv = D( vertex_i, : ).';
                     Mv = M( vertex_i );
-                    Yv = (1/Mv) * ...
+                    Yv_hat = (1/Mv) * ...
                          (mu1 * p_inject * Yv + ... 
                           mu2 * Dv + ...
                           mu3 * p_abandon * r);
-                    Y(vertex_i,:) = Yv .';
+                    Y_hat(vertex_i,:) = Yv_hat .';
                 end
+                iteration_diff = sum((Y_hat_pre - Y_hat).^2);
+                result.Y(:,:,iter_i) = Y_hat;
             end
-
-            Yout = Y;
 
             toc;
         end
     end %     methods (Access=public)
     
     methods(Static)
-        function Dv = calcDv( W, p, Y, vertex_i )
+        function Dv = calcDv( W, p, Y_hat, vertex_i )
             %CALCDV Summary of this function goes here
             %   Detailed explanation goes here
 
             neighbours = getNeighbours(W, vertex_i);
             p_continue = p.continue(vertex_i); 
 
-            numLabels = size( Y, 2 );
+            numLabels = size( Y_hat, 2 );
             Dv = zeros( numLabels, 1);
 
             numNeighbours = length(neighbours.indices);
@@ -104,7 +117,7 @@ classdef MAD < handle
                 p_continue_neighbour = p.continue(neighbour_id);
                 avg_weight = p_continue * outgoing + ...
                              p_continue_neighbour * incoming;
-                Y_neighbour = Y( neighbour_id, : ).';
+                Y_neighbour = Y_hat( neighbour_id, : ).';
                 Dv = Dv + avg_weight * Y_neighbour;
             end
         end
@@ -159,8 +172,8 @@ classdef MAD < handle
                 transitions = MAD.calcTransitions( neighbours.weights );
                 entropy = - sum( transitions .* log(transitions) );
                 % use log2 ad done is scala code downloaded from http://talukdar.net/
-                %cv = log(beta) / log2( beta + exp( entropy) ) ;
-                cv = log(beta) / log2( beta + entropy ) ;
+                cv = log2(beta) / log2( beta + exp( entropy) ) ;
+                %cv = log(beta) / log2( beta + entropy ) ;
                 isLabeled = ismember( vertex_i, labeledVertices );
                 dv = isLabeled * (1-cv) * sqrt( entropy ) ;
                 zv = max( cv + dv, 1 );
