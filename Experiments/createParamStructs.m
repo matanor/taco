@@ -15,6 +15,8 @@ for struct_i=1:numStructs
     new.algorithmParams.beta = params(struct_i, paramIndex);
     paramIndex = findParamIndex( paramProperties, 'labeledConfidence');
     new.algorithmParams.labeledConfidence = params(struct_i, paramIndex);
+    paramIndex = findParamIndex( paramProperties, 'makeSymetric');
+    new.algorithmParams.makeSymetric = params(struct_i, paramIndex);
     paramStructs = [paramStructs; new];
 end
 

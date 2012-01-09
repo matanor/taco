@@ -16,6 +16,7 @@ labeledConfidence   = algorithmParams.labeledConfidence;
 alpha               = algorithmParams.alpha;
 beta                = algorithmParams.beta;
 K                   = constructionParams.K;
+makeSymetric        = algorithmParams.makeSymetric;
 
 %% create prams string
 
@@ -24,6 +25,7 @@ paramsString = ...
      ' alpha = '     num2str(alpha) ...
      ' beta = '      num2str(beta) ...
      ' K = '         num2str(K) ...
+     ' makeSymetric = ' num2str(makeSymetric) ...
      ' exp ID = '    num2str(experimentID) ...
      ' run index = ' num2str(run_i)];
 
@@ -115,14 +117,16 @@ close(gcf);
 %% extract info for CSSL results figure
 
 LP_prediction       = runOutput.unlabeled_LP_prediction();
+MAD_prediction      = runOutput.unlabeled_MAD_prediction();
 mistakes.CSSL       = runOutput.unlabeled_num_mistakes_CSSL();
 mistakes.LP         = runOutput.unlabeled_num_mistakes_LP();
+mistakes.MAD        = runOutput.unlabeled_num_mistakes_MAD();
 
-%% plot LP vs CSSL
+%% plot LP vs CSSL vs MAD
 
-t = [ 'LP vs CSSL.' paramsString ];
+t = [ 'LP vs CSSL vs MAD.' paramsString ];
 
-numRows = 2;
+numRows = 3;
 numCols = 1;
 
 figure('name', t);
@@ -152,42 +156,22 @@ xlabel('vertex #i');
 ylabel('y');
 current = current + numCols;
 
+subplot(numRows, numCols, current);
+hold on;
+scatter(1:numVertices, MAD_prediction, 'b');
+plot( correctLabels, 'r' );
+hold off;
+legend('prediction','correct');
+title( ['MAD prediction (#mistakes = ' num2str(mistakes.MAD) ')']  );
+xlabel('vertex #i');
+ylabel('y');
+current = current + numCols;
+
 outputFolder = figuresToShow.resultDir;
 groupName    = figuresToShow.groupName;
 filename = [ outputFolder groupName '\singleResults.' ...
-             num2str(experimentID) '.' num2str(run_i) '.LP_vs_CSSL.fig'];
+              num2str(experimentID) '.' num2str(run_i) '.LP_vs_CSSL_vs_MAD.fig'];
 saveas(gcf, filename);
 close(gcf);
 
 end
-
-% 
-% %% Show final margin & confidence
-% 
-% if (figuresToShow.marginAndConfidence) 
-%     margin = runOutput.unlabeled_margin();
-% %     labeledPositive = runOutput.labeledPositive;
-% %     labeledNegative = runOutput.labeledNegative;
-% 
-%     numVertices = length( final_mu );
-% 
-%     t = [ 'unlabeled (margin & confidence).' paramsString ];
-% 
-%     figure('name', t);
-%     hold on;
-%     scatter(1:numVertices, final_confidence, 'b');
-%     scatter(1:numVertices, margin, 'k');
-% %     scatter(labeledPositive, final_confidence(labeledPositive), '+g');
-% %     scatter(labeledPositive, margin(labeledPositive), '+g');
-% %     scatter(labeledNegative, final_confidence(labeledNegative), '+r');
-% %     scatter(labeledNegative, margin(labeledNegative), '+r');
-%     title(t);
-%     legend('confidence', 'margin');
-%     xlabel('vertex #i');    
-%     filename = [ outputFolder t '.fig'];
-%     saveas(gcf, filename);
-% end
-
- 
-%end
-

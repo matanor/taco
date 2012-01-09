@@ -1,27 +1,31 @@
 %%
 clear classes;
 %% global shared parameters
-numRunsPerExperiment = 10;
+numRunsPerExperiment = 1;
 graphFileName = 'C:\technion\theses\Experiments\WebKB\data\From Amar\webkb_amar.mat';
-groupName = '2012_01_03 confidence_vs_lp_params_2';
+groupName = '2012_01_09 csslMulticlass';
 
 %% define parameter properties
 
 %K.range = [1,2,5,10,20,50,100,500];
-K.range = [3,5];
+K.range = [5];
 K.name = 'K';
 %alpha.range = [0.0001, 0.001, 0.01,0.1,1];
-alpha.range = [10^(-5), 10^(-4), 0.001, 0.01,  1 ];
+%alpha.range = [10^(-5), 10^(-4), 0.001, 0.01,  1 ];
+alpha.range = [ 0.001 ];
 alpha.name = 'alpha';
 %beta.range = [1,10, 100,1000,10000];
 %beta.range = [10, 100, 10^3, 10^4,10^5, 10^6, 10^7, 10^8];
-beta.range = [10^(-5), 10^(-4), 0.001, 0.01, 1 ];
+%beta.range = [10^(-5), 10^(-4), 0.001, 0.01, 1 ];
+beta.range = [ 0.001 ];
 beta.name = 'beta';
 %labeledConfidence.range = [0.01,0.1];
-labeledConfidence.range = [0.1, 0.5];
+labeledConfidence.range = [0.1];
 labeledConfidence.name = 'labeledConfidence';
+makeSymetric.range = [1];
+makeSymetric.name = 'makeSymetric';
 
-paramProperties = [K, alpha, beta, labeledConfidence];
+paramProperties = [K, alpha, beta, labeledConfidence, makeSymetric];
 
 %% create parameters structures
 
@@ -42,7 +46,6 @@ for struct_i=1:numStructs
     constructionParams = currentParams.constructionParams;
     constructionParams.numLabeled = 50;
     constructionParams.numInstancesPerClass = 500;
-    constructionParams.makeSymetric = 1;
 
     experiment.result  = run_multiple_experiments...
         ( graphFileName     , numRunsPerExperiment, ...

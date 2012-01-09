@@ -14,11 +14,11 @@ classToLabelMap = [ 1  1;
                     2  2;
                     3  3;
                     4  4];
+graphFileName = 'C:\technion\theses\Experiments\WebKB\data\From Amar\webkb_amar.mat';
                 
 numClasses = size( classToLabelMap, 1);
-[ graph, labeled ] = ...
-    load_graph_amar ...
-    ( classToLabelMap, K, numLabeled, ...
+[ graph, labeled ] = load_graph ...
+    ( graphFileName, classToLabelMap, K, numLabeled, ...
       numInstancesPerClass );
   
 w_nn = graph.weights;
@@ -45,8 +45,9 @@ end
 labeledVertices = labeled(:);
 
 %profile on;
-Yout = ModifiedAdsorption(  w_nn_sym, Y, ...
-                            params  , labeledVertices);
+mad = MAD;
+result = mad.run(  w_nn_sym, Y, params  , labeledVertices);
+Y = result.Y(:,:,end);
 %profile off;
 
 %%
@@ -55,7 +56,7 @@ hold on;
 colors = [ 'b','r','g','k'];
 for class_i=1:numClasses
     color = colors(class_i);
-    scatter(1:numVertices, Yout(:, class_i), color);
+    scatter(1:numVertices, Y(:, class_i), color);
 end
 legend('1','2','3','4');
 hold off;
@@ -64,6 +65,10 @@ filename = 'results mad/output.scores.fig';
 saveas(gcf,filename); 
 
 %%
-YoutNoDummy = Yout(:,1:numClasses);
-[~, prediction] = max(YoutNoDummy,[],2);
+Y_NoDummy = Y(:,1:numClasses);
+[~, prediction] = max(Y_NoDummy,[],2);
 scatter(1:numVertices, prediction);
+
+isCorrect = (prediction == lbls);
+isWrong = 1 - isCorrect;
+sum(isWrong);

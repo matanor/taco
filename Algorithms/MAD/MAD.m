@@ -61,6 +61,7 @@ classdef MAD < handle
             for iter_i=2:numIterations
 
                 if iteration_diff < diff_epsilon
+                    disp(['converged after ' num2str(iter_i) ' iterations']);
                     break;
                 end
                 
@@ -89,7 +90,7 @@ classdef MAD < handle
                           mu3 * p_abandon * r);
                     Y_hat(vertex_i,:) = Yv_hat .';
                 end
-                iteration_diff = sum((Y_hat_pre - Y_hat).^2);
+                iteration_diff = sum((Y_hat_pre(:) - Y_hat(:)).^2);
                 result.Y(:,:,iter_i) = Y_hat;
             end
 

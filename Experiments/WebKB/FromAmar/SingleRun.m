@@ -10,7 +10,7 @@ classdef SingleRun < handle
         negativeInitialValue;
         classToLabelMap;
         result;
-        LP;
+        LP;     % results from Label Prpagation algorithm
     end
     
     properties (Access=private)
@@ -26,6 +26,9 @@ classdef SingleRun < handle
         m_unlabeled_LP_prediction;
         m_unlabeled_num_mistakes_LP;
         m_unlabeled_num_mistakes_CSSL;
+        m_unlabeled_num_mistakes_MAD;
+        m_MAD_result;
+        m_unlabeled_MAD_prediction;
     end
     
     methods (Access=public)
@@ -42,6 +45,12 @@ classdef SingleRun < handle
             this.m_unlabeled_LP_prediction = [];
             this.m_unlabeled_num_mistakes_LP = [];
             this.m_unlabeled_num_mistakes_CSSL = [];
+            this.m_unlabeled_num_mistakes_MAD = [];
+            this.m_unlabeled_MAD_prediction = [];
+        end
+        
+        function set_MAD_results( this, R )
+            this.m_MAD_result = R;
         end
        
         %% Return final mu for unlabeled vertices
@@ -119,15 +128,24 @@ classdef SingleRun < handle
             r = this.m_unlabeled_LP_prediction;
         end
         
+        %% get prediction for unalbeled vertices (MAD algorithm)
+        
+        function r = unlabeled_MAD_prediction(this)
+            if isempty(this.m_unlabeled_MAD_prediction)
+                this.m_unlabeled_MAD_prediction = ...
+                    this.m_MAD_result.binaryPrediction();
+                this.m_unlabeled_MAD_prediction( this.labeled() ) = [];
+            end
+            r = this.m_unlabeled_MAD_prediction;
+        end
+        
         %% get number of mistakes (on unlabeled data) using LP algorithm
         
         function r = unlabeled_num_mistakes_LP(this)
             if isempty(this.m_unlabeled_num_mistakes_LP)
                 prediction = this.unlabeled_LP_prediction();
-                correct    = this.unlabeled_correct_label();
-                isCorrect  = (sign(prediction) == correct);
-                isWrong    = 1 - isCorrect;
-                this.m_unlabeled_num_mistakes_LP = sum(isWrong);
+                this.m_unlabeled_num_mistakes_LP = ...
+                    this.unlabeled_num_mistakes_binary(prediction);
             end
             r = this.m_unlabeled_num_mistakes_LP ;
         end
@@ -137,12 +155,21 @@ classdef SingleRun < handle
         function r = unlabeled_num_mistakes_CSSL(this)
             if isempty(this.m_unlabeled_num_mistakes_CSSL)
                 prediction = this.unlabeled_final_mu();
-                correct    = this.unlabeled_correct_label();
-                isCorrect = (sign(prediction) == correct);
-                isWrong    = 1 - isCorrect;
-                this.m_unlabeled_num_mistakes_CSSL = sum(isWrong);
+                this.m_unlabeled_num_mistakes_CSSL = ...
+                    this.unlabeled_num_mistakes_binary(prediction);
             end
             r = this.m_unlabeled_num_mistakes_CSSL ;
+        end
+        
+        %% get number of mistakes (on unlabeled data) using MAD algorithm
+        
+        function r = unlabeled_num_mistakes_MAD(this)
+            if isempty(this.m_unlabeled_num_mistakes_MAD)
+                prediction = this.unlabeled_MAD_prediction();
+                this.m_unlabeled_num_mistakes_MAD = ...
+                    this.unlabeled_num_mistakes_binary(prediction);
+            end
+            r = this.m_unlabeled_num_mistakes_MAD ;
         end
         
     end % (Access=public)
@@ -151,6 +178,13 @@ classdef SingleRun < handle
         
         function r = final_confidence(this)
             r = this.result.v(:,end);
+        end
+        
+        function r = unlabeled_num_mistakes_binary(this, binaryPrediction)
+            correct    = this.unlabeled_correct_label();
+            isCorrect = (sign(binaryPrediction) == correct);
+            isWrong    = 1 - isCorrect;
+            r = sum(isWrong);
         end
         
         %% Return indices for unlabeled vertices
