@@ -577,6 +577,7 @@ classdef MainClass < handle
             cssl.m_num_iterations = this.numIterations;
             cssl.m_alpha = this.alpha;
             cssl.m_beta = this.beta;
+            cssl.m_labeledConfidence = this.labeledConfidence;
             
             positiveInitialValue = +1;
             negativeInitialValue = -1;
@@ -585,8 +586,7 @@ classdef MainClass < handle
                           ( this.graph.labeled_positive(), ...
                             this.graph.labeled_negative(), ...
                             positiveInitialValue,...
-                            negativeInitialValue,...
-                            this.labeledConfidence );
+                            negativeInitialValue );
             this.algorithm_result.set_results( R );
         end
         
