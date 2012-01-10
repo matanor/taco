@@ -57,6 +57,8 @@ classdef MainClass < handle
             disp( ['algorithm type = ' this.algorithmType ] );
             if (strcmp( this.algorithmType,LP.name() ) == 1)
                 this.runLP();
+            elseif (strcmp( this.algorithmType,CSSLMC.name() ) == 1)
+                this.runCSSLMC();
             elseif (strcmp( this.algorithmType,CSSL.name() ) == 1)
                 this.runCSSL();
             elseif (strcmp( this.algorithmType,MAD.name() ) == 1)
@@ -558,8 +560,10 @@ classdef MainClass < handle
                   @(src, event)updateLabeledConfidence(this, src, event) );
             controlPos.left = controlPos.left + controlPos.width + margin;
             
+            algorithmOptions = [CSSL.name() '|' CSSLMC.name() '|' ...
+                                LP.name()   '|' MAD.name()] ;
             MainClass.addComboParam( controlPos, 'algorithm', ... 
-                            [CSSL.name() '|' LP.name() '|' MAD.name()], ...
+                            algorithmOptions, ...
                   @(src, event)updateAlgorithm(this, src, event) );
               controlPos.left = controlPos.left + controlPos.width + margin;
 
@@ -590,6 +594,23 @@ classdef MainClass < handle
             this.algorithm_result.set_results( R );
         end
         
+                
+        function runCSSLMC(this)
+            
+            csslmc = CSSLMC;
+            
+            csslmc.m_W = this.graph.weights();
+            csslmc.m_num_iterations = this.numIterations;
+            csslmc.m_alpha = this.alpha;
+            csslmc.m_beta = this.beta;
+            csslmc.m_labeledConfidence = this.labeledConfidence;
+            
+            Y = MainClass.createLabeledY(this.graph);
+            this.algorithm_result = CSSLMC_Result;
+            R = csslmc.run ( Y );
+            this.algorithm_result.set_results( R );
+        end
+        
         function runLP(this)
             lp = LP;
             this.algorithm_result = LP_Results;
@@ -607,12 +628,7 @@ classdef MainClass < handle
             params.mu3 = 1;
             params.numIterations = this.numIterations;
             
-            numVertices = this.graph.numVertices();
-            numLabels   = this.graph.numLabels();
-            Y = zeros( numVertices, numLabels);
-            NEGATIVE = 1; POSITIVE = 2;
-            Y( this.graph.labeled_negative(), NEGATIVE ) = 1;
-            Y( this.graph.labeled_positive(), POSITIVE ) = 1;
+            Y = MainClass.createLabeledY(this.graph);
             
             labeledVertices = this.graph.labeled();
             this.algorithm_result = MAD_Results;
@@ -621,12 +637,22 @@ classdef MainClass < handle
             this.algorithm_result.set_results( R );
             this.set_numIterations( this.algorithm_result.numIterations() );
         end
+        
     end % private methods
     
 %********************** STATIC ***************************
     
     methods(Static)
         
+        function labeledY = createLabeledY( graph )
+            numVertices = graph.numVertices();
+            numLabels   = graph.numLabels();
+            labeledY = zeros( numVertices, numLabels);
+            NEGATIVE = 1; POSITIVE = 2;
+            labeledY( graph.labeled_negative(), NEGATIVE ) = 1;
+            labeledY( graph.labeled_positive(), POSITIVE ) = 1;
+        end
+            
         function curPos = getClickPosition()
             coordinates = get(gca,'CurrentPoint');
             %disp(coordinates));
