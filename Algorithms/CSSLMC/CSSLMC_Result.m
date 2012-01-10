@@ -25,8 +25,8 @@ classdef CSSLMC_Result < handle
         end
         
         function add_vertex(this)
-            this.m_mu = addVertexToMatrix( this.m_mu );
-            this.m_v  = addVertexToMatrix( this.m_v );
+            this.m_mu = CSSLMC_Result.addVertexToMatrix( this.m_mu );
+            this.m_v  = CSSLMC_Result.addVertexToMatrix( this.m_v );
         end
         
         function remove_vertex(this, vertex_i)
@@ -62,8 +62,8 @@ classdef CSSLMC_Result < handle
     methods (Static)
         function Mout = addVertexToMatrix( M )
             Mout = zeros( size(M,1) + 1, size(M,2), size(M,3) );
-            numIterations = calcNumIterations( M );
-            numLabels = calcNumLabels(M);
+            numIterations = CSSLMC_Result.calcNumIterations( M );
+            numLabels = CSSLMC_Result.calcNumLabels(M);
             for iter_i=1:numIterations
                 Mout(:,:,iter_i) = [ M(:,:,iter_i);
                                      zeros(1, numLabels) ];
