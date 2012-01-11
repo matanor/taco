@@ -43,88 +43,90 @@ end
 
 %% extract info for CSSL results figure
 
-final_mu            = runOutput.unlabeled_final_mu();
-final_confidence    = runOutput.unlabeled_final_confidence();
-margin              = runOutput.unlabeled_margin();
+%final_mu            = runOutput.unlabeled_final_mu();
+% final_confidence    = runOutput.unlabeled_final_confidence();
+% margin              = runOutput.unlabeled_margin();
 correctLabels       = runOutput.unlabeled_correct_label();
-numVertices = length( final_mu);
+numUnlabeledVertices = runOutput.numUnlabeledVertices();
 
 %% plot CSSL result figure
-
-t = [ 'unlabeled (prediction & confidence & margin).' paramsString ];
-
-numRows = 3;
-numCols = 2;
-
-figure('name', t);
-
-current = 1;
-subplot(numRows, numCols, current);
-hold on;
-scatter(1:numVertices, final_mu, 'b');
-plot( correctLabels, 'r' );
-hold off;
-title( ['unlabeled prediction (mu).\newline' paramsString] );
-legend('prediction','correct');
-xlabel('vertex #i');
-ylabel('prediction (mu)');
-current = current + numCols;
-
-subplot(numRows, numCols, current);
-scatter(1:numVertices, final_confidence, 'r');
-title( 'unlabeled confidence (v).' );
-xlabel('vertex #i');
-ylabel('confidence (v)');
-current = current + numCols;
-
-subplot(numRows, numCols, current);
-scatter(1:numVertices, margin, 'g');
-title( 'unlabeled margin (mu*y).' );
-xlabel('vertex #i');
-ylabel('margin (mu*y)');
-
-current = 2;
-
-sorted.by_confidence = runOutput.sorted_by_confidence();
-
-subplot(numRows, numCols, current);
-plot(sorted.by_confidence.accumulative, 'r');
-title( 'accumulative (sorted by confidence)' );
-xlabel('vertex #i');
-ylabel('# mistakes');
-current = current + numCols;
-
-subplot(numRows, numCols, current);
-plot(sorted.by_confidence.confidence, 'b');
-title( 'confidence (sorted)' );
-xlabel('vertex #i');
-ylabel('confidence (v)');
-current = current + numCols;
-
-subplot(numRows, numCols, current);
-scatter(1:numVertices, sorted.by_confidence.margin, 'g');
-title( 'margin (sorted by confidence)' );
-xlabel('vertex #i');
-ylabel('margin (mu*y)');
-
-outputFolder = figuresToShow.resultDir;
-groupName    = figuresToShow.groupName;
-filename = [ outputFolder groupName '\singleResults.' ...
-             num2str(experimentID) '.' num2str(run_i) '.fig'];
-saveas(gcf, filename);
-close(gcf);
+% 
+% t = [ 'unlabeled (prediction & confidence & margin).' paramsString ];
+% 
+% numRows = 3;
+% numCols = 2;
+% 
+% figure('name', t);
+% 
+% current = 1;
+% subplot(numRows, numCols, current);
+% hold on;
+% scatter(1:numUnlabeledVertices, final_mu, 'b');
+% plot( correctLabels, 'r' );
+% hold off;
+% title( ['unlabeled prediction (mu).\newline' paramsString] );
+% legend('prediction','correct');
+% xlabel('vertex #i');
+% ylabel('prediction (mu)');
+% current = current + numCols;
+% 
+% subplot(numRows, numCols, current);
+% scatter(1:numUnlabeledVertices, final_confidence, 'r');
+% title( 'unlabeled confidence (v).' );
+% xlabel('vertex #i');
+% ylabel('confidence (v)');
+% current = current + numCols;
+% 
+% subplot(numRows, numCols, current);
+% scatter(1:numUnlabeledVertices, margin, 'g');
+% title( 'unlabeled margin (mu*y).' );
+% xlabel('vertex #i');
+% ylabel('margin (mu*y)');
+% 
+% current = 2;
+% 
+% sorted.by_confidence = runOutput.sorted_by_confidence();
+% 
+% subplot(numRows, numCols, current);
+% plot(sorted.by_confidence.accumulative, 'r');
+% title( 'accumulative (sorted by confidence)' );
+% xlabel('vertex #i');
+% ylabel('# mistakes');
+% current = current + numCols;
+% 
+% subplot(numRows, numCols, current);
+% plot(sorted.by_confidence.confidence, 'b');
+% title( 'confidence (sorted)' );
+% xlabel('vertex #i');
+% ylabel('confidence (v)');
+% current = current + numCols;
+% 
+% subplot(numRows, numCols, current);
+% scatter(1:numUnlabeledVertices, sorted.by_confidence.margin, 'g');
+% title( 'margin (sorted by confidence)' );
+% xlabel('vertex #i');
+% ylabel('margin (mu*y)');
+% 
+% outputFolder = figuresToShow.resultDir;
+% groupName    = figuresToShow.groupName;
+% filename = [ outputFolder groupName '\singleResults.' ...
+%              num2str(experimentID) '.' num2str(run_i) '.fig'];
+% saveas(gcf, filename);
+% close(gcf);
 
 %% extract info for CSSL results figure
 
 LP_prediction       = runOutput.unlabeled_LP_prediction();
 MAD_prediction      = runOutput.unlabeled_MAD_prediction();
-mistakes.CSSL       = runOutput.unlabeled_num_mistakes_CSSL();
+CSSLMC_prediction   = runOutput.unlabeled_CSSLMC_prediction();
+%mistakes.CSSL       = runOutput.unlabeled_num_mistakes_CSSL();
 mistakes.LP         = runOutput.unlabeled_num_mistakes_LP();
 mistakes.MAD        = runOutput.unlabeled_num_mistakes_MAD();
+mistakes.CSSLMC     = runOutput.unlabeled_num_mistakes_CSSLMC();
 
-%% plot LP vs CSSL vs MAD
+%% plot LP vs CSSLMC vs MAD
 
-t = [ 'LP vs CSSL vs MAD.' paramsString ];
+t = [ 'LP vs CSSLMC vs MAD.' paramsString ];
 
 numRows = 3;
 numCols = 1;
@@ -134,11 +136,11 @@ figure('name', t);
 current = 1;
 subplot(numRows, numCols, current);
 hold on;
-scatter(1:numVertices, final_mu, 'b');
+scatter(1:numUnlabeledVertices, CSSLMC_prediction, 'b');
 plot( correctLabels, 'r' );
 hold off;
 title( ['unlabeled prediction (mu) ' ...
-        '(#mistakes = ' num2str(mistakes.CSSL) ')' ...
+        '(#mistakes = ' num2str(mistakes.CSSLMC) ')' ...
         '\newline' paramsString] );
 legend('prediction','correct');
 xlabel('vertex #i');
@@ -147,7 +149,7 @@ current = current + numCols;
 
 subplot(numRows, numCols, current);
 hold on;
-scatter(1:numVertices, LP_prediction, 'b');
+scatter(1:numUnlabeledVertices, LP_prediction, 'b');
 plot( correctLabels, 'r' );
 hold off;
 legend('prediction','correct');
@@ -158,7 +160,7 @@ current = current + numCols;
 
 subplot(numRows, numCols, current);
 hold on;
-scatter(1:numVertices, MAD_prediction, 'b');
+scatter(1:numUnlabeledVertices, MAD_prediction, 'b');
 plot( correctLabels, 'r' );
 hold off;
 legend('prediction','correct');

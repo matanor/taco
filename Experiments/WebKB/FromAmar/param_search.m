@@ -1,9 +1,9 @@
 %%
 clear classes;
 %% global shared parameters
-numRunsPerExperiment = 1;
+numRunsPerExperiment = 10;
 graphFileName = 'C:\technion\theses\Experiments\WebKB\data\From Amar\webkb_amar.mat';
-groupName = '2012_01_09 csslMulticlass';
+groupName = '2012_01_11 csslMulticlass';
 
 %% define parameter properties
 
@@ -12,12 +12,12 @@ K.range = [5];
 K.name = 'K';
 %alpha.range = [0.0001, 0.001, 0.01,0.1,1];
 %alpha.range = [10^(-5), 10^(-4), 0.001, 0.01,  1 ];
-alpha.range = [ 0.001 ];
+alpha.range = [ 1 ];
 alpha.name = 'alpha';
 %beta.range = [1,10, 100,1000,10000];
 %beta.range = [10, 100, 10^3, 10^4,10^5, 10^6, 10^7, 10^8];
 %beta.range = [10^(-5), 10^(-4), 0.001, 0.01, 1 ];
-beta.range = [ 0.001 ];
+beta.range = [ 1 ];
 beta.name = 'beta';
 %labeledConfidence.range = [0.01,0.1];
 labeledConfidence.range = [0.1];
@@ -87,8 +87,8 @@ for experimentID = experimentRange
         showSingleRunResults( singleExperiment, ...
                 experimentID, run_i, figuresToShow );
     end
-    showMultipleExperimentsResults...
-        (singleExperiment , figuresToShow, experimentID );
+    %showMultipleExperimentsResults...
+    %    (singleExperiment , figuresToShow, experimentID );
     experimentFigurePath = ...
         [resultsDir groupName '\experiment.' num2str(experimentID) '.fig'];
     saveas(gcf, experimentFigurePath);

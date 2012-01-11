@@ -8,6 +8,7 @@ classdef CSSLMC_Result < handle
     end % (Access = private)
     
 	properties (Access = private)
+        BINARY_NUM_LABELS;
         NEGATIVE; 
         POSITIVE; 
     end % (Access = private)
@@ -15,6 +16,7 @@ classdef CSSLMC_Result < handle
     methods (Access = public)
         
         function this = CSSLMC_Result() % Constructor
+            this.BINARY_NUM_LABELS = 2;
             this.NEGATIVE = 1;
             this.POSITIVE = 2;
         end
@@ -57,7 +59,28 @@ classdef CSSLMC_Result < handle
             r = CSSLMC.calcNumIterations( this.m_mu );
         end
         
+        function r = binaryPrediction(this)
+            assert( this.numLabels() == (this.BINARY_NUM_LABELS) );
+            final_mu = this.m_mu(:,:,end);
+            [~,indices] = max(final_mu,[],2);
+            final_mu(:,this.NEGATIVE) = -final_mu(:,this.NEGATIVE);
+            prediction = zeros(this.numVertices(), 1);
+            for pred_i=1:length(prediction)
+                prediction( pred_i ) = final_mu( pred_i, indices(pred_i) );
+            end
+            r = prediction;
+        end
+        
     end % (Access = public)
+    
+    methods (Access = private)
+        function r = numVertices(this)
+            r = CSSLMC_Result.calcVertices(this.m_mu);
+        end
+        function r = numLabels(this)
+            r = CSSLMC_Result.calcNumLabels(this.m_mu);
+        end
+    end
     
     methods (Static)
         function Mout = addVertexToMatrix( M )
@@ -76,6 +99,10 @@ classdef CSSLMC_Result < handle
         
         function r = calcNumLabels( M )
             r = size( M, 2 );
+        end
+        
+        function r = calcVertices( M )
+            r = size( M, 1 );
         end
     end % (Static)
     

@@ -53,16 +53,18 @@ labeledNegative = labeled(:, 2);
  %% Run algorithm - label propagation
 
 labelPropagation = LP;
-Y = labelPropagation.run( w_nn, labeledPositive, labeledNegative );
+lpResultsSource = labelPropagation.run( w_nn, labeledPositive, labeledNegative );
+lp_results = LP_Results;
+lp_results.set_results( lpResultsSource );
 
 %% Run algorithm - confidence SSL
 
-cssl = CSSL;
-cssl.m_W = w_nn;
-cssl.m_num_iterations = numIterations;
-cssl.m_alpha = alpha;
-cssl.m_beta = beta;
-cssl.m_labeledConfidence = labeledConfidence;
+csslmc = CSSLMC;
+csslmc.m_W = w_nn;
+csslmc.m_num_iterations = numIterations;
+csslmc.m_alpha = alpha;
+csslmc.m_beta = beta;
+csslmc.m_labeledConfidence = labeledConfidence;
 
 numVertices = size(w_nn,1);
 numLabels   = size(classToLabelMap,1);
@@ -71,8 +73,10 @@ NEGATIVE = 1; POSITIVE = 2;
 Ylabeled( labeledNegative, NEGATIVE ) = 1;
 Ylabeled( labeledPositive, POSITIVE ) = 1;
 
-result = cssl.runMulticlass( Ylabeled );
+csslmcResultsSource = csslmc.run( Ylabeled );
 
+csslmc_result = CSSLMC_Result;
+csslmc_result.set_results(csslmcResultsSource);
 
 %result = cssl.runBinary...
 %    ( labeledPositive, labeledNegative, ...
@@ -102,6 +106,6 @@ singleRun.correctLabels = lbls;
 singleRun.positiveInitialValue = positiveInitialValue;
 singleRun.negativeInitialValue = negativeInitialValue;
 singleRun.classToLabelMap = classToLabelMap;
-singleRun.result = result;
-singleRun.LP.Y = Y;
-singleRun.set_MAD_results( mad_results );
+singleRun.set_results( csslmc_result, singleRun.CSSLMC );
+singleRun.set_results( lp_results   , singleRun.LP )
+singleRun.set_results( mad_results  , singleRun.MAD );
