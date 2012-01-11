@@ -45,6 +45,10 @@ classdef CSSL_Result < handle
             r = size( this.m_mu, 2);
         end
         
+        function r = binaryPredictionConfidence(this)
+            r = this.m_v(:,end);
+        end
+        
     end % (Access = public)
     
     methods (Access = private)

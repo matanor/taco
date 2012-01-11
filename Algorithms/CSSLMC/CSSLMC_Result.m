@@ -65,10 +65,22 @@ classdef CSSLMC_Result < handle
             [~,indices] = max(final_mu,[],2);
             final_mu(:,this.NEGATIVE) = -final_mu(:,this.NEGATIVE);
             prediction = zeros(this.numVertices(), 1);
-            for pred_i=1:length(prediction)
-                prediction( pred_i ) = final_mu( pred_i, indices(pred_i) );
+            for vertex_i=1:length(prediction)
+                prediction( vertex_i ) = final_mu( vertex_i, indices(vertex_i) );
             end
             r = prediction;
+        end
+        
+        function r = binaryPredictionConfidence(this)
+            assert( this.numLabels() == (this.BINARY_NUM_LABELS) );
+            final_mu = this.m_mu(:,:,end);
+            [~,indices] = max(final_mu,[],2);
+            final_v = this.m_v(:,:,end);
+            confidence = zeros(this.numVertices(), 1);
+            for vertex_i=1:length(confidence)
+                confidence( vertex_i ) = final_v( vertex_i, indices(vertex_i) );
+            end
+            r = confidence;
         end
         
     end % (Access = public)

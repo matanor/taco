@@ -39,6 +39,10 @@ classdef LP_Results < handle
             r = 1;
         end
         
+        function r = binaryPrediction(this)
+            r = this.m_Y;
+        end
+        
     end % (Access = public)
     
 end
