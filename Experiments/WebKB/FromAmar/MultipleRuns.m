@@ -17,7 +17,19 @@ classdef MultipleRuns < handle
             this.m_sorted.by_confidence = [];
         end
         
+        function R = constructionParams(this)
+            R = this.getRun(1).constructionParams;
+        end
+        
+        function R = algorithmParams(this)
+            R = this.getRun(1).algorithmParams;
+        end
+        
         function addRun(this, singleRun )
+            if ~isempty( this.m_runs )
+                this.checkConstructionParams (singleRun.constructionParams());
+                this.checkAlgorithmParams    (singleRun.algorithmParams());
+            end
             this.m_runs = [this.m_runs; singleRun];
         end
         
@@ -38,6 +50,22 @@ classdef MultipleRuns < handle
     end
         
     methods (Access = private)        
+        
+        function checkConstructionParams(this, constructionParams)
+            cp = this.constructionParams;
+            assert( cp.K                    == constructionParams.K);
+            assert( cp.numLabeled           == constructionParams.numLabeled);
+            assert( cp.numInstancesPerClass == constructionParams.numInstancesPerClass);
+        end
+        
+        function checkAlgorithmParams   (this, algorithmParams)
+            ap = this.algorithmParams;
+            assert( ap.alpha             == algorithmParams.alpha);
+            assert( ap.beta              == algorithmParams.beta);
+            assert( ap.labeledConfidence == algorithmParams.labeledConfidence);
+            assert( ap.makeSymetric      == algorithmParams.makeSymetric);
+        end
+                
         function calsSortedByConfidence(this)
             
             first_run = 1;

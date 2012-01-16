@@ -29,26 +29,76 @@ isSymetric(w_nn);
 w_nn_sym = makeSymetric(w_nn);
 isSymetric(w_nn_sym);
 
-%%
+%% run MAD algorithm
 params.mu1 = 1;
 params.mu2 = 1;
 params.mu3 = 1;
 params.numIterations = numIterations;
 
 numVertices = size( w_nn_sym, 1 );
-Y = zeros(numVertices, numClasses);
+Ylabeled = zeros(numVertices, numClasses);
 for class_i=1:numClasses
     labeledForClass = labeled(:, class_i);
-    Y(labeledForClass, class_i ) = 1;
+    Ylabeled(labeledForClass, class_i ) = 1;
 end
 
 labeledVertices = labeled(:);
 
 %profile on;
+tic;
 mad = MAD;
-result = mad.run(  w_nn_sym, Y, params  , labeledVertices);
+result = mad.run(  w_nn_sym, Ylabeled, params  , labeledVertices);
 Y = result.Y(:,:,end);
 %profile off;
+toc;
+
+%% run CSSLMCF
+
+alpha = 1;
+beta = 1;
+labeledConfidence = 0.1;
+
+algorithm = CSSLMCF;
+csslmc_result = CSSLMCF_Result;
+
+algorithm.m_W                 = w_nn_sym;
+algorithm.m_num_iterations    = numIterations;
+algorithm.m_alpha             = alpha;
+algorithm.m_beta              = beta;
+algorithm.m_labeledConfidence = labeledConfidence;
+
+algorithmResultsSource = algorithm.run( Ylabeled );
+
+algorithm_results.set_results(algorithmResultsSource);
+
+Y_final = algorithmResultsSource.mu(:,:,end);
+algorithmResultsSourceUnlabaled = algorithmResultsSource;
+
+numUnlabeled = numVertices - length(labeledVertices);
+numLabels = size(classToLabelMap, 1);
+
+algorithmResultsSourceUnlabaled.mu(labeledVertices,:,:) = [];
+
+for iter_i=1:50 
+    figure; 
+    scatter(1:numUnlabeled, algorithmResultsSourceUnlabaled.mu(:,1,iter_i));
+end
+Sigma_final = algorithmResultsSource.sigma(:,:,:,end);
+
+Y_final_norm = Y_final;
+for vertex_i=1:numVertices
+    for label_i = 1:numLabels
+        Y_final_norm(vertex_i, label_i) = ...
+            Y_final(vertex_i,label_i) / Sigma_final(vertex_i,label_i,label_i);
+    end
+end
+
+[~, prediction] = max(Y_final,[],2);
+scatter(1:numVertices, prediction);
+
+isCorrect = (prediction == lbls);
+isWrong = 1 - isCorrect;
+sum(isWrong)
 
 %%
 figure('name','Mad output');

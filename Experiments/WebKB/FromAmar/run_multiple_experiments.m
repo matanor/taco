@@ -6,7 +6,7 @@ result = MultipleRuns;
 result.numExperiments = numExperiments;
 
 for i=1:numExperiments
-    newExpriment = run_single_experiment ...
+    newExpriment = SingleRunFactory.run_single_experiment ...
         (graphFileName, constructionParams, algorithmParams );
     
     result.addRun(newExpriment);

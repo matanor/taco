@@ -6,19 +6,21 @@ classdef SingleRun < handle
         labeledPositive;
         labeledNegative;
         correctLabels;
-        positiveInitialValue;
-        negativeInitialValue;
         classToLabelMap;
     end
-    
+   
     properties (Access = public)
         LP = 1;
         CSSL = 2;
         CSSLMC = 3;
         MAD = 4;
+        CSSLMCF = 5;
     end
     
     properties (Access=private)
+        m_algorithmParams;
+        m_constructionParams;
+
         m_labeled;
         m_unlabeled_correct_labels;
         m_unlabeled_num_mistakes;
@@ -27,6 +29,7 @@ classdef SingleRun < handle
         m_MAD_result;
         m_CSSL_result
         m_CSSLMC_result;
+        m_CSSLMCF_result;
     end
     
     methods (Access=public)
@@ -35,6 +38,22 @@ classdef SingleRun < handle
             this.m_unlabeled_correct_labels = [];
             this.m_unlabeled_num_mistakes = zeros( this.numAlgorithms(),1 );
         end
+        
+        function R = algorithmParams(this)
+            R = this.m_algorithmParams;
+        end
+        
+        function set_algorithmParams(this, value)
+            this.m_algorithmParams = value;
+        end        
+        
+        function R = constructionParams(this)
+            R = this.m_constructionParams;
+        end
+        
+        function set_constructionParams(this, value)
+            this.m_constructionParams = value;
+        end        
         
         function set_results( this, R, algorithmType )
             if (algorithmType == this.LP)
@@ -45,11 +64,13 @@ classdef SingleRun < handle
                 this.m_CSSL_result = R;
             elseif (algorithmType == this.CSSLMC)
                 this.m_CSSLMC_result = R;
+            elseif (algorithmType == this.CSSLMCF)
+                this.m_CSSLMCF_result = R;
             end
         end
         
         function r = numAlgorithms(this)
-            r = 4;
+            r = 5;
         end
        
         %% Return final mu for unlabeled vertices
@@ -128,24 +149,6 @@ classdef SingleRun < handle
             r = this.m_labeled ;
         end
         
-        %% Calculate unlabeled prediction from unlabeled final mu
-        
-%         function calc_unlabeled_prediction(this)
-%             numClasses = size( this.classToLabelMap, 1);
-%             range = linspace(this.negativeInitialValue, ...
-%                              this.positiveInitialValue, numClasses + 1);
-% 
-%             prediction = this.unlabeled_final_mu() ;
-%             classValueMap = [-1; +1];
-%             for range_i = 1:numClasses
-%                 bottom = range(range_i);
-%                 top = range(range_i + 1);
-%                 prediction(bottom <= prediction & prediction < top) = ...
-%                     classValueMap(range_i);
-%             end
-%             this.m_unlabeled_prediction = prediction;
-%         end
-        
         %% Calculate if prediction for unlabeled is correct
         
         function r = unlabeled_num_mistakes_binary(this, binaryPrediction)
@@ -192,6 +195,8 @@ classdef SingleRun < handle
                 r = this.m_CSSL_result;
             elseif (algorithmType == this.CSSLMC)
                 r = this.m_CSSLMC_result;
+            elseif (algorithmType == this.CSSLMCF)
+                r = this.m_CSSLMCF_result;
             end
         end
 

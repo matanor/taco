@@ -3,14 +3,14 @@ clear classes;
 clear all;
 
 %% global shared parameters
-numRunsPerExperiment = 5;
+numRunsPerExperiment = 1;
 graphFileName = 'C:\technion\theses\Experiments\WebKB\data\From Amar\webkb_amar.mat';
-groupName = '2012_01_11 csslMulticlass_k';
+groupName = '2012_01_16 param_search_numIterations';
 
 %% define parameter properties
 
 %K.range = [1,2,5,10,20,50,100,500];
-K.range = [5, 10, 15, 20, 25, 30];
+K.range = [15];
 K.name = 'K';
 %alpha.range = [0.0001, 0.001, 0.01,0.1,1];
 %alpha.range = [10^(-5), 10^(-4), 0.001, 0.01,  1 ];
@@ -26,35 +26,43 @@ labeledConfidence.range = [0.1];
 labeledConfidence.name = 'labeledConfidence';
 makeSymetric.range = [1];
 makeSymetric.name = 'makeSymetric';
+%numIterations.range = [5 10 25 50 100];
+numIterations.range = [10];
+numIterations.name = 'numIterations';
+numLabeled.range = [10 50];
+numLabeled.name = 'numLabeled';
 
-paramProperties = [K, alpha, beta, labeledConfidence, makeSymetric];
+paramProperties.algorithms   = [ alpha, beta, labeledConfidence, ...
+                                 makeSymetric, numIterations];
+paramProperties.construction = [ K, numLabeled];
 
 %% create parameters structures
 
-params = createParamsVector(paramProperties);
-paramStructs = createParamStructs(paramProperties, params);
+paramStructs.algorithmParams    = ...
+    ParamsManager.createAlgorithmParamsStructures(paramProperties.algorithms);
+paramStructs.constructionParams  = ...
+    ParamsManager.createConstructionParamsStructures(paramProperties.construction);
 
-%% run all experiments with all the parameter combinations
+%% allocate a multiple runs object per each parameter combination
+%  and run all experiments with all the parameter combinations
+
+numParamCombinations =  length(paramStructs.algorithmParams) * ...
+                        length(paramStructs.constructionParams);
+
+for param_combination_i = 1:numParamCombinations
+    experimentCollection(param_combination_i ) = MultipleRuns;
+    experimentCollection(param_combination_i ).numExperiments = numRunsPerExperiment;
+end
 
 ticID = tic;
-numStructs = length(paramStructs);
-allExperiments = [];
-for struct_i=1:numStructs
-    currentParams = paramStructs(struct_i);
-    
-    algorithmParams = currentParams.algorithmParams;
-    algorithmParams.numIterations = 50;
-    
-    constructionParams = currentParams.constructionParams;
-    constructionParams.numLabeled = 50;
-    constructionParams.numInstancesPerClass = 500;
-
-    experiment.result  = run_multiple_experiments...
-        ( graphFileName     , numRunsPerExperiment, ...
-          constructionParams, algorithmParams );
-    experiment.params = currentParams;
-    experiment.fileName = graphFileName;
-    allExperiments = [ allExperiments; experiment ];
+for run_i=1:numRunsPerExperiment
+    experimentRuns = run_all_params_experiment.run...
+        ( graphFileName, paramStructs );
+    for param_combination_i=1:numParamCombinations
+        singleRun = experimentRuns(param_combination_i);
+        experimentCollection(param_combination_i).addRun...
+            ( singleRun );
+    end
 end
 toc(ticID);
 
@@ -63,7 +71,7 @@ figuresToShow.singleRuns = 1;
 figuresToShow.accumulativeLoss = 1;
 
 %% get total number of experiment
-numExperiments = length( allExperiments );
+numExperiments = numParamCombinations;
 
 %%
 resultsDir = 'C:\technion\theses\Experiments\WebKB\results\';
@@ -83,14 +91,13 @@ figuresToShow.groupName = groupName;
 experimentRange = 1:numExperiments;
 
 for experimentID = experimentRange 
-    singleExperiment = allExperiments(experimentID);
-    multipleRuns = singleExperiment.result;
+    multipleRuns = experimentCollection(experimentID);
     for run_i=1:multipleRuns.num_runs()
-        showSingleRunResults( singleExperiment, ...
+        showSingleRunResults.show( multipleRuns, ...
                 experimentID, run_i, figuresToShow );
     end
     showMultipleExperimentsResults...
-        (singleExperiment , figuresToShow, experimentID );
+        (multipleRuns, figuresToShow, experimentID );
     experimentFigurePath = ...
         [resultsDir groupName '\experiment.' num2str(experimentID) '.fig'];
     saveas(gcf, experimentFigurePath);
@@ -101,8 +108,7 @@ end
 
 paramsOrder.K   = zeros(numExperiments,1);
 for experimentID=1:numExperiments
-    singleExperiment = allExperiments(experimentID);
-    multipleRuns = singleExperiment.result;
+    multipleRuns = experimentCollection(experimentID);
     numMistakes.final(experimentID) = ...
         multipleRuns.sorted_by_confidence.accumulative(end);
     numMistakes.after100(experimentID) = ...
@@ -116,13 +122,13 @@ for experimentID=1:numExperiments
     numMistakes.after900(experimentID) = ...
         multipleRuns.sorted_by_confidence.accumulative(900);
     paramsOrder.K(experimentID) =...
-        singleExperiment.params.constructionParams.K;
+        multipleRuns.constructionParams().K;
     paramsOrder.alpha(experimentID) =...
-        singleExperiment.params.algorithmParams.alpha;
+        multipleRuns.algorithmParams().alpha;
     paramsOrder.beta(experimentID) =...
-        singleExperiment.params.algorithmParams.beta;
+        multipleRuns.algorithmParams().beta;
     paramsOrder.labeledConfidence(experimentID) =...
-        singleExperiment.params.algorithmParams.labeledConfidence;
+        multipleRuns.algorithmParams().labeledConfidence;
 end
 
 paramsOrder.experimentID = 1:numExperiments;

@@ -4,9 +4,9 @@ function showMultipleExperimentsResults...
 %   Detailed explanation goes here
 
 %%
-multipleRuns = experiment.result;
-algorithmParams     = experiment.params.algorithmParams;
-constructionParams  = experiment.params.constructionParams;
+multipleRuns        = experiment;
+algorithmParams     = multipleRuns.algorithmParams();
+constructionParams  = multipleRuns.constructionParams();
 
 %% extract parameters
 
@@ -14,6 +14,7 @@ labeledConfidence   = algorithmParams.labeledConfidence;
 alpha               = algorithmParams.alpha;
 beta                = algorithmParams.beta;
 K                   = constructionParams.K;
+numLabeledPreClass  = constructionParams.numLabeled;
 makeSymetric        = algorithmParams.makeSymetric;
 
 paramsString = ...
@@ -21,7 +22,9 @@ paramsString = ...
      ' alpha = '    num2str(alpha) ...
      ' beta = '     num2str(beta) ...
      ' K = '        num2str(K) ...
+     '\newline' ...
      ' makeSymetric = ' num2str(makeSymetric) ...
+     ' numLabeledPreClass = ' num2str(numLabeledPreClass ) ...
      ' exp ID = '   num2str(experimentID)];
 
 %% Show accumulative loss sorted by confidence

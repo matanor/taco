@@ -59,8 +59,10 @@ classdef MainClass < handle
                 this.runLP();
             elseif (strcmp( this.algorithmType,CSSLMC.name() ) == 1)
                 this.runCSSLMC();
-            elseif (strcmp( this.algorithmType,CSSL.name() ) == 1)
+            elseif (strcmp( this.algorithmType,CSSL.name() ) == 1)               
                 this.runCSSL();
+            elseif (strcmp( this.algorithmType,CSSLMCF.name() ) == 1)
+                this.runCSSLMCF();
             elseif (strcmp( this.algorithmType,MAD.name() ) == 1)
                 this.runMAD();
             else
@@ -560,8 +562,9 @@ classdef MainClass < handle
                   @(src, event)updateLabeledConfidence(this, src, event) );
             controlPos.left = controlPos.left + controlPos.width + margin;
             
-            algorithmOptions = [CSSL.name() '|' CSSLMC.name() '|' ...
-                                LP.name()   '|' MAD.name()] ;
+            algorithmOptions = [CSSL.name()    '|' CSSLMC.name() '|' ...
+                                CSSLMCF.name() '|' ...
+                                LP.name()      '|' MAD.name()] ;
             MainClass.addComboParam( controlPos, 'algorithm', ... 
                             algorithmOptions, ...
                   @(src, event)updateAlgorithm(this, src, event) );
@@ -608,6 +611,22 @@ classdef MainClass < handle
             Y = MainClass.createLabeledY(this.graph);
             this.algorithm_result = CSSLMC_Result;
             R = csslmc.run ( Y );
+            this.algorithm_result.set_results( R );
+        end
+        
+        function runCSSLMCF(this)
+            
+            algorithm = CSSLMCF;
+            
+            algorithm.m_W = this.graph.weights();
+            algorithm.m_num_iterations = this.numIterations;
+            algorithm.m_alpha = this.alpha;
+            algorithm.m_beta = this.beta;
+            algorithm.m_labeledConfidence = this.labeledConfidence;
+            
+            Y = MainClass.createLabeledY(this.graph);
+            this.algorithm_result = CSSLMCF_Result;
+            R = algorithm.run ( Y );
             this.algorithm_result.set_results( R );
         end
         
