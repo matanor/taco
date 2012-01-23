@@ -51,7 +51,6 @@ methods (Static)
         CSSLMC_confidence    = runOutput.unlabeled_confidence(runOutput.CSSLMC);
         CSSLMC_margin        = runOutput.unlabeled_margin(runOutput.CSSLMC);
         correctLabels        = runOutput.unlabeled_correct_labels();
-        %numUnlabeledVertices = runOutput.numUnlabeledVertices();
 
         %% plot CSSLMC result figure
 
@@ -112,67 +111,20 @@ methods (Static)
             (numRows, numCols, current, CSSLMC_prediction, ...
              correctLabels, mistakes.CSSLMC, 'CSSLMC', ...
              ['\newline' generalParams '\newline' paramsStringCSSLMC]);
-                 
-%         subplot(numRows, numCols, current);
-%         hold on;
-%         scatter(1:numUnlabeledVertices, CSSLMC_prediction, 'b');
-%         plot( correctLabels, 'r' );
-%         hold off;
-%         title( ['CSSLMC prediction ' ...
-%                 '(#mistakes = ' num2str(mistakes.CSSLMC) ')' ...
-%                 paramsStringCSSLMC] );
-%         legend('prediction','correct');
-%         xlabel('vertex #i');
-%         ylabel('prediction (mu)');
-%         current = current + numCols;
 
         current = showSingleRunResults.plotBinaryPrediction...
             (numRows, numCols, current, CSSLMCF_prediction, ...
              correctLabels, mistakes.CSSLMCF, 'CSSLMCF', paramsStringCSSLMCF);
-         
-%         subplot(numRows, numCols, current);
-%         hold on;
-%         scatter(1:numUnlabeledVertices, CSSLMCF_prediction, 'b');
-%         plot( correctLabels, 'r' );
-%         hold off;
-%         title( ['CSSLMCF prediction ' ...
-%                 '(#mistakes = ' num2str(mistakes.CSSLMCF) ')' ...
-%                  paramsStringCSSLMCF] );
-%         legend('prediction','correct');
-%         xlabel('vertex #i');
-%         ylabel('prediction (mu)');
-%         current = current + numCols;
 
         current = showSingleRunResults.plotBinaryPrediction...
             (numRows, numCols, current, LP_prediction, ...
              correctLabels, mistakes.LP, 'LP', '');
-         
-%         subplot(numRows, numCols, current);
-%         hold on;
-%         scatter(1:numUnlabeledVertices, LP_prediction, 'b');
-%         plot( correctLabels, 'r' );
-%         hold off;
-%         legend('prediction','correct');
-%         title( ['LP prediction (#mistakes = ' num2str(mistakes.LP) ')']  );
-%         xlabel('vertex #i');
-%         ylabel('y');
-%         current = current + numCols;
 
         madParamsString = [' useGraphHeuristice = ' num2str(useGraphHeuristics)];
         
         current = showSingleRunResults.plotBinaryPrediction...
             (numRows, numCols, current, MAD_prediction, ...
              correctLabels, mistakes.MAD, 'MAD', madParamsString);
-%         subplot(numRows, numCols, current);
-%         hold on;
-%         scatter(1:numUnlabeledVertices, MAD_prediction, 'b');
-%         plot( correctLabels, 'r' );
-%         hold off;
-%         legend('prediction','correct');
-%         title( ['MAD prediction (#mistakes = ' num2str(mistakes.MAD) ')']  );
-%         xlabel('vertex #i');
-%         ylabel('y');
-%         current = current + numCols;
 
         outputFolder = figuresToShow.resultDir;
         groupName    = figuresToShow.groupName;
