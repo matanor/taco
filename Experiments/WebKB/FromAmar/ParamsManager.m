@@ -22,8 +22,9 @@ methods (Static)
             
             paramIndex = ParamsManager.findParamIndex( paramProperties, 'numLabeled');
             new.numLabeled  = paramsVector (struct_i, paramIndex);
-
-            new.numInstancesPerClass = 500;
+            
+            paramIndex = ParamsManager.findParamIndex( paramProperties, 'numInstancesPerClass');
+            new.numInstancesPerClass  = paramsVector (struct_i, paramIndex);
 
             paramStructs = [paramStructs; new];
         end
@@ -54,6 +55,9 @@ methods (Static)
 
             paramIndex = ParamsManager.findParamIndex( paramProperties, 'numIterations');
             new.numIterations = paramsVector(struct_i, paramIndex);
+            
+            paramIndex = ParamsManager.findParamIndex( paramProperties, 'useGraphHeuristics');
+            new.useGraphHeuristics = paramsVector(struct_i, paramIndex);
 
             paramStructs = [paramStructs; new];
         end

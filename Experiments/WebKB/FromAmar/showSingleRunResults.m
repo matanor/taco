@@ -19,25 +19,31 @@ methods (Static)
         alpha               = algorithmParams.alpha;
         beta                = algorithmParams.beta;
         K                   = constructionParams.K;
+        numLabeledPerClass  = constructionParams.numLabeled;
         makeSymetric        = algorithmParams.makeSymetric;
-        numIterations       = algorithmParams.numIterations;
-
-        %% create params string
-
-        paramsString = ...
-            [' labeledConfidence = ' num2str(labeledConfidence) ...
-             ' alpha = '     num2str(alpha) ...
-             ' beta = '      num2str(beta) ...
-             ' K = '         num2str(K) ...
-             ' makeSymetric = ' num2str(makeSymetric) ...
-             ' numIterations = ' num2str(numIterations) ...
-             ' exp ID = '    num2str(experimentID) ...
-             ' run index = ' num2str(run_i)];
+        useGraphHeuristics  = algorithmParams.useGraphHeuristics;
 
         %% Show final prediction & confidence
         if (figuresToShow.singleRuns == 0) 
             return;
         end
+
+        %% create general params string
+        generalParams = ...
+            [' K = '                    num2str(K) ...
+             ' makeSymetric = '         num2str(makeSymetric) ...
+             ' numLabeledPerClass = '   num2str(numLabeledPerClass) ...
+             ' exp ID = '               num2str(experimentID) ...
+             ' run index = '            num2str(run_i)];
+        
+        %% create params string for CSSLMC
+
+        numIterations       = runOutput.numIterations( SingleRun.CSSLMC);
+        paramsStringCSSLMC = ...
+            [' labeledConfidence = '    num2str(labeledConfidence) ...
+             ' alpha = '                num2str(alpha) ...
+             ' beta = '                 num2str(beta) ...
+             ' numIterations = '        num2str(numIterations) ];
 
         %% extract info for CSSLMC results figure
 
@@ -45,7 +51,7 @@ methods (Static)
         CSSLMC_confidence    = runOutput.unlabeled_confidence(runOutput.CSSLMC);
         CSSLMC_margin        = runOutput.unlabeled_margin(runOutput.CSSLMC);
         correctLabels        = runOutput.unlabeled_correct_labels();
-        numUnlabeledVertices = runOutput.numUnlabeledVertices();
+        %numUnlabeledVertices = runOutput.numUnlabeledVertices();
 
         %% plot CSSLMC result figure
 
@@ -53,7 +59,8 @@ methods (Static)
         showSingleRunResults.plotBinaryCSSLResults...
             (   CSSLMC_prediction, CSSLMC_confidence, ...
             	CSSLMC_margin, correctLabels, sortedCSSLMC, figuresToShow, ...
-                paramsString, 'CSSLMC', experimentID, run_i);
+                [generalParams '\newline' paramsStringCSSLMC], ...
+                'CSSLMC', experimentID, run_i);
             
         %% extract info for CSSLMCF results figure
             
@@ -61,15 +68,26 @@ methods (Static)
         CSSLMCF_confidence    = runOutput.unlabeled_confidence(runOutput.CSSLMCF);
         CSSLMCF_margin        = runOutput.unlabeled_margin(runOutput.CSSLMCF);
         
+        %% create params string for CSSLMCF
+
+        numIterations       = runOutput.numIterations( SingleRun.CSSLMCF);
+        
+        paramsStringCSSLMCF = ...
+            [' labeledConfidence = '    num2str(labeledConfidence) ...
+             ' alpha = '                num2str(alpha) ...
+             ' beta = '                 num2str(beta) ...
+             ' numIterations = '        num2str(numIterations) ];
+        
         %% plot CSSLMCF result figure
             
         sortedCSSLMCF.by_confidence = runOutput.sorted_by_confidence(runOutput.CSSLMCF);
         showSingleRunResults.plotBinaryCSSLResults...
             (   CSSLMCF_prediction, CSSLMCF_confidence, ...
             	CSSLMCF_margin, correctLabels, sortedCSSLMCF, figuresToShow, ...
-                paramsString, 'CSSLMCF', experimentID, run_i);
+                [generalParams '\newline' paramsStringCSSLMCF],...
+                'CSSLMCF', experimentID, run_i);
                                
-        %% extract info for CSSL results figure
+        %% extract info for results comparison figure
 
         LP_prediction       = runOutput.unlabeled_binary_prediction(runOutput.LP);
         MAD_prediction      = runOutput.unlabeled_binary_prediction(runOutput.MAD);
@@ -82,7 +100,7 @@ methods (Static)
 
         %% plot LP vs CSSLMC vs MAD
 
-        t = [ 'LP vs CSSLMC vs MAD.' paramsString ];
+        t = [ 'LP vs CSSLMC vs MAD.' generalParams '. ' paramsStringCSSLMCF ];
 
         numRows = 4;
         numCols = 1;
@@ -90,53 +108,71 @@ methods (Static)
         figure('name', t);
 
         current = 1;
-        subplot(numRows, numCols, current);
-        hold on;
-        scatter(1:numUnlabeledVertices, CSSLMC_prediction, 'b');
-        plot( correctLabels, 'r' );
-        hold off;
-        title( ['CSSLMC prediction ' ...
-                '(#mistakes = ' num2str(mistakes.CSSLMC) ')' ...
-                '\newline' paramsString] );
-        legend('prediction','correct');
-        xlabel('vertex #i');
-        ylabel('prediction (mu)');
-        current = current + numCols;
+        current = showSingleRunResults.plotBinaryPrediction...
+            (numRows, numCols, current, CSSLMC_prediction, ...
+             correctLabels, mistakes.CSSLMC, 'CSSLMC', ...
+             ['\newline' generalParams '\newline' paramsStringCSSLMC]);
+                 
+%         subplot(numRows, numCols, current);
+%         hold on;
+%         scatter(1:numUnlabeledVertices, CSSLMC_prediction, 'b');
+%         plot( correctLabels, 'r' );
+%         hold off;
+%         title( ['CSSLMC prediction ' ...
+%                 '(#mistakes = ' num2str(mistakes.CSSLMC) ')' ...
+%                 paramsStringCSSLMC] );
+%         legend('prediction','correct');
+%         xlabel('vertex #i');
+%         ylabel('prediction (mu)');
+%         current = current + numCols;
 
-        subplot(numRows, numCols, current);
-        hold on;
-        scatter(1:numUnlabeledVertices, CSSLMCF_prediction, 'b');
-        plot( correctLabels, 'r' );
-        hold off;
-        title( ['CSSLMCF prediction ' ...
-                '(#mistakes = ' num2str(mistakes.CSSLMCF) ')' ...
-                '\newline' paramsString] );
-        legend('prediction','correct');
-        xlabel('vertex #i');
-        ylabel('prediction (mu)');
-        current = current + numCols;
+        current = showSingleRunResults.plotBinaryPrediction...
+            (numRows, numCols, current, CSSLMCF_prediction, ...
+             correctLabels, mistakes.CSSLMCF, 'CSSLMCF', paramsStringCSSLMCF);
+         
+%         subplot(numRows, numCols, current);
+%         hold on;
+%         scatter(1:numUnlabeledVertices, CSSLMCF_prediction, 'b');
+%         plot( correctLabels, 'r' );
+%         hold off;
+%         title( ['CSSLMCF prediction ' ...
+%                 '(#mistakes = ' num2str(mistakes.CSSLMCF) ')' ...
+%                  paramsStringCSSLMCF] );
+%         legend('prediction','correct');
+%         xlabel('vertex #i');
+%         ylabel('prediction (mu)');
+%         current = current + numCols;
 
-        subplot(numRows, numCols, current);
-        hold on;
-        scatter(1:numUnlabeledVertices, LP_prediction, 'b');
-        plot( correctLabels, 'r' );
-        hold off;
-        legend('prediction','correct');
-        title( ['LP prediction (#mistakes = ' num2str(mistakes.LP) ')']  );
-        xlabel('vertex #i');
-        ylabel('y');
-        current = current + numCols;
+        current = showSingleRunResults.plotBinaryPrediction...
+            (numRows, numCols, current, LP_prediction, ...
+             correctLabels, mistakes.LP, 'LP', '');
+         
+%         subplot(numRows, numCols, current);
+%         hold on;
+%         scatter(1:numUnlabeledVertices, LP_prediction, 'b');
+%         plot( correctLabels, 'r' );
+%         hold off;
+%         legend('prediction','correct');
+%         title( ['LP prediction (#mistakes = ' num2str(mistakes.LP) ')']  );
+%         xlabel('vertex #i');
+%         ylabel('y');
+%         current = current + numCols;
 
-        subplot(numRows, numCols, current);
-        hold on;
-        scatter(1:numUnlabeledVertices, MAD_prediction, 'b');
-        plot( correctLabels, 'r' );
-        hold off;
-        legend('prediction','correct');
-        title( ['MAD prediction (#mistakes = ' num2str(mistakes.MAD) ')']  );
-        xlabel('vertex #i');
-        ylabel('y');
-        current = current + numCols;
+        madParamsString = [' useGraphHeuristice = ' num2str(useGraphHeuristics)];
+        
+        current = showSingleRunResults.plotBinaryPrediction...
+            (numRows, numCols, current, MAD_prediction, ...
+             correctLabels, mistakes.MAD, 'MAD', madParamsString);
+%         subplot(numRows, numCols, current);
+%         hold on;
+%         scatter(1:numUnlabeledVertices, MAD_prediction, 'b');
+%         plot( correctLabels, 'r' );
+%         hold off;
+%         legend('prediction','correct');
+%         title( ['MAD prediction (#mistakes = ' num2str(mistakes.MAD) ')']  );
+%         xlabel('vertex #i');
+%         ylabel('y');
+%         current = current + numCols;
 
         outputFolder = figuresToShow.resultDir;
         groupName    = figuresToShow.groupName;
@@ -144,7 +180,48 @@ methods (Static)
                       num2str(experimentID) '.' num2str(run_i) '.LP_vs_CSSL_vs_MAD.fig'];
         saveas(gcf, filename);
         close(gcf);
+        
+        %% plot MAD probabilities figure
+        
+        filePrefix = [ outputFolder groupName '\singleResults.' ...
+                      num2str(experimentID) '.' num2str(run_i)];
+        
+        MAD_result = runOutput.getAlgorithmResults(SingleRun.MAD);
+        showSingleRunResults.plotProbabilities( MAD_result.probabilities(), filePrefix );
 
+    end
+    
+    function current = plotBinaryPrediction...
+            (numRows, numCols, current, ...
+             binaryPrediction, correctLabels, numMistakes, ...
+             algorithmName, paramsString)
+        subplot(numRows, numCols, current);
+        hold on;
+        scatter(1:length(binaryPrediction), binaryPrediction, 'b');
+        plot( correctLabels, 'r' );
+        hold off;
+        legend('prediction','correct');
+        title( [algorithmName ...
+               ' prediction (#mistakes = ' num2str(numMistakes) ')' ...
+               paramsString ]  );
+        xlabel('vertex #i');
+        ylabel('y');
+        current = current + numCols;
+    end
+    
+    function plotProbabilities(p, filePrefix)
+        showSingleRunResults.scatterFigure('p_inject'    , p.inject, filePrefix);
+        showSingleRunResults.scatterFigure('p_continue'  , p.continue, filePrefix);
+        showSingleRunResults.scatterFigure('p_abandon'   , p.abandon, filePrefix);
+    end
+    
+    function scatterFigure(t, x, filePrefix)
+        figure('name',t);
+        title(t)
+        scatter(1:length(x),x);  
+        filename = [filePrefix '.' t '.fig'];
+        saveas(gcf, filename);
+        close(gcf);
     end
     
     function plotBinaryCSSLResults(CSSL_prediction, CSSL_confidence, ...

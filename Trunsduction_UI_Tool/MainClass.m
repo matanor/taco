@@ -612,6 +612,7 @@ classdef MainClass < handle
             this.algorithm_result = CSSLMC_Result;
             R = csslmc.run ( Y );
             this.algorithm_result.set_results( R );
+            this.set_numIterations( this.algorithm_result.numIterations() );
         end
         
         function runCSSLMCF(this)

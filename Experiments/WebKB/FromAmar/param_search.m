@@ -5,36 +5,40 @@ clear all;
 %% global shared parameters
 numRunsPerExperiment = 1;
 graphFileName = 'C:\technion\theses\Experiments\WebKB\data\From Amar\webkb_amar.mat';
-groupName = '2012_01_16 param_search_numIterations';
+groupName = '2012_01_23 mad_no_graph_change';
 
 %% define parameter properties
 
 %K.range = [1,2,5,10,20,50,100,500];
-K.range = [15];
+K.range = [100];
 K.name = 'K';
 %alpha.range = [0.0001, 0.001, 0.01,0.1,1];
-%alpha.range = [10^(-5), 10^(-4), 0.001, 0.01,  1 ];
+%alpha.range = [10^(-5), 10^(-4), 0.001, 0.01,  1, 10^2, 10^4 ];
 alpha.range = [ 1 ];
 alpha.name = 'alpha';
 %beta.range = [1,10, 100,1000,10000];
 %beta.range = [10, 100, 10^3, 10^4,10^5, 10^6, 10^7, 10^8];
-%beta.range = [10^(-5), 10^(-4), 0.001, 0.01, 1 ];
+%beta.range = [10^(-5), 10^(-4), 0.001, 0.01, 1, 10^2, 10^4 ];
 beta.range = [ 1 ];
 beta.name = 'beta';
 %labeledConfidence.range = [0.01,0.1];
-labeledConfidence.range = [0.1];
+labeledConfidence.range = [2];
 labeledConfidence.name = 'labeledConfidence';
 makeSymetric.range = [1];
 makeSymetric.name = 'makeSymetric';
 %numIterations.range = [5 10 25 50 100];
-numIterations.range = [10];
+numIterations.range = [50];
 numIterations.name = 'numIterations';
-numLabeled.range = [10 50];
+numLabeled.range = [20];
 numLabeled.name = 'numLabeled';
+numInstancesPerClass.range = 200;
+numInstancesPerClass.name = 'numInstancesPerClass';
+useGraphHeuristics.range = [1];
+useGraphHeuristics.name = 'useGraphHeuristics';
 
 paramProperties.algorithms   = [ alpha, beta, labeledConfidence, ...
-                                 makeSymetric, numIterations];
-paramProperties.construction = [ K, numLabeled];
+                                 makeSymetric, numIterations, useGraphHeuristics];
+paramProperties.construction = [ K, numLabeled, numInstancesPerClass];
 
 %% create parameters structures
 
@@ -90,7 +94,7 @@ figuresToShow.groupName = groupName;
 %experimentRange =[334 318 333 313 317 306 378 330 317 357 397 354 329 337 305]
 experimentRange = 1:numExperiments;
 
-for experimentID = experimentRange 
+for experimentID = experimentRange
     multipleRuns = experimentCollection(experimentID);
     for run_i=1:multipleRuns.num_runs()
         showSingleRunResults.show( multipleRuns, ...
@@ -110,17 +114,17 @@ paramsOrder.K   = zeros(numExperiments,1);
 for experimentID=1:numExperiments
     multipleRuns = experimentCollection(experimentID);
     numMistakes.final(experimentID) = ...
-        multipleRuns.sorted_by_confidence.accumulative(end);
-    numMistakes.after100(experimentID) = ...
-        multipleRuns.sorted_by_confidence.accumulative(100);
-    numMistakes.after200(experimentID) = ...
-        multipleRuns.sorted_by_confidence.accumulative(200);
-	numMistakes.after300(experimentID) = ...
-        multipleRuns.sorted_by_confidence.accumulative(300);
-   	numMistakes.after500(experimentID) = ...
-        multipleRuns.sorted_by_confidence.accumulative(500);
-    numMistakes.after900(experimentID) = ...
-        multipleRuns.sorted_by_confidence.accumulative(900);
+        multipleRuns.sorted_by_confidence( SingleRun.CSSLMCF ).accumulative(end);
+    %numMistakes.after100(experimentID) = ...
+    %    multipleRuns.sorted_by_confidence.accumulative(100);
+    %numMistakes.after200(experimentID) = ...
+    %    multipleRuns.sorted_by_confidence.accumulative(200);
+	%numMistakes.after300(experimentID) = ...
+    %    multipleRuns.sorted_by_confidence.accumulative(300);
+   	%numMistakes.after500(experimentID) = ...
+    %    multipleRuns.sorted_by_confidence.accumulative(500);
+    %numMistakes.after900(experimentID) = ...
+    %    multipleRuns.sorted_by_confidence.accumulative(900);
     paramsOrder.K(experimentID) =...
         multipleRuns.constructionParams().K;
     paramsOrder.alpha(experimentID) =...

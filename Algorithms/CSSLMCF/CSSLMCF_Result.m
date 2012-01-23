@@ -1,46 +1,32 @@
-classdef CSSLMCF_Result < handle
+classdef CSSLMCF_Result < SSLMC_Result
     %CSSLMC_Result Confidence Semi-Supervised Learning Multi-Class Full 
     % Covarianceresult
     %   Detailed explanation goes here
     
-    properties (Access = private)
-        m_mu;
+    properties (Access = public)
         m_sigma;
-    end % (Access = private)
-    
-	properties (Access = private)
-        BINARY_NUM_LABELS;
-        NEGATIVE; 
-        POSITIVE; 
     end % (Access = private)
     
     methods (Access = public)
         
-        function this = CSSLMCF_Result() % Constructor
-            this.BINARY_NUM_LABELS = 2;
-            this.NEGATIVE = 1;
-            this.POSITIVE = 2;
-        end
-        
         function set_results(this, resultSource)
-            this.m_mu     = resultSource.mu;
+            this.m_Y     = resultSource.mu;
             this.m_sigma  = resultSource.sigma;
         end
         
         function add_vertex(this)
             oldNumVertices = this.numVertices;
-            newNumVertices = oldNumVertices + 1;
             this.addVertexTo_Mu();
             this.addVertexTo_Sigma(oldNumVertices);
         end
         
         function remove_vertex(this, vertex_i)
-            this.m_mu(vertex_i,:,:) = [];
+            this.m_Y(vertex_i,:,:) = [];
             this.m_sigma (vertex_i,:,:,:) = [];
         end
         
         function r = asText( this, vertex_i, iteration_i)
-            mu = this.m_mu( vertex_i, :, iteration_i );
+            mu = this.m_Y( vertex_i, :, iteration_i );
             
            
             sigma(:,:) = this.m_sigma( vertex_i, :,:, iteration_i );
@@ -52,33 +38,17 @@ classdef CSSLMCF_Result < handle
         end
         
         function r = allColors(this, iteration_i)
-            r = 0.5 * ( (-1) * this.m_mu(:, this.NEGATIVE, iteration_i) + ...
-                               this.m_mu(:, this.POSITIVE, iteration_i));
+            r = 0.5 * ( (-1) * this.m_Y(:, this.NEGATIVE, iteration_i) + ...
+                               this.m_Y(:, this.POSITIVE, iteration_i));
         end
         
         function r = legend(~)
             r = '(mu (-1),mu (+1))\newline sigma \newline(--,-+)\newline(+-,++)';
         end
         
-        function r = numIterations(this)
-            r = size( this.m_mu, 3 );
-        end
-        
-        function r = binaryPrediction(this)
-            assert( this.numLabels() == (this.BINARY_NUM_LABELS) );
-            final_mu = this.m_mu(:,:,end);
-            [~,indices] = max(final_mu,[],2);
-            final_mu(:,this.NEGATIVE) = -final_mu(:,this.NEGATIVE);
-            prediction = zeros(this.numVertices(), 1);
-            for vertex_i=1:length(prediction)
-                prediction( vertex_i ) = final_mu( vertex_i, indices(vertex_i) );
-            end
-            r = prediction;
-        end
-        
         function r = binaryPredictionConfidence(this)
             assert( this.numLabels() == (this.BINARY_NUM_LABELS) );
-            final_mu = this.m_mu(:,:,end);
+            final_mu = this.m_Y(:,:,end);
             [~,indices] = max(final_mu,[],2);
             final_sigma = this.m_sigma(:,:,:,end);
             confidence = zeros(this.numVertices(), 1);
@@ -92,12 +62,6 @@ classdef CSSLMCF_Result < handle
     end % (Access = public)
     
     methods (Access = private)
-        function r = numVertices(this)
-            r = size(this.m_mu,1);
-        end
-        function r = numLabels(this)
-            r = size(this.m_mu,2);
-        end
         
         function addVertexTo_Mu(this)
             newMu = zeros(   this.numVertices() + 1, ...
@@ -106,10 +70,10 @@ classdef CSSLMCF_Result < handle
             numIterations   = this.numIterations();
             numLabels       = this.numLabels();
             for iter_i=1:numIterations
-                newMu(:,:,iter_i) = [ this.m_mu(:,:,iter_i);
+                newMu(:,:,iter_i) = [ this.m_Y(:,:,iter_i);
                                       zeros(1, numLabels) ];
             end
-            this.m_mu = newMu;
+            this.m_Y = newMu;
         end
         
         function addVertexTo_Sigma(this, oldNumVertices)

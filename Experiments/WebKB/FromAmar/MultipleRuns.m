@@ -37,11 +37,12 @@ classdef MultipleRuns < handle
             r = this.m_runs(run_i);
         end
     
-        function r = sorted_by_confidence( this )
-            if isempty(this.m_sorted.by_confidence)
-                this.calsSortedByConfidence();
-            end
-            r = this.m_sorted.by_confidence;
+        function r = sorted_by_confidence( this, algorithmType )
+            r = this.calsSortedByConfidence(algorithmType);
+            %if isempty(this.m_sorted.by_confidence)
+            %    this.calsSortedByConfidence();
+            %end
+            %r = this.m_sorted.by_confidence;
         end
         
         function r = num_runs(this)
@@ -66,7 +67,7 @@ classdef MultipleRuns < handle
             assert( ap.makeSymetric      == algorithmParams.makeSymetric);
         end
                 
-        function calsSortedByConfidence(this)
+        function r = calsSortedByConfidence(this, algorithmType)
             
             first_run = 1;
             numUnlabeled = this.getRun(first_run).numUnlabeledVertices();
@@ -79,7 +80,7 @@ classdef MultipleRuns < handle
                 singleRun = this.getRun(run_i);
                 
                 run_sorted_by_confidence = ...
-                    singleRun.sorted_by_confidence(singleRun.CSSLMC);
+                    singleRun.sorted_by_confidence(algorithmType);
                 
                 sorted.by_confidence.accumulative = ...
                 sorted.by_confidence.accumulative + ...
@@ -101,7 +102,7 @@ classdef MultipleRuns < handle
             sorted.by_confidence.margin = ...
             sorted.by_confidence.margin / this.numExperiments;
 
-            this.m_sorted.by_confidence = sorted.by_confidence;
+            r = sorted.by_confidence;
         end
     end
     

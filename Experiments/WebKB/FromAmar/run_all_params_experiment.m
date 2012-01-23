@@ -5,8 +5,14 @@ methods (Static)
 
         %% define the classes we use
 
+%         classToLabelMap = [ 1  1;
+%                             4 -1 ];
+                        
         classToLabelMap = [ 1  1;
-                            4 -1 ];
+                            2  2
+                            3  3
+                            4  4];
+
                     
         %% 
         allConstructionParams   = paramStructs.constructionParams;

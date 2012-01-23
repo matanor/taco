@@ -26,10 +26,8 @@ classdef CSSLMC < handle
         iteration.mu = zeros( num_vertices, num_labels, num_iterations );
         iteration.v  = ones ( num_vertices, num_labels, num_iterations );
 
-        %isLabeled = max(labeledY, [], 2);
-        
-        %labeled.positive = labeledPositive;
-        %labeled.negative = labeledNegative;
+        iteration_diff = 10^1000;
+        diff_epsilon = 0.0001;
 
         % note iteration index starts from 2
         for iter_i = 2:num_iterations
@@ -37,25 +35,25 @@ classdef CSSLMC < handle
             if ( mod(iter_i, 10) == 0 )
                 disp(['#Iteration = ' num2str(iter_i)]);
             end
+            
+            if iteration_diff < diff_epsilon
+                disp(['converged after ' num2str(iter_i-1) ' iterations']);
+                iteration.mu(:,:, iter_i:end) = [];
+                iteration.v(:,:, iter_i:end) = [];
+                break;
+            end
+                
             prev_mu = iteration.mu( :, :, iter_i - 1) ;
             prev_v =  iteration.v ( :, :, iter_i - 1) ;
 
             for vertex_i=1:num_vertices
 
                 for label_i = 1:num_labels
-                    %isPositive = ismember(vertex_i, labeled.positive);
-                    %isNegative = ismember(vertex_i, labeled.negative);
-                    %isLabeled = isPositive | isNegative;
-                    %y_i =   isPositive * positiveInitialValue + ...
-                            %isNegative * negativeInitialValue;
 
                     y_i = labeledY( vertex_i, label_i );
                     isLabeled = (y_i ~=0);
                     
                     neighbours = getNeighbours( this.m_W, vertex_i);
-                    %neighbours = find( this.m_W(vertex_i, :) ~= 0 );
-                    %neighbours_w = this.m_W(vertex_i, neighbours);
-                    %neighbours_w = neighbours_w.'; % make column vector
 
                     ni = sum( neighbours.weights ) + isLabeled;
                     neighbours_mu = prev_mu( neighbours.indices, label_i );
@@ -74,20 +72,12 @@ classdef CSSLMC < handle
             end
 
             for vertex_i=1:num_vertices
-                %isPositive = ismember(vertex_i, labeled.positive);
-                %isNegative = ismember(vertex_i, labeled.negative);
-                %isLabeled = isPositive | isNegative;
-                %y_i =   isPositive * positiveInitialValue + ...
-                %        isNegative * negativeInitialValue;
                 
                 for label_i=1:num_labels
                     y_i = labeledY( vertex_i, label_i );
                     isLabeled = (y_i ~=0);
 
                     neighbours = getNeighbours( this.m_W, vertex_i);
-                    %neighbours = find( this.m_W(vertex_i, :) ~= 0 );
-                    %neighbours_w = this.m_W(vertex_i, neighbours);
-                    %neighbours_w = neighbours_w.'; % make column vector
 
                     mu_i = prev_mu(vertex_i,label_i);
                     neighbours_mu = prev_mu( neighbours.indices, label_i );
@@ -103,6 +93,10 @@ classdef CSSLMC < handle
                     %(beta + sqrt( beta^2 + 4 * alpha * A)) / (2 * alpha);
                     % matan changed 5.12.11 from 4 to 2.
             end
+            
+            current_mu = iteration.mu( :, :, iter_i) ;
+            
+            iteration_diff = sum((prev_mu(:) - current_mu(:)).^2);
         end
 
         toc;

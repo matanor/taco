@@ -9,7 +9,7 @@ classdef SingleRun < handle
         classToLabelMap;
     end
    
-    properties (Access = public)
+    properties (Constant)
         LP = 1;
         CSSL = 2;
         CSSLMC = 3;
@@ -17,7 +17,7 @@ classdef SingleRun < handle
         CSSLMCF = 5;
     end
     
-    properties (Access=private)
+    properties (Access=public)
         m_algorithmParams;
         m_constructionParams;
 
@@ -30,6 +30,8 @@ classdef SingleRun < handle
         m_CSSL_result
         m_CSSLMC_result;
         m_CSSLMCF_result;
+        
+        m_W_nn
     end
     
     methods (Access=public)
@@ -37,6 +39,10 @@ classdef SingleRun < handle
             this.m_labeled = [];
             this.m_unlabeled_correct_labels = [];
             this.m_unlabeled_num_mistakes = zeros( this.numAlgorithms(),1 );
+        end
+        
+        function set_graph(this, value)
+            this.m_W_nn = value;
         end
         
         function R = algorithmParams(this)
@@ -53,7 +59,15 @@ classdef SingleRun < handle
         
         function set_constructionParams(this, value)
             this.m_constructionParams = value;
-        end        
+        end
+        
+        function R = numIterations(this, algorithmType)
+            if (algorithmType == this.CSSLMC)
+                R = this.m_CSSLMC_result.numIterations;
+            else 
+                R = this.algorithmParams().numIterations;
+            end
+        end
         
         function set_results( this, R, algorithmType )
             if (algorithmType == this.LP)
@@ -134,6 +148,22 @@ classdef SingleRun < handle
             r = this.m_unlabeled_correct_labels;
         end
         
+        %% get a specific algorithm results object
+        
+        function r = getAlgorithmResults(this, algorithmType)
+            if (algorithmType == this.LP)
+                r = this.m_LP_result;
+            elseif (algorithmType == this.MAD)
+                r = this.m_MAD_result;
+            elseif (algorithmType == this.CSSL)
+                r = this.m_CSSL_result;
+            elseif (algorithmType == this.CSSLMC)
+                r = this.m_CSSLMC_result;
+            elseif (algorithmType == this.CSSLMCF)
+                r = this.m_CSSLMCF_result;
+            end
+        end
+        
     end % (Access=public)
     
     methods (Access = private)
@@ -182,22 +212,6 @@ classdef SingleRun < handle
                 cumsum(sorted.by_confidence.wrong);
 
             r = sorted.by_confidence;
-        end
-        
-        %% get a specific algorithm results object
-        
-        function r = getAlgorithmResults(this, algorithmType)
-            if (algorithmType == this.LP)
-                r = this.m_LP_result;
-            elseif (algorithmType == this.MAD)
-                r = this.m_MAD_result;
-            elseif (algorithmType == this.CSSL)
-                r = this.m_CSSL_result;
-            elseif (algorithmType == this.CSSLMC)
-                r = this.m_CSSLMC_result;
-            elseif (algorithmType == this.CSSLMCF)
-                r = this.m_CSSLMCF_result;
-            end
         end
 
     end % (Access = private)

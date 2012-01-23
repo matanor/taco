@@ -18,7 +18,9 @@ classdef MAD < handle
             %               mu1
             %               mu2
             %               mu3
-            %               numIterations
+            %               maxIterations - maximal number of iterations
+            %               useGraphHeuristics - modify the graph
+            %               by using heuristics (boolean)
             % Reference: New regularized algorithms for transductive learning
             % Talukdar, P. and Crammer, Koby. pages 10.
 
@@ -27,12 +29,22 @@ classdef MAD < handle
             mu1 = params.mu1;
             mu2 = params.mu2;
             mu3 = params.mu3;
-            numIterations = params.numIterations;
+            useGraphHeuristics = params.useGraphHeuristics;
+            maxIterations = params.maxIterations;
+            
+            paramsString = ...
+                [' useGraphHeuristics = ' num2str(useGraphHeuristics) ...
+                 ' maximum iterations = ' num2str(maxIterations)];                
+            disp(['Running MAD.' paramsString]);
 
             numVertices = size(W, 1);
 
             disp('Calculating probabilities...');
-            p = MAD.calcProbabilities(W, labeledVertices);
+            if (useGraphHeuristics ~=0)
+                p = MAD.calcProbabilities(W, labeledVertices);
+            else
+                p = MAD.constantProbabilities(numVertices);
+            end
             result.p = p;
             disp('done');
 
@@ -58,7 +70,7 @@ classdef MAD < handle
             diff_epsilon = 0.0001;
             
             % note iteration index starts from 2
-            for iter_i=2:numIterations
+            for iter_i=2:maxIterations
 
                 if iteration_diff < diff_epsilon
                     disp(['converged after ' num2str(iter_i) ' iterations']);
@@ -185,9 +197,20 @@ classdef MAD < handle
             end
         end
         
+        function p = constantProbabilities(numVertices)
+            % Set to 1, so the parameter mu1 will control
+            % injection
+            p.inject    = ones(numVertices, 1);
+            % MAD changed graph weights by multiplying each edge
+            % W'_{i,j} = W_{i,j} * (p_cont_{i} + p_cont_{j})
+            % set them both to 0.5 to remove influence.
+            p.continue  = 0.5 * ones(numVertices, 1);
+            % no dummy label.
+            p.abandon   = zeros(numVertices, 1);
+        end
+        
         function transitions = calcTransitions(neighboursWeigths )
             %CALCTRANSITIONS Calculate transition probabilitis from neighbours weights
-            %   Detailed explanation goes here
 
             s = sum( neighboursWeigths );
             transitions = neighboursWeigths / s;

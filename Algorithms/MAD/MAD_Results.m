@@ -1,25 +1,18 @@
-classdef MAD_Results < handle
+classdef MAD_Results < SSLMC_Result
     %MAD_RESULTS Summary of this class goes here
     %   Detailed explanation goes here
     
     properties (Access = private)
-        m_Y; % vertices X labels X iterations
         m_probabilities;
     end % (Access = private)
     
     properties (Access = private)
-        BINARY_NUM_LABELS;
-        NEGATIVE; 
-        POSITIVE; 
         DUMMY;
     end % (Access = private)
     
     methods (Access = public)
 
         function this = MAD_Results() % Constructor
-            this.BINARY_NUM_LABELS = 2;
-            this.NEGATIVE = 1;
-            this.POSITIVE = 2;
             this.DUMMY = 3;
         end
         
@@ -70,35 +63,17 @@ classdef MAD_Results < handle
                  '(y(NEGATIVE), y(POSITIVE), y(DUMMY))' ];
         end
         
-        function r = numIterations(this)
-            r = size( this.m_Y, 3);
+        function r = getFinalPredictionMatrix(this)
+            disp('MAD::getFinalPredictionMatrix');
+            r = this.m_Y(:,:,end);
+            r(:,this.DUMMY) = [];
         end
         
-        function r = binaryPrediction(this)
-            assert( this.numLabels() == (this.BINARY_NUM_LABELS + 1) );
-            final_Y = this.m_Y(:,:,end);
-            final_Y(:,this.DUMMY) = [];
-            [~,indices] = max(final_Y,[],2);
-            final_Y(:,this.NEGATIVE) = -final_Y(:,this.NEGATIVE);
-            prediction = zeros(this.numVertices(), 1);
-            for pred_i=1:length(prediction)
-                prediction( pred_i ) = final_Y( pred_i, indices(pred_i) );
-            end
-            r = prediction;
+        function r = probabilities(this)
+            r = this.m_probabilities;
         end
         
     end % (Access = public)
-    
-    methods (Access = private)
-        function r = numLabels(this)
-            r = size( this.m_Y, 2);
-        end
-        
-        function r = numVertices(this)
-            r = size( this.m_Y, 1);
-        end
-       
-    end % methods (Access = private)
     
 end
 

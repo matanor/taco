@@ -30,9 +30,9 @@ paramsString = ...
 %% Show accumulative loss sorted by confidence
 
 if (figuresToShow.accumulativeLoss)
-    sorted.by_confidence = multipleRuns.sorted_by_confidence();
+    sorted.by_confidence = multipleRuns.sorted_by_confidence(SingleRun.CSSLMC);
 
-    t = [ 'Results (sorted by confidence).' paramsString ];
+    t = [ 'Results (sorted by confidence) CSSLMC.' paramsString ];
     numRows = 2;
     numCols = 1;
     figure('name', t);

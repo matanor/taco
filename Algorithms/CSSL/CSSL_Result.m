@@ -2,7 +2,7 @@ classdef CSSL_Result < handle
     %CSSL_RESULT Summary of this class goes here
     %   Detailed explanation goes here
     
-    properties (Access = private)
+    properties (Access = public)
         m_mu;
         m_v;
     end % (Access = private)

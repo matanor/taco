@@ -16,6 +16,7 @@ methods (Access = public)
         alpha             = algorithmParams.alpha;
         beta              = algorithmParams.beta;
         classToLabelMap   = algorithmParams.classToLabelMap;
+        useGraphHeuristics= algorithmParams.useGraphHeuristics;
 
         %% display parameters
         paramsString = ...
@@ -79,7 +80,8 @@ methods (Access = public)
         params.mu1 = 1;
         params.mu2 = 1;
         params.mu3 = 1;
-        params.numIterations = numIterations; %This is an upper bound on the number of iterations
+        params.maxIterations = numIterations; %This is an upper bound on the number of iterations
+        params.useGraphHeuristics = useGraphHeuristics;
         
         numVertices = size(params.w_nn,1);
         numLabels   = size(params.classToLabelMap,1);
@@ -101,6 +103,7 @@ methods (Access = public)
         singleRun.labeledNegative = labeledNegative;
         singleRun.correctLabels = this.m_correctLabels;
         singleRun.classToLabelMap = classToLabelMap;
+        singleRun.set_graph( w_nn );
         singleRun.set_algorithmParams( algorithmParams );
         singleRun.set_results( csslmc_result, singleRun.CSSLMC );
         singleRun.set_results( csslmcf_result, singleRun.CSSLMCF );
