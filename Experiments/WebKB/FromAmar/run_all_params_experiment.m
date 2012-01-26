@@ -12,8 +12,7 @@ methods (Static)
                             2  2
                             3  3
                             4  4];
-
-                    
+              
         %% 
         allConstructionParams   = paramStructs.constructionParams;
         allAlgorithmParams      = paramStructs.algorithmParams;
@@ -33,9 +32,23 @@ methods (Static)
             
             %%  load the graph
 
-            [ graph, labeledVertices ] = GraphLoader.load ...
-                ( graphFileName, classToLabelMap, numLabeled, ...
-                numInstancesPerClass );
+            %[ graph, labeledVertices ] = GraphLoader.load ...
+            %    ( graphFileName, classToLabelMap, numLabeled, ...
+            %    numInstancesPerClass );
+            
+            graph = GraphLoader.loadAll( graphFileName );
+            numFolds = 4;
+            numVertices = length(graph.labels);
+            newNumVertices = numVertices - mod(numVertices, numFolds);
+            verticesToRemove = (newNumVertices+1):numVertices;
+            
+            graph.labels(verticesToRemove) = [];
+            graph.weights(verticesToRemove,:) = [];
+            graph.weights(:,verticesToRemove) = [];
+            
+            folds = GraphLoader.split(graph, numFolds );
+            labeledVertices = GraphLoader.selectLabeled_atLeastOnePerLabel...
+                                ( folds(1,:), graph.labels, classToLabelMap, numLabeled); 
 
             w_nn = knn(graph.weights,K);
             correctLabels = graph.labels;
@@ -59,7 +72,6 @@ methods (Static)
             singleRunFactory.m_correctLabels = correctLabels;
 
             for params_i=1:numAlgorithmParamsStructs
-                
                 %% display progress
                 progressString = ...
                 [ 'on run '      num2str(runIndex)       ' out of ' num2str(numRuns) ...
@@ -79,6 +91,7 @@ methods (Static)
                 algorithmParams.classToLabelMap = classToLabelMap;
                 singleRun = singleRunFactory.run(algorithmParams, algorithmsToRun );
                 singleRun.set_constructionParams( constructionParams );
+                singleRun.set_folds( folds );
 
                 allRuns = [allRuns singleRun];
             end

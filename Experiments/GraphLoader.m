@@ -11,16 +11,27 @@ end
 methods (Static)
     function outGraph = loadAll(graphFileName)
         fileData = load( graphFileName, 'graph' );
-        outGraph = fileData.graph;
+        graph = fileData.graph;
+        numLabels = length(graph.labels);
+        numVertices = size(graph.weights, 1);
+        if ( numLabels ~= numVertices)
+            verticesToRemove = (numLabels+1):numVertices;
+            graph.weights(verticesToRemove,:) = [];
+            graph.weights(:,verticesToRemove) = [];
+        end
+        outGraph = graph;
     end
     
     function outFolds = split(graph, numFolds)
         availabelLabels = unique(graph.labels).';
         folds = [];
+        %allDiscarded = [];
         for currentLabel = availabelLabels;
             verticesForCurrentLabel = find(graph.labels == currentLabel);
-            foldsPerLabel = GraphLoader.randomSplit( verticesForCurrentLabel, numFolds ); %#ok<FNDSB>
+            foldsPerLabel = GraphLoader.randomSplit...
+                ( verticesForCurrentLabel, numFolds ); %#ok<FNDSB>
             folds = [folds foldsPerLabel]; %#ok<AGROW>
+            %allDiscarded = [allDiscarded;discarded]; %#ok<AGROW>
             %folds = horzcat(folds, foldsPerLabel); 
         end
         outFolds = folds;
@@ -31,7 +42,7 @@ methods (Static)
         groupSize   = floor(dataSize/numGroups);       %# assuming here that it's neatly divisible 
         tailSize    = mod(dataSize,numGroups);
         % maybe do something with the tail
-        % tail        = data( end-tailSize +1:end );
+        % discarded   = data( end-tailSize +1:end );
         withoutTail = data(1:end-tailSize);
         permuted    = withoutTail(randperm(length(withoutTail)));
         folds       = reshape(permuted, numGroups, groupSize);
@@ -44,15 +55,14 @@ methods (Static)
                 numLabeledPerClass  , numInstancesPerClass )
         %LOADGRAPH Load a graph from disk.
 
-        %% Load the graph
-
         graph = load( graphFileName, 'graph' );
         graph = graph.graph;
 
-        %% select only required classes
+        % select only required classes
         requiredClasses     = classToLabelMap(:, GraphLoader.CLASS_VALUE);
         [selected]          = GraphLoader.selectClasses(graph, requiredClasses);
-        %% Translate class values to label values (e.g. class 1 -> 1, class 2 -> -1)
+        
+        % Translate class values to label values (e.g. class 1 -> 1, class 2 -> -1)
         numRequiredClasses  = length( requiredClasses );
         for class_i = 1:numRequiredClasses
             classValue = classToLabelMap(class_i, GraphLoader.CLASS_VALUE);
@@ -60,14 +70,14 @@ methods (Static)
             selected.labels(selected.labels == classValue) = labelValue;
         end
 
-        %% Balance the classes
+        % Balance the classes
         if numInstancesPerClass ~= 0
             balanced = balanceClasses(selected, numInstancesPerClass);
         else
             balanced = selected;
         end;
 
-        %% Randomly select labeled vertices - the same amount
+        % Randomly select labeled vertices - the same amount
         %  of labeled vertices from each class.
 
         labeled = GraphLoader.selectLabelsUniformly...
@@ -76,35 +86,41 @@ methods (Static)
         % return the labeled vertices in a single column vector.
         labeled = labeled(:);
 
-        %% save results in output.
+        % save results in output.
 
         outGraph = balanced;
 
     end
     
-    function selected = selectLabeled_atLeastOnePerLabel( labels, classToLabelMap, numRequired )
-        selected = zeros( numRequiredLabeles, 1);
+    function lebeledVertices = selectLabeled_atLeastOnePerLabel...
+            ( vertices, correctLabels, classToLabelMap, numRequired )
+        %% 
+        lebeledVertices = zeros( numRequired, 1);
         selected_i = 1;
-        numVertices = length(labels);
         
-        %% select at least one labeled vertex from each class.
+        % get correct labels for the vertices we select from.
+        vertices_correctLabel = correctLabels(vertices);
+        
+        % select at least one labeled vertex from each class.
         numClasses = size(classToLabelMap,1);
         for class_i=1:numClasses
             labelValue = classToLabelMap(class_i, GraphLoader.LABEL_VALUE);
-            verticesForCurrentLabel = find(labels == labelValue);
-            numVerticesForCurrentLabel = length(verticesForCurrentLabels);
+            verticesForCurrentLabel = vertices(vertices_correctLabel == labelValue);
+            numVerticesForCurrentLabel = length(verticesForCurrentLabel);
             labeledVertexPosition = unidrnd(numVerticesForCurrentLabel);
             labeledVertex = verticesForCurrentLabel(labeledVertexPosition);
-            selected( selected_i ) = labeledVertex;
+            lebeledVertices( selected_i ) = labeledVertex;
             selected_i = selected_i + 1;
         end
         
-        %% select the rest of the labels.
+        numVertices = length(vertices);
+        % select the rest of the labels.
         while( selected_i <= numRequired)
             rnd = unidrnd(numVertices);
-            isAlreadySelected = ismember(rnd, selected);
+            vertex_to_add = vertices(rnd);
+            isAlreadySelected = ismember(vertex_to_add, lebeledVertices);
             if ( ~isAlreadySelected )
-                selected(selected_i) = rnd;
+                lebeledVertices(selected_i) = vertex_to_add;
                 selected_i = selected_i + 1;
             end
         end
@@ -126,7 +142,7 @@ methods (Static)
     end
 
     function selectedIndices = randomSelectWithValue(data, required, requiredValue)
-    %SELECTLABELED eandomly select data items with a specific value.
+    %% RANDOMSELECTWITHVALUE eandomly select data items with a specific value.
     %   data                - data items.
     %   numRequired         - number of items to select.
     %   requiredValue       - select onlt from items with this value.
@@ -139,7 +155,7 @@ methods (Static)
     end
     
     function selected = selectClasses(graph, requiredLabels)
-        %SELECTCLASSES Select only nodes with specific labels from the graph.
+        %% SELECTCLASSES Select only nodes with specific labels from the graph.
         % graph - the graph structure:
         %           weigths - weights matrix
         %           labels  - vector

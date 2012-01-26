@@ -20,7 +20,6 @@ classdef SingleRun < handle
         m_constructionParams;
 
         m_labeled;
-        m_unlabeled_correct_labels;
         m_unlabeled_num_mistakes;
         
         m_LP_result;
@@ -29,18 +28,22 @@ classdef SingleRun < handle
         m_CSSLMC_result;
         m_CSSLMCF_result;
         
-        m_W_nn
+        m_folds;
+        m_W_nn;
     end
     
     methods (Access=public)
         function this = SingleRun() % Constructor
             this.m_labeled = [];
-            this.m_unlabeled_correct_labels = [];
             this.m_unlabeled_num_mistakes = zeros( SingleRun.numAvailableAlgorithms(),1 );
         end
         
         function r = isResultsAvailable( this, algorithmType )
             r = (0 == isempty( this.getAlgorithmResults(algorithmType) ) );
+        end
+        
+        function set_folds(this, value)
+            this.m_folds = value;
         end
         
         function set_graph(this, value)
@@ -102,6 +105,21 @@ classdef SingleRun < handle
             r = algorithmResults.getFinalScoreMatrix();
             r( this.labeled(), : ) = [];
         end
+        
+        %% Return score matrix (multi-class) for unlabeled vertices
+        %  in test set
+        
+        function r = unlabeled_scoreMatrix_testSet(this, algorithmType)
+            algorithmResults = this.getAlgorithmResults( algorithmType );
+
+            r = algorithmResults.getFinalScoreMatrix();
+            r( this.trainSet(), : ) = [];
+        end
+        
+        function r = testSetCorrectLabels(this)
+            r = this.correctLabels;
+            r( this.trainSet(), : ) = [];
+        end
        
         %% Return binary prediction for unlabeled vertices
                 
@@ -157,11 +175,12 @@ classdef SingleRun < handle
         %  (for all algorithms this is the same)
         
         function r = unlabeled_correct_labels(this)
-            if isempty( this.m_unlabeled_correct_labels )
-                this.m_unlabeled_correct_labels = this.correctLabels;
-                this.m_unlabeled_correct_labels( this.labeled() ) = [];
-            end
-            r = this.m_unlabeled_correct_labels;
+            %if isempty( this.m_unlabeled_correct_labels )
+            %    this.m_unlabeled_correct_labels = this.correctLabels;
+            %    this.m_unlabeled_correct_labels( this.labeled() ) = [];
+            %end
+            r = this.correctLabels;
+            r( this.labeled() ) = [];
         end
         
         %% get a specific algorithm results object
@@ -188,6 +207,17 @@ classdef SingleRun < handle
         
         function r = labeled(this)
             r = this.m_labeled;
+        end
+        
+        function r = trainSet(this)
+            folds = this.m_folds;
+            r = folds(1,:).';
+        end
+        
+        function r = testSet(this)
+            folds = this.m_folds;
+            folds(1, :) = []; % remove training group
+            r = folds(:);
         end
         
         function r = calcUnlabeledNumMistakes(this, prediction)

@@ -169,7 +169,8 @@ methods (Static)
             outputProperties.experimentID   = experimentID;
             outputProperties.run_i          = run_i;
             showSingleRunResults.plotPrecisionAndRecall...
-                 (runOutput.unlabeled_scoreMatrix(SingleRun.MAD), correctLabels, outputProperties);
+                 (  runOutput.unlabeled_scoreMatrix_testSet(SingleRun.MAD), ...
+                    runOutput.testSetCorrectLabels(), outputProperties);
         end
         
         %% plot MAD probabilities figures
