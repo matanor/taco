@@ -1,13 +1,5 @@
 classdef CSSLMCF < CSSLBase
 % Confidence Semi-Supervised Learning Multi-Class Full Covariance
-
-%     properties (SetAccess=public, GetAccess=protected)
-%         m_W;
-%         m_num_iterations;
-%         m_alpha;
-%         m_beta;
-%         m_labeledConfidence;
-%     end
     
     methods (Access=public)
         
@@ -33,12 +25,25 @@ classdef CSSLMCF < CSSLBase
 
         inv_gamma = diag( zeros(1,num_labels) + 1 / gamma );
         
+        iteration_diff  = 10^1000;
+        diff_epsilon    = 0.0001;
+        
         % note iteration index starts from 2
         for iter_i = 2:num_iterations
 
             if ( mod(iter_i, 10) == 0 )
-                disp(['#Iteration = ' num2str(iter_i)]);
+                disp([  '#Iteration = ' num2str(iter_i)...
+                        ' iteration_diff = ' num2str(iteration_diff)]);
             end
+            
+            if iteration_diff < diff_epsilon
+                disp(['converged after ' num2str(iter_i-1) ' iterations.'...
+                      ' iteration_diff = ' num2str(iteration_diff)]);
+                result.mu(:,:, iter_i:end) = [];
+                result.sigma(:,:, iter_i:end) = [];
+                break;
+            end
+            
             prev_mu     = result.mu    ( :, :, iter_i - 1) ;
             prev_sigma  = result.sigma ( :, :, :, iter_i - 1) ;
 
@@ -101,6 +106,9 @@ classdef CSSLMCF < CSSLBase
                 new_sigma_i = CSSLMCF.solveQuadratic( - (beta/alpha), - (1/alpha) * R_i);
                 result.sigma( vertex_i, :,:, iter_i) = new_sigma_i;
             end
+            
+            current_mu     = result.mu( :, :, iter_i) ;
+            iteration_diff = sum((prev_mu(:) - current_mu(:)).^2);
         end
 
         toc;

@@ -33,7 +33,8 @@ classdef CSSLMC < handle
         for iter_i = 2:num_iterations
 
             if ( mod(iter_i, 10) == 0 )
-                disp(['#Iteration = ' num2str(iter_i)]);
+                disp([ '#Iteration = ' num2str(iter_i)...
+                       ' iteration_diff = ' num2str(iteration_diff)]);
             end
             
             if iteration_diff < diff_epsilon

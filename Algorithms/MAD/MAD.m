@@ -67,7 +67,7 @@ classdef MAD < handle
             result.Y(:,:,1) = Y_hat;
             
             iteration_diff = 10^1000;
-            diff_epsilon = 0.0001;
+            diff_epsilon = 0.00001;
             
             % note iteration index starts from 2
             for iter_i=2:maxIterations
@@ -78,7 +78,8 @@ classdef MAD < handle
                 end
                 
                 if ( mod(iter_i, 10) == 0 )
-                    disp(['#Iteration = ' num2str(iter_i)]);
+                    disp([  '#Iteration = '      num2str(iter_i)...
+                            ' iteration_diff = ' num2str(iteration_diff)]);
                 end
 
                 % line (4) of MAD page 10 in reference 
