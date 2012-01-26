@@ -63,10 +63,10 @@ classdef MAD_Results < SSLMC_Result
                  '(y(NEGATIVE), y(POSITIVE), y(DUMMY))' ];
         end
         
-        function r = getFinalPredictionMatrix(this)
-            disp('MAD::getFinalPredictionMatrix');
+        function r = getFinalScoreMatrix(this)
+%             disp('MAD::getFinalPredictionMatrix');
             r = this.m_Y(:,:,end);
-            r(:,this.DUMMY) = [];
+            r(:,end) = [];
         end
         
         function r = probabilities(this)

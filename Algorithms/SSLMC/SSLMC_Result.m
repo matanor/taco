@@ -20,34 +20,39 @@ classdef SSLMC_Result < handle
         end
         
         function r = prediction(this)
-            predictionMatrix = this.getFinalPredictionMatrix();
-            [~,indices] = max(predictionMatrix,[],2);
+            scoreMatrix = this.getFinalScoreMatrix();
+            [~,indices] = max(scoreMatrix,[],2);
             r = indices;
         end
         
-        function r = getFinalPredictionMatrix(this)
-            disp('SSLMC::getFinalPredictionMatrix');
+%         function r = scoreForLabel(this, label_i)
+%             scores = this.getFinalScoreMatrix();
+%             r = scores(:, label_i);
+%         end
+        
+        function r = getFinalScoreMatrix(this)
+%             disp('SSLMC::getFinalScoreMatrix');
             r = this.m_Y(:,:,end);
         end
 
         function r = bestScore(this)
-            predictionMatrix = this.getFinalPredictionMatrix();
-            [~,indices] = max(predictionMatrix,[],2);
+            scoreMatrix = this.getFinalScoreMatrix();
+            [~,indices] = max(scoreMatrix,[],2);
             bestScore = zeros(this.numVertices(), 1);
             for vertex_i=1:length(bestScore)
-                bestScore( vertex_i ) = predictionMatrix( vertex_i, indices(vertex_i) );
+                bestScore( vertex_i ) = scoreMatrix( vertex_i, indices(vertex_i) );
             end
             r = bestScore;
         end
         
         function r = binaryPrediction(this)
             assert( this.numLabels() == (this.BINARY_NUM_LABELS) );
-            predictionMatrix = this.getFinalPredictionMatrix();
-            [~,indices] = max(predictionMatrix,[],2);
-            predictionMatrix(:,this.NEGATIVE) = -predictionMatrix(:,this.NEGATIVE);
+            scoreMatrix = this.getFinalScoreMatrix();
+            [~,indices] = max(scoreMatrix,[],2);
+            scoreMatrix(:,this.NEGATIVE) = -scoreMatrix(:,this.NEGATIVE);
             prediction = zeros(this.numVertices(), 1);
             for vertex_i=1:length(prediction)
-                prediction( vertex_i ) = predictionMatrix( vertex_i, indices(vertex_i) );
+                prediction( vertex_i ) = scoreMatrix( vertex_i, indices(vertex_i) );
             end
             r = prediction;
         end
@@ -61,7 +66,7 @@ classdef SSLMC_Result < handle
         end
         
         function r = numLabels(this)
-            r = SSLMC_Result.calcNumLabels(this.m_Y);
+            r = SSLMC_Result.calcNumLabels( this.getFinalScoreMatrix() );
         end
         
     end % methods (Access = public )
