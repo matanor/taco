@@ -1,7 +1,7 @@
 classdef run_all_params_experiment < handle
     
 methods (Static)
-    function R = run( graphFileName, paramStructs)
+    function R = run( graphFileName, paramStructs, runIndex, numRuns, algorithmsToRun)
 
         %% define the classes we use
 
@@ -33,11 +33,11 @@ methods (Static)
             
             %%  load the graph
 
-            [ graph, Ylabeled ] = load_graph ...
-                ( graphFileName, classToLabelMap, K, numLabeled, ...
+            [ graph, labeledVertices ] = GraphLoader.load ...
+                ( graphFileName, classToLabelMap, numLabeled, ...
                 numInstancesPerClass );
 
-            w_nn          = graph.weights;
+            w_nn = knn(graph.weights,K);
             correctLabels = graph.labels;
 
             w_nn_symetric = makeSymetric(w_nn);
@@ -55,15 +55,16 @@ methods (Static)
             numAlgorithmParamsStructs = length(allAlgorithmParams);
 
             singleRunFactory = SingleRunFactory;
-            singleRunFactory.m_Ylabeled = Ylabeled;
+            singleRunFactory.m_labeledVertices = labeledVertices;
             singleRunFactory.m_correctLabels = correctLabels;
 
             for params_i=1:numAlgorithmParamsStructs
                 
                 %% display progress
                 progressString = ...
-                [ 'graph ' num2str(construction_i) ' out of ' num2str(numConstructionStructs)...
-                 '. params run ' num2str(params_i)  ' out of ' num2str(numAlgorithmParamsStructs) ];
+                [ 'on run '      num2str(runIndex)       ' out of ' num2str(numRuns) ...
+                 '. graph '      num2str(construction_i) ' out of ' num2str(numConstructionStructs)...
+                 '. params run ' num2str(params_i)       ' out of ' num2str(numAlgorithmParamsStructs) ];
 
                 disp(progressString);
                 %%
@@ -76,7 +77,7 @@ methods (Static)
                     singleRunFactory.m_Weights = w_nn;
                 end
                 algorithmParams.classToLabelMap = classToLabelMap;
-                singleRun = singleRunFactory.run(algorithmParams );
+                singleRun = singleRunFactory.run(algorithmParams, algorithmsToRun );
                 singleRun.set_constructionParams( constructionParams );
 
                 allRuns = [allRuns singleRun];

@@ -5,12 +5,12 @@ clear all;
 %% global shared parameters
 numRunsPerExperiment = 1;
 graphFileName = 'C:\technion\theses\Experiments\WebKB\data\From Amar\webkb_amar.mat';
-groupName = '2012_01_23 mad_no_graph_change';
+folderName = '2012_01_26 test new code';
 
 %% define parameter properties
 
 %K.range = [1,2,5,10,20,50,100,500];
-K.range = [100];
+K.range = [1000];
 K.name = 'K';
 %alpha.range = [0.0001, 0.001, 0.01,0.1,1];
 %alpha.range = [10^(-5), 10^(-4), 0.001, 0.01,  1, 10^2, 10^4 ];
@@ -22,18 +22,18 @@ alpha.name = 'alpha';
 beta.range = [ 1 ];
 beta.name = 'beta';
 %labeledConfidence.range = [0.01,0.1];
-labeledConfidence.range = [2];
+labeledConfidence.range = [1];
 labeledConfidence.name = 'labeledConfidence';
 makeSymetric.range = [1];
 makeSymetric.name = 'makeSymetric';
 %numIterations.range = [5 10 25 50 100];
-numIterations.range = [50];
+numIterations.range = [2];
 numIterations.name = 'numIterations';
-numLabeled.range = [20];
+numLabeled.range = [12];
 numLabeled.name = 'numLabeled';
-numInstancesPerClass.range = 200;
+numInstancesPerClass.range = 0; % 0 means all instances
 numInstancesPerClass.name = 'numInstancesPerClass';
-useGraphHeuristics.range = [1];
+useGraphHeuristics.range = [0 1];
 useGraphHeuristics.name = 'useGraphHeuristics';
 
 paramProperties.algorithms   = [ alpha, beta, labeledConfidence, ...
@@ -46,6 +46,10 @@ paramStructs.algorithmParams    = ...
     ParamsManager.createAlgorithmParamsStructures(paramProperties.algorithms);
 paramStructs.constructionParams  = ...
     ParamsManager.createConstructionParamsStructures(paramProperties.construction);
+
+%% what algorithms we want to run in the simulation
+algorithmsToRun = zeros( SingleRun.numAvailableAlgorithms(), 1);
+algorithmsToRun(SingleRun.MAD) = 1;
 
 %% allocate a multiple runs object per each parameter combination
 %  and run all experiments with all the parameter combinations
@@ -61,7 +65,7 @@ end
 ticID = tic;
 for run_i=1:numRunsPerExperiment
     experimentRuns = run_all_params_experiment.run...
-        ( graphFileName, paramStructs );
+        ( graphFileName, paramStructs, run_i, numRunsPerExperiment, algorithmsToRun );
     for param_combination_i=1:numParamCombinations
         singleRun = experimentRuns(param_combination_i);
         experimentCollection(param_combination_i).addRun...
@@ -71,17 +75,17 @@ end
 toc(ticID);
 
 %% Define which result figures to display
-figuresToShow.singleRuns = 1;
-figuresToShow.accumulativeLoss = 1;
+outputProperties.showSingleRuns = 1;
+outputProperties.showAccumulativeLoss = 1;
 
 %% get total number of experiment
 numExperiments = numParamCombinations;
 
 %%
 resultsDir = 'C:\technion\theses\Experiments\WebKB\results\';
-mkdir(resultsDir,groupName)
-figuresToShow.resultDir = resultsDir;
-figuresToShow.groupName = groupName;
+mkdir(resultsDir,folderName);
+outputProperties.resultDir = resultsDir;
+outputProperties.folderName = folderName;
 
 %% good
 % sorted by precentage 100 vs 900: 161 164 171 175 176 177
@@ -98,12 +102,12 @@ for experimentID = experimentRange
     multipleRuns = experimentCollection(experimentID);
     for run_i=1:multipleRuns.num_runs()
         showSingleRunResults.show( multipleRuns, ...
-                experimentID, run_i, figuresToShow );
+                experimentID, run_i, outputProperties );
     end
-    showMultipleExperimentsResults...
-        (multipleRuns, figuresToShow, experimentID );
+%     showMultipleExperimentsResults...
+%         (multipleRuns, outputProperties, experimentID );
     experimentFigurePath = ...
-        [resultsDir groupName '\experiment.' num2str(experimentID) '.fig'];
+        [resultsDir folderName '\experiment.' num2str(experimentID) '.fig'];
     saveas(gcf, experimentFigurePath);
     close(gcf);
 end
@@ -146,33 +150,33 @@ paramsOrder.experimentID = 1:numExperiments;
 
 %% Plot effect of parameters on total number of mistakes
 
-figurePath = [resultsDir groupName '\params.vs.num_mistakes.fig']; 
+figurePath = [resultsDir folderName '\params.vs.num_mistakes.fig']; 
 plotParamsEffect(numMistakes.final, ...
     sorted, sortOrder, 'total #mistakes', figurePath );
 
 %% Plot effect of parameters on total number of mistakes
 %  after 100 most confident vertices
 
-figurePath = [resultsDir groupName '\params.vs.num_mistakes.after.100.fig']; 
+figurePath = [resultsDir folderName '\params.vs.num_mistakes.after.100.fig']; 
 title = '#mistakes after 100 most confident vertices';
 plotParamsEffect(numMistakes.after100, ...
     sorted, sortOrder, title ,figurePath );
 
 %% after 200 most confident vertices
-figurePath = [resultsDir groupName '\params.vs.num_mistakes.after.200.fig']; 
+figurePath = [resultsDir folderName '\params.vs.num_mistakes.after.200.fig']; 
 title = '#mistakes after 200 most confident vertices';
 plotParamsEffect(numMistakes.after200, ...
     sorted, sortOrder, title, figurePath );
 
 %% after 300 most confident vertices
-figurePath = [resultsDir groupName '\params.vs.num_mistakes.after.300.fig']; 
+figurePath = [resultsDir folderName '\params.vs.num_mistakes.after.300.fig']; 
 title = '#mistakes after 300 most confident vertices';
 plotParamsEffect(numMistakes.after300, ...
     sorted, sortOrder, title, figurePath );
 
 
 %%
-figurePath = [resultsDir groupName '\precentage.100_vs_500.fig']; 
+figurePath = [resultsDir folderName '\precentage.100_vs_500.fig']; 
 plotPrecentageDiff( numMistakes.after100 / 100, ...
                     numMistakes.after500 / 500, ...
                     numMistakes.final, ...
@@ -180,7 +184,7 @@ plotPrecentageDiff( numMistakes.after100 / 100, ...
                 
 %%
 
-figurePath = [resultsDir groupName '\precentage.100_vs_900.fig']; 
+figurePath = [resultsDir folderName '\precentage.100_vs_900.fig']; 
 plotPrecentageDiff( numMistakes.after100 / 100, ...
                     numMistakes.after900 / 900,...
                     numMistakes.final, ...

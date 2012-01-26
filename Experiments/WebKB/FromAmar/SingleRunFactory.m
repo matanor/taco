@@ -2,12 +2,12 @@ classdef SingleRunFactory < handle
     
 properties (GetAccess = private, SetAccess = public)
     m_Weights;
-    m_Ylabeled;
+    m_labeledVertices;         
     m_correctLabels;
 end
     
 methods (Access = public)
-    function singleRun = run(this, algorithmParams)
+    function singleRun = run(this, algorithmParams, algorithmsToRun)
 
         %% Prepare algorithm parameters
 
@@ -17,7 +17,10 @@ methods (Access = public)
         beta              = algorithmParams.beta;
         classToLabelMap   = algorithmParams.classToLabelMap;
         useGraphHeuristics= algorithmParams.useGraphHeuristics;
-
+        
+        %% get graph
+        w_nn = this.m_Weights;
+        
         %% display parameters
         paramsString = ...
             [ 'labeledConfidence = ' num2str(labeledConfidence) ...
@@ -27,22 +30,22 @@ methods (Access = public)
              ' numIterations = '     num2str(numIterations)];
 
          disp(paramsString);
-
-        %%
-        w_nn = this.m_Weights;
         
-        %% get positive and negative labeled vertices
-
-        labeledPositive = this.m_Ylabeled(:, 1);
-        labeledNegative = this.m_Ylabeled(:, 2);
+        %% create singleRun results object
+        singleRun = SingleRun;
+        singleRun.m_labeled         = this.m_labeledVertices;
+        singleRun.correctLabels     = this.m_correctLabels;
+        singleRun.classToLabelMap   = classToLabelMap;
+        singleRun.set_graph( w_nn );
+        singleRun.set_algorithmParams( algorithmParams );
 
          %% Run algorithm - label propagation
 
-        labelPropagation = LP;
-        lpResultsSource = labelPropagation.run...
-            ( w_nn, labeledPositive, labeledNegative );
-        lp_results = LP_Results;
-        lp_results.set_results( lpResultsSource );
+%         labelPropagation = LP;
+%         lpResultsSource = labelPropagation.run...
+%             ( w_nn, labeledPositive, labeledNegative );
+%         lp_results = LP_Results;
+%         lp_results.set_results( lpResultsSource );
 
         %% prepare params for cssl algorithms
 
@@ -51,21 +54,25 @@ methods (Access = public)
         params.alpha                = alpha;
         params.beta                 = beta;
         params.labeledConfidence    = labeledConfidence;
-        params.labeledPositive      = labeledPositive;
-        params.labeledNegative      = labeledNegative;
         params.classToLabelMap      = classToLabelMap;
 
         %% Run algorithm - confidence SSL
-         
-        algorithm = CSSLMC;
-        csslmc_result = CSSLMC_Result;
-        SingleRunFactory.runCSSL( algorithm, csslmc_result, params );
+        
+        if ( algorithmsToRun(SingleRun.CSSLMC) ~= 0)
+            algorithm = CSSLMC;
+            csslmc_result = CSSLMC_Result;
+            this.runCSSL( algorithm, csslmc_result, params );
+            singleRun.set_results( csslmc_result, singleRun.CSSLMC );
+        end
 
         %% Run algorithm - confidence SSL MC Full
 
-        algorithm = CSSLMCF;
-        csslmcf_result = CSSLMCF_Result;
-        SingleRunFactory.runCSSL( algorithm, csslmcf_result, params );
+        if ( algorithmsToRun(SingleRun.CSSLMCF) ~= 0)
+            algorithm = CSSLMCF;
+            csslmcf_result = CSSLMCF_Result;
+            this.runCSSL( algorithm, csslmcf_result, params );
+            singleRun.set_results( csslmcf_result,singleRun.CSSLMCF );
+        end
 
         %%
 
@@ -75,72 +82,55 @@ methods (Access = public)
 
         %% Run algorithm - MAD
 
-        mad = MAD;
+        if ( algorithmsToRun(SingleRun.MAD) ~= 0)
+            mad = MAD;
 
-        params.mu1 = 1;
-        params.mu2 = 1;
-        params.mu3 = 1;
-        params.maxIterations = numIterations; %This is an upper bound on the number of iterations
-        params.useGraphHeuristics = useGraphHeuristics;
-        
-        numVertices = size(params.w_nn,1);
-        numLabels   = size(params.classToLabelMap,1);
-        Ylabeled = SingleRunFactory.createLabeledY...
-            (  numVertices, numLabels, ...
-               params.labeledNegative, ...
-               params.labeledPositive) ;
+            params.mu1 = 1;
+            params.mu2 = 1;
+            params.mu3 = 1;
+            params.maxIterations = numIterations; %This is an upper bound on the number of iterations
+            params.useGraphHeuristics = useGraphHeuristics;
 
-        labeledVertices = this.m_Ylabeled(:);
-        madResultsSource = mad.run( w_nn, Ylabeled, params, labeledVertices );
+            Ylabeled = this.createInitialLabeledY();
 
-        mad_results = MAD_Results;
-        mad_results.set_results( madResultsSource );
+            labeledVertices = this.m_labeledVertices;
+            madResultsSource = mad.run( w_nn, Ylabeled, params, labeledVertices );
 
-        %% Create a single run object for results.
-
-        singleRun = SingleRun;
-        singleRun.labeledPositive = labeledPositive;
-        singleRun.labeledNegative = labeledNegative;
-        singleRun.correctLabels = this.m_correctLabels;
-        singleRun.classToLabelMap = classToLabelMap;
-        singleRun.set_graph( w_nn );
-        singleRun.set_algorithmParams( algorithmParams );
-        singleRun.set_results( csslmc_result, singleRun.CSSLMC );
-        singleRun.set_results( csslmcf_result, singleRun.CSSLMCF );
-        singleRun.set_results( lp_results   , singleRun.LP )
-        singleRun.set_results( mad_results  , singleRun.MAD );
+            mad_results = MAD_Results;
+            mad_results.set_results( madResultsSource );
+            singleRun.set_results( mad_results  , singleRun.MAD );
+        end
+                
     end
-    
-end % methods (Access = public )
-    
-methods (Static)
-    function runCSSL( algorithm, algorithm_results, params )
+
+    function runCSSL( this, algorithm, algorithm_results, params )
         algorithm.m_W                 = params.w_nn;
         algorithm.m_num_iterations    = params.numIterations;
         algorithm.m_alpha             = params.alpha;
         algorithm.m_beta              = params.beta;
         algorithm.m_labeledConfidence = params.labeledConfidence;
 
-        numVertices = size(params.w_nn,1);
-        numLabels   = size(params.classToLabelMap,1);
+        Ylabeled = this.createInitialLabeledY();
         
-        Ylabeled = SingleRunFactory.createLabeledY...
-            (  numVertices, numLabels, ...
-               params.labeledNegative, ...
-               params.labeledPositive) ;
-
         algorithmResultsSource = algorithm.run( Ylabeled );
 
         algorithm_results.set_results(algorithmResultsSource);
     end
-    
-    function R = createLabeledY(numVertices, numLabels, ...
-                                labeledNegative, labeledPositive )
+
+    function R = createInitialLabeledY(this)
+        %%
+        numVertices= size( this.m_Weights, 1);
+        numLabels = length( unique( this.m_correctLabels ) );
+        labeledVertices_indices         = this.m_labeledVertices;
+        labeledVertices_correctLabels   = this.m_correctLabels(labeledVertices_indices);
         R = zeros( numVertices, numLabels);
-        NEGATIVE = 1; POSITIVE = 2;
-        R( labeledNegative, NEGATIVE ) = 1;
-        R( labeledPositive, POSITIVE ) = 1;
+        for label_i=1:numLabels
+            labeledVerticesForClass = ...
+                labeledVertices_indices(labeledVertices_correctLabels == label_i);
+            R( labeledVerticesForClass, label_i ) = 1;
+        end
     end
     
-end % methods (Static)
+end % methods (Access = public )
+
 end % classdef

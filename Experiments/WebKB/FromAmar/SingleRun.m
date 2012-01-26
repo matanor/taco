@@ -3,8 +3,6 @@ classdef SingleRun < handle
     %   Detailed explanation goes here
     
     properties (Access = public)
-        labeledPositive;
-        labeledNegative;
         correctLabels;
         classToLabelMap;
     end
@@ -38,7 +36,11 @@ classdef SingleRun < handle
         function this = SingleRun() % Constructor
             this.m_labeled = [];
             this.m_unlabeled_correct_labels = [];
-            this.m_unlabeled_num_mistakes = zeros( this.numAlgorithms(),1 );
+            this.m_unlabeled_num_mistakes = zeros( SingleRun.numAvailableAlgorithms(),1 );
+        end
+        
+        function r = isResultsAvailable( this, algorithmType )
+            r = (0 == isempty( this.getAlgorithmResults(algorithmType) ) );
         end
         
         function set_graph(this, value)
@@ -83,11 +85,25 @@ classdef SingleRun < handle
             end
         end
         
-        function r = numAlgorithms(this)
-            r = 5;
+        %% Return prediction (multi-class) for unlabeled vertices
+        
+        function r = unlabeled_prediction(this, algorithmType)
+            algorithmResults = this.getAlgorithmResults( algorithmType );
+
+            r = algorithmResults.prediction();
+            r( this.labeled() ) = [];
+        end
+        
+        %% Return score matrix (multi-class) for unlabeled vertices
+        
+        function r = unlabeled_scoreMatrix(this, algorithmType)
+            algorithmResults = this.getAlgorithmResults( algorithmType );
+
+            r = algorithmResults.getFinalScoreMatrix();
+            r( this.labeled(), : ) = [];
         end
        
-        %% Return final mu for unlabeled vertices
+        %% Return binary prediction for unlabeled vertices
                 
         function r = unlabeled_binary_prediction(this, algorithmType)
             algorithmResults = this.getAlgorithmResults( algorithmType );
@@ -130,9 +146,9 @@ classdef SingleRun < handle
         
         function r = unlabeled_num_mistakes(this, algorithmType)
             if (this.m_unlabeled_num_mistakes(algorithmType) == 0)
-                prediction = this.unlabeled_binary_prediction( algorithmType );
+                prediction = this.unlabeled_prediction( algorithmType );
                 this.m_unlabeled_num_mistakes(algorithmType) = ...
-                    this.unlabeled_num_mistakes_binary(prediction);
+                    this.calcUnlabeledNumMistakes(prediction);
             end
             r = this.m_unlabeled_num_mistakes(algorithmType) ;
         end
@@ -171,12 +187,13 @@ classdef SingleRun < handle
         %% Return indices for labeled vertices
         
         function r = labeled(this)
-            if isempty( this.m_labeled )
-                this.m_labeled  = ...
-                    [this.labeledPositive;
-                     this.labeledNegative];
-            end
-            r = this.m_labeled ;
+            r = this.m_labeled;
+        end
+        
+        function r = calcUnlabeledNumMistakes(this, prediction)
+            isCorrect = (this.unlabeled_correct_labels() == prediction);
+            isWrong    = 1 - isCorrect;
+            r = sum(isWrong);            
         end
         
         %% Calculate if prediction for unlabeled is correct
@@ -215,4 +232,10 @@ classdef SingleRun < handle
         end
 
     end % (Access = private)
+    
+    methods (Static)
+        function r = numAvailableAlgorithms()
+            r = 5;
+        end
+    end
 end

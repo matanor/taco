@@ -1,5 +1,5 @@
 function showMultipleExperimentsResults...
-    ( experiment, figuresToShow, experimentID )
+    ( experiment, outputProperties, experimentID )
 %SHOWRESULTS Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -29,7 +29,7 @@ paramsString = ...
 
 %% Show accumulative loss sorted by confidence
 
-if (figuresToShow.accumulativeLoss)
+if (outputProperties.showAccumulativeLoss)
     sorted.by_confidence = multipleRuns.sorted_by_confidence(SingleRun.CSSLMC);
 
     t = [ 'Results (sorted by confidence) CSSLMC.' paramsString ];

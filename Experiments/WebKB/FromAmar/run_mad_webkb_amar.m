@@ -33,7 +33,8 @@ isSymetric(w_nn_sym);
 params.mu1 = 1;
 params.mu2 = 1;
 params.mu3 = 1;
-params.numIterations = numIterations;
+params.maxIterations = numIterations;
+params.useGraphHeuristics = 1;
 
 numVertices = size( w_nn_sym, 1 );
 Ylabeled = zeros(numVertices, numClasses);
@@ -56,10 +57,10 @@ toc;
 
 alpha = 1;
 beta = 1;
-labeledConfidence = 0.1;
+labeledConfidence = 2;
 
-algorithm = CSSLMCF;
-csslmc_result = CSSLMCF_Result;
+algorithm = CSSLMC;
+algorithm_results = CSSLMC_Result;
 
 algorithm.m_W                 = w_nn_sym;
 algorithm.m_num_iterations    = numIterations;
@@ -101,7 +102,32 @@ isWrong = 1 - isCorrect;
 sum(isWrong)
 
 %%
-figure('name','Mad output');
+resultsDir = 'C:\technion\theses\Experiments\WebKB\results\';
+%folderName = '2012_01_24 L2 regularization';
+folderName = '2012_01_24 mad complete compare with CSSLMC.';
+mkdir(resultsDir,folderName);
+
+%%
+figureName = 'Mad prediction';
+figure('name',figureName);
+Y_NoDummy = Y(:,1:numClasses);
+[~, prediction] = max(Y_NoDummy,[],2);
+hold on;
+scatter(1:numVertices, prediction);
+plot(lbls, 'r');
+hold off;
+filename = [resultsDir folderName '/output.prediction.fig'];
+saveas(gcf,filename); 
+close(gcf);
+
+isCorrect = (prediction == lbls);
+isWrong = 1 - isCorrect;
+numMistakes = sum(isWrong);
+
+%%
+figureName = 'Mad output';
+figure('name',figureName);
+title([figureName '. numMistakes = ' num2str(numMistakes)]); 
 hold on;
 colors = [ 'b','r','g','k'];
 for class_i=1:numClasses
@@ -111,14 +137,6 @@ end
 legend('1','2','3','4');
 hold off;
 
-filename = 'results mad/output.scores.fig';
+filename = [resultsDir folderName '/output.scores.fig'];
 saveas(gcf,filename); 
-
-%%
-Y_NoDummy = Y(:,1:numClasses);
-[~, prediction] = max(Y_NoDummy,[],2);
-scatter(1:numVertices, prediction);
-
-isCorrect = (prediction == lbls);
-isWrong = 1 - isCorrect;
-sum(isWrong);
+close(gcf);

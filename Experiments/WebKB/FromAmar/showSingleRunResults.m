@@ -3,13 +3,13 @@ classdef showSingleRunResults < handle
 methods (Static)
     function show...
         ( experiment, experimentID, run_i, ...
-          figuresToShow)
+          outputProperties)
     %SHOWSINGLERUNRESULTS Summary of this function goes here
     %   Detailed explanation goes here
 
         %% Extract single run output
 
-        runOutput = experiment.getRun(run_i);
+        runOutput = experiment.getRun(run_i); % should get a SingleRun class instance
 
         %% extract parameters
         algorithmParams     = experiment.algorithmParams();
@@ -22,9 +22,10 @@ methods (Static)
         numLabeledPerClass  = constructionParams.numLabeled;
         makeSymetric        = algorithmParams.makeSymetric;
         useGraphHeuristics  = algorithmParams.useGraphHeuristics;
+        maxIterations       = algorithmParams.numIterations;
 
         %% Show final prediction & confidence
-        if (figuresToShow.singleRuns == 0) 
+        if (outputProperties.showSingleRuns == 0) 
             return;
         end
 
@@ -36,120 +37,158 @@ methods (Static)
              ' exp ID = '               num2str(experimentID) ...
              ' run index = '            num2str(run_i)];
         
-        %% create params string for CSSLMC
 
-        numIterations       = runOutput.numIterations( SingleRun.CSSLMC);
-        paramsStringCSSLMC = ...
-            [' labeledConfidence = '    num2str(labeledConfidence) ...
-             ' alpha = '                num2str(alpha) ...
-             ' beta = '                 num2str(beta) ...
-             ' numIterations = '        num2str(numIterations) ];
 
         %% extract info for CSSLMC results figure
 
-        CSSLMC_prediction    = runOutput.unlabeled_binary_prediction(runOutput.CSSLMC);
-        CSSLMC_confidence    = runOutput.unlabeled_confidence(runOutput.CSSLMC);
-        CSSLMC_margin        = runOutput.unlabeled_margin(runOutput.CSSLMC);
+        %CSSLMC_confidence    = runOutput.unlabeled_confidence(runOutput.CSSLMC);
+        %CSSLMC_margin        = runOutput.unlabeled_margin(runOutput.CSSLMC);
         correctLabels        = runOutput.unlabeled_correct_labels();
 
         %% plot CSSLMC result figure
 
-        sortedCSSLMC.by_confidence = runOutput.sorted_by_confidence(runOutput.CSSLMC);
-        showSingleRunResults.plotBinaryCSSLResults...
-            (   CSSLMC_prediction, CSSLMC_confidence, ...
-            	CSSLMC_margin, correctLabels, sortedCSSLMC, figuresToShow, ...
-                [generalParams '\newline' paramsStringCSSLMC], ...
-                'CSSLMC', experimentID, run_i);
-            
+        %sortedCSSLMC.by_confidence = runOutput.sorted_by_confidence(runOutput.CSSLMC);
+%         showSingleRunResults.plotBinaryCSSLResults...
+%             (   CSSLMC_prediction, CSSLMC_confidence, ...
+%             	CSSLMC_margin, correctLabels, sortedCSSLMC, outputProperties, ...
+%                 [generalParams '\newline' paramsStringCSSLMC], ...
+%                 'CSSLMC', experimentID, run_i);
+%             
         %% extract info for CSSLMCF results figure
             
-        CSSLMCF_prediction    = runOutput.unlabeled_binary_prediction(runOutput.CSSLMCF);
-        CSSLMCF_confidence    = runOutput.unlabeled_confidence(runOutput.CSSLMCF);
-        CSSLMCF_margin        = runOutput.unlabeled_margin(runOutput.CSSLMCF);
-        
-        %% create params string for CSSLMCF
-
-        numIterations       = runOutput.numIterations( SingleRun.CSSLMCF);
-        
-        paramsStringCSSLMCF = ...
-            [' labeledConfidence = '    num2str(labeledConfidence) ...
-             ' alpha = '                num2str(alpha) ...
-             ' beta = '                 num2str(beta) ...
-             ' numIterations = '        num2str(numIterations) ];
+        %CSSLMCF_confidence    = runOutput.unlabeled_confidence(runOutput.CSSLMCF);
+        %CSSLMCF_margin        = runOutput.unlabeled_margin(runOutput.CSSLMCF);
         
         %% plot CSSLMCF result figure
             
-        sortedCSSLMCF.by_confidence = runOutput.sorted_by_confidence(runOutput.CSSLMCF);
-        showSingleRunResults.plotBinaryCSSLResults...
-            (   CSSLMCF_prediction, CSSLMCF_confidence, ...
-            	CSSLMCF_margin, correctLabels, sortedCSSLMCF, figuresToShow, ...
-                [generalParams '\newline' paramsStringCSSLMCF],...
-                'CSSLMCF', experimentID, run_i);
-                               
+        %sortedCSSLMCF.by_confidence = runOutput.sorted_by_confidence(runOutput.CSSLMCF);
+%         showSingleRunResults.plotBinaryCSSLResults...
+%             (   CSSLMCF_prediction, CSSLMCF_confidence, ...
+%             	CSSLMCF_margin, correctLabels, sortedCSSLMCF, outputProperties, ...
+%                 [generalParams '\newline' paramsStringCSSLMCF],...
+%                 'CSSLMCF', experimentID, run_i);
+%                                
         %% extract info for results comparison figure
 
-        LP_prediction       = runOutput.unlabeled_binary_prediction(runOutput.LP);
-        MAD_prediction      = runOutput.unlabeled_binary_prediction(runOutput.MAD);
-        CSSLMCF_prediction  = runOutput.unlabeled_binary_prediction(runOutput.CSSLMCF);
+        %LP_prediction       = runOutput.unlabeled_prediction(runOutput.LP);
+        
         %mistakes.CSSL       = runOutput.unlabeled_num_mistakes_CSSL();
-        mistakes.LP         = runOutput.unlabeled_num_mistakes(runOutput.LP);
-        mistakes.MAD        = runOutput.unlabeled_num_mistakes(runOutput.MAD);
-        mistakes.CSSLMC     = runOutput.unlabeled_num_mistakes(runOutput.CSSLMC);
-        mistakes.CSSLMCF    = runOutput.unlabeled_num_mistakes(runOutput.CSSLMCF);
+        %mistakes.LP         = runOutput.unlabeled_num_mistakes(runOutput.LP);
 
         %% plot LP vs CSSLMC vs MAD
+        
+        generalAlgorithmParamsString = ...
+                [' labeledConfidence = '    num2str(labeledConfidence) ...
+                 ' alpha = '                num2str(alpha) ...
+                 ' beta = '                 num2str(beta) ...
+                 ' maxIterations = '        num2str(maxIterations) ];
+        firstAlgorithmTitlePrefix = ['\newline' generalParams '\newline'];
 
-        t = [ 'LP vs CSSLMC vs MAD.' generalParams '. ' paramsStringCSSLMCF ];
+        t = [ 'Algorithms Compare.' generalParams '. ' generalAlgorithmParamsString ];
 
-        numRows = 4;
+        numRows = runOutput.isResultsAvailable( SingleRun.CSSLMC ) + ...
+                  runOutput.isResultsAvailable( SingleRun.CSSLMCF ) + ...
+                  runOutput.isResultsAvailable( SingleRun.MAD );
         numCols = 1;
 
         figure('name', t);
 
-        current = 1;
-        current = showSingleRunResults.plotBinaryPrediction...
-            (numRows, numCols, current, CSSLMC_prediction, ...
-             correctLabels, mistakes.CSSLMC, 'CSSLMC', ...
-             ['\newline' generalParams '\newline' paramsStringCSSLMC]);
-
-        current = showSingleRunResults.plotBinaryPrediction...
-            (numRows, numCols, current, CSSLMCF_prediction, ...
-             correctLabels, mistakes.CSSLMCF, 'CSSLMCF', paramsStringCSSLMCF);
-
-        current = showSingleRunResults.plotBinaryPrediction...
-            (numRows, numCols, current, LP_prediction, ...
-             correctLabels, mistakes.LP, 'LP', '');
-
-        madParamsString = [' useGraphHeuristice = ' num2str(useGraphHeuristics)];
+        %% plot algorithms output
         
-        current = showSingleRunResults.plotBinaryPrediction...
-            (numRows, numCols, current, MAD_prediction, ...
-             correctLabels, mistakes.MAD, 'MAD', madParamsString);
+        current = 1;
+        if ( runOutput.isResultsAvailable( SingleRun.CSSLMC ) )
+            %% create params string for CSSLMC
 
-        outputFolder = figuresToShow.resultDir;
-        groupName    = figuresToShow.groupName;
-        filename = [ outputFolder groupName '\singleResults.' ...
+            numIterations       = runOutput.numIterations( SingleRun.CSSLMC);
+            paramsStringCSSLMC = ...
+                [' labeledConfidence = '    num2str(labeledConfidence) ...
+                 ' alpha = '                num2str(alpha) ...
+                 ' beta = '                 num2str(beta) ...
+                 ' numIterations = '        num2str(numIterations) ];
+             
+             %% get CSSLMC prediction an plot it.
+         
+            mistakes_CSSLMC     = runOutput.unlabeled_num_mistakes(runOutput.CSSLMC);
+
+            CSSLMC_prediction = runOutput.unlabeled_prediction(runOutput.CSSLMC);
+            current = showSingleRunResults.plotPrediction...
+                (numRows, numCols, current, CSSLMC_prediction, ...
+                 correctLabels, mistakes_CSSLMC, 'CSSLMC', ...
+                 [firstAlgorithmTitlePrefix paramsStringCSSLMC]);
+             firstAlgorithmTitlePrefix = [];
+        end
+
+        if ( runOutput.isResultsAvailable( SingleRun.CSSLMCF ) )
+            %% create params string for CSSLMCF
+
+            numIterations       = runOutput.numIterations( SingleRun.CSSLMCF );
+            
+            paramsStringCSSLMCF = ...
+                [' labeledConfidence = '    num2str(labeledConfidence) ...
+                 ' alpha = '                num2str(alpha) ...
+                 ' beta = '                 num2str(beta) ...
+                 ' numIterations = '        num2str(numIterations) ];
+             
+             %% get CSSLMCF prediction an plot it.
+             
+             mistakes_CSSLMCF    = runOutput.unlabeled_num_mistakes(runOutput.CSSLMCF);
+
+            CSSLMCF_prediction    = runOutput.unlabeled_prediction(runOutput.CSSLMCF);
+            current = showSingleRunResults.plotPrediction...
+                (numRows, numCols, current, CSSLMCF_prediction, ...
+                 correctLabels, mistakes_CSSLMCF, 'CSSLMCF', ...
+                 [firstAlgorithmTitlePrefix paramsStringCSSLMCF]);
+             firstAlgorithmTitlePrefix=[];
+        end
+
+        if ( runOutput.isResultsAvailable( SingleRun.MAD ) )
+            %% get MAD prediction an plot it.
+            
+            mistakes_MAD        = runOutput.unlabeled_num_mistakes(runOutput.MAD);
+            MAD_prediction      = runOutput.unlabeled_prediction(runOutput.MAD);
+            
+            madParamsString = [' useGraphHeuristice = ' num2str(useGraphHeuristics)];
+
+            current = showSingleRunResults.plotPrediction...
+                (numRows, numCols, current, MAD_prediction, ...
+                 correctLabels, mistakes_MAD, 'MAD', ...
+                 [firstAlgorithmTitlePrefix madParamsString]); %#ok<NASGU>
+             firstAlgorithmTitlePrefix = []; %#ok<NASGU>             
+        end
+
+        outputFolder = outputProperties.resultDir;
+        folderName    = outputProperties.folderName;
+        filename = [ outputFolder folderName '\singleResults.' ...
                       num2str(experimentID) '.' num2str(run_i) '.LP_vs_CSSL_vs_MAD.fig'];
         saveas(gcf, filename);
         close(gcf);
         
-        %% plot MAD probabilities figure
+        %% plot precision and recall
         
-        filePrefix = [ outputFolder groupName '\singleResults.' ...
+        if ( runOutput.isResultsAvailable( SingleRun.MAD ) )
+            outputProperties.experimentID   = experimentID;
+            outputProperties.run_i          = run_i;
+            showSingleRunResults.plotPrecisionAndRecall...
+                 (runOutput.unlabeled_scoreMatrix(SingleRun.MAD), correctLabels, outputProperties);
+        end
+        
+        %% plot MAD probabilities figures
+        
+        filePrefix = [ outputFolder folderName '\singleResults.' ...
                       num2str(experimentID) '.' num2str(run_i)];
         
         MAD_result = runOutput.getAlgorithmResults(SingleRun.MAD);
         showSingleRunResults.plotProbabilities( MAD_result.probabilities(), filePrefix );
 
     end
-    
-    function current = plotBinaryPrediction...
+        
+    function current = plotPrediction...
             (numRows, numCols, current, ...
-             binaryPrediction, correctLabels, numMistakes, ...
+             prediction, correctLabels, numMistakes, ...
              algorithmName, paramsString)
         subplot(numRows, numCols, current);
         hold on;
-        scatter(1:length(binaryPrediction), binaryPrediction, 'b');
+        scatter(1:length(prediction), prediction, 'b');
         plot( correctLabels, 'r' );
         hold off;
         legend('prediction','correct');
@@ -159,6 +198,17 @@ methods (Static)
         xlabel('vertex #i');
         ylabel('y');
         current = current + numCols;
+    end
+    
+    function plotPrecisionAndRecall(scoreMatrix, correctLabels, outputProperties)
+        numLabels       = SSLMC_Result.calcNumLabels(scoreMatrix);
+        for labelIndex = 1:numLabels
+            outputProperties.class_i = labelIndex;
+            scoreForLabel   = scoreMatrix(:,labelIndex);
+            isCurrentLabel = (correctLabels == labelIndex);
+            prebp = Evaluation.calcPRBEP(scoreForLabel, isCurrentLabel, outputProperties );
+            disp(['prbep for class ' num2str(labelIndex) ' = ' num2str(prebp)]);
+        end
     end
     
     function plotProbabilities(p, filePrefix)
@@ -177,7 +227,7 @@ methods (Static)
     end
     
     function plotBinaryCSSLResults(CSSL_prediction, CSSL_confidence, ...
-                                   CSSL_margin, correctLabels, sorted, figuresToShow, ...
+                                   CSSL_margin, correctLabels, sorted, outputProperties, ...
                                    paramsString, algorithmName, experimentID, run_i)
 
         t = [ 'unlabeled (prediction & confidence & margin). ' algorithmName '. '  paramsString ];
@@ -235,9 +285,9 @@ methods (Static)
         xlabel('vertex #i');
         ylabel('margin (mu*y)');
 
-        outputFolder = figuresToShow.resultDir;
-        groupName    = figuresToShow.groupName;
-        filename = [ outputFolder groupName '\singleResults.' ...
+        outputFolder = outputProperties.resultDir;
+        folderName    = outputProperties.folderName;
+        filename = [ outputFolder folderName '\singleResults.' ...
                      algorithmName '.' num2str(experimentID) '.' ...
                      num2str(run_i) '.fig'];
         saveas(gcf, filename);
