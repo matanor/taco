@@ -38,14 +38,16 @@ classdef Evaluation
             %%
             outputDirectory = outputProperties.resultDir;
             folderName      = outputProperties.folderName;
+            algorithmName   = outputProperties.algorithmName;
             experimentID    = outputProperties.experimentID;
             run_i           = outputProperties.run_i;
             class_i         = outputProperties.class_i;
 
             t = ['precision and recall ' ...
                  'experimentID = ' num2str(experimentID) ...
-                 ' run index =' num2str(run_i) ...
-                 ' class index  =' num2str(class_i)];
+                 ' run index = ' num2str(run_i) ...
+                 ' class index  = ' num2str(class_i) ... 
+                 ' algorithm = '  algorithmName];
             h = figure('name',t);
             hold on;
             plot(precision, 'r');
@@ -58,7 +60,8 @@ classdef Evaluation
             
             filename = [ outputDirectory folderName '\SingleResults.' ...
                          num2str(experimentID) '.' num2str(run_i) '.' ...
-                         num2str(class_i) '.PrecisionRecall.fig'];
+                         num2str(class_i) '.' algorithmName ...
+                         '.PrecisionRecall.fig'];
             saveas(h, filename); close(h);
 
 %             h = figure;

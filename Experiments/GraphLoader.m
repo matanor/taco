@@ -82,7 +82,7 @@ methods (Static)
 
         labeled = GraphLoader.selectLabelsUniformly...
             (  balanced.labels,     classToLabelMap, ...
-               numLabeledPerClass,  numRequiredClasses);
+               numLabeledPerClass);
         % return the labeled vertices in a single column vector.
         labeled = labeled(:);
 
@@ -126,17 +126,23 @@ methods (Static)
         end
     end
     
-    function R = selectLabelsUniformly(labels, classToLabelMap, numLabeledPerClass, numRequiredClasses)
+    function R = selectLabelsUniformly(vertices,        correctLabels, ...
+                                       classToLabelMap, numLabeledPerClass)
         %% Select labeled vertices, the same amount of labled vertices for
         %  each class
-        %  Result: R is a numLabeledPerClass X numRequiredClasses matrix.
-        %          each column contains the labeled vertices for a single
-        %          class.
-        labeled = zeros(numLabeledPerClass, numRequiredClasses);
+        %  Result: R is a column vector containing index of labeled
+        %  vertices.
+                
+        % get correct labels for the vertices we select from.
+        vertices_correctLabel = correctLabels(vertices);
+        
+        numRequiredClasses = size(classToLabelMap, 1);
+        labeled = [];
         for class_i = 1:numRequiredClasses
             labelValue = classToLabelMap(class_i, GraphLoader.LABEL_VALUE);
-            labeled(:, class_i) = ...
-                    GraphLoader.randomSelectWithValue(labels, numLabeledPerClass, labelValue);
+            selected_indices = GraphLoader.randomSelectWithValue...
+                (vertices_correctLabel, numLabeledPerClass, labelValue);
+            labeled = [labeled; vertices(selected_indices).']; %#ok<AGROW>
         end
         R = labeled;
     end

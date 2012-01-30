@@ -23,11 +23,12 @@ methods (Access = public)
         
         %% display parameters
         paramsString = ...
-            [ 'labeledConfidence = ' num2str(labeledConfidence) ...
-             ' alpha = '             num2str(alpha) ...
-             ' beta = '              num2str(beta) ...
-             ' makeSymetric = '      num2str(algorithmParams.makeSymetric)...
-             ' numIterations = '     num2str(numIterations)];
+            [ 'labeledConfidence = '    num2str(labeledConfidence) ...
+             ' alpha = '                num2str(alpha) ...
+             ' beta = '                 num2str(beta) ...
+             ' makeSymetric = '         num2str(algorithmParams.makeSymetric)...
+             ' numIterations = '        num2str(numIterations) ...
+             ' useGraphHeuristics = '   num2str(useGraphHeuristics) ];
 
          disp(paramsString);
         
@@ -55,6 +56,7 @@ methods (Access = public)
         params.beta                 = beta;
         params.labeledConfidence    = labeledConfidence;
         params.classToLabelMap      = classToLabelMap;
+        params.useGraphHeuristics   = useGraphHeuristics;
 
         %% Run algorithm - confidence SSL
         
@@ -104,11 +106,12 @@ methods (Access = public)
     end
 
     function runCSSL( this, algorithm, algorithm_results, params )
-        algorithm.m_W                 = params.w_nn;
-        algorithm.m_num_iterations    = params.numIterations;
-        algorithm.m_alpha             = params.alpha;
-        algorithm.m_beta              = params.beta;
-        algorithm.m_labeledConfidence = params.labeledConfidence;
+        algorithm.m_W                   = params.w_nn;
+        algorithm.m_num_iterations      = params.numIterations;
+        algorithm.m_alpha               = params.alpha;
+        algorithm.m_beta                = params.beta;
+        algorithm.m_labeledConfidence   = params.labeledConfidence;
+        algorithm.m_useGraphHeuristics  = params.useGraphHeuristics;
 
         Ylabeled = this.createInitialLabeledY();
         

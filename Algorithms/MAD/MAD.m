@@ -77,7 +77,7 @@ classdef MAD < handle
                     break;
                 end
                 
-                if ( mod(iter_i, 10) == 0 )
+                if ( mod(iter_i, 5) == 0 )
                     disp([  '#Iteration = '      num2str(iter_i)...
                             ' iteration_diff = ' num2str(iteration_diff)]);
                 end
@@ -88,7 +88,7 @@ classdef MAD < handle
                     D( vertex_i, :) = Dv.';
                 end
 
-                Y_hat_pre = Y_hat;
+                Y_hat_pre = Y_hat; % only used for convergence test.
                 % lines (5)-(6)-(7) of MAD page 10 in reference 
                 for vertex_i = 1:numVertices
                     p_inject   = p.inject(vertex_i); 
@@ -184,6 +184,8 @@ classdef MAD < handle
             for vertex_i=1:numVertices
                 neighbours = getNeighbours( W, vertex_i );
                 transitions = MAD.calcTransitions( neighbours.weights );
+                % entropy calculation using natural logarithm as in
+                % ProbUtil.java
                 entropy = - sum( transitions .* log(transitions) );
                 % use log2 ad done is scala code downloaded from http://talukdar.net/
                 cv = log2(beta) / log2( beta + exp( entropy) ) ;

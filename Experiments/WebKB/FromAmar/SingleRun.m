@@ -135,7 +135,7 @@ classdef SingleRun < handle
         function r = unlabeled_confidence(this, algorithmType)
             algorithmResults = this.getAlgorithmResults( algorithmType );
             
-            r = algorithmResults.binaryPredictionConfidence();
+            r = algorithmResults.predictionConfidence();
             r( this.labeled() ) = [];
         end
         
