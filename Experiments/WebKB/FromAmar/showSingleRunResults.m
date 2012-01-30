@@ -184,24 +184,24 @@ methods (Static)
         outputProperties.run_i          = run_i;
 
         if ( runOutput.isResultsAvailable( SingleRun.CSSLMC ) )
-            outputProperties.algorithmName  = 'CSSLMC';
-            showSingleRunResults.plotPrecisionAndRecall...
-                 (  runOutput.unlabeled_scoreMatrix_testSet(SingleRun.CSSLMC), ...
-                    runOutput.testSetCorrectLabels(), outputProperties, algorithmParams);
+            outputProperties.algorithmName  = CSSLMC.name();
+            showSingleRunResults.plotPrecisionAndRecall_allLabels...
+                 (  runOutput, SingleRun.CSSLMC, ...
+                    outputProperties, algorithmParams);
         end
         
         if ( runOutput.isResultsAvailable( SingleRun.CSSLMCF ) )
-            outputProperties.algorithmName  = 'CSSLMCF';
-            showSingleRunResults.plotPrecisionAndRecall...
-                 (  runOutput.unlabeled_scoreMatrix_testSet(SingleRun.CSSLMCF), ...
-                    runOutput.testSetCorrectLabels(), outputProperties, algorithmParams);
+            outputProperties.algorithmName  = CSSLMCF.name();
+            showSingleRunResults.plotPrecisionAndRecall_allLabels...
+                 (  runOutput, SingleRun.CSSLMCF, ...
+                    outputProperties, algorithmParams);
         end
         
         if ( runOutput.isResultsAvailable( SingleRun.MAD ) )
-            outputProperties.algorithmName  = 'MAD';
-            showSingleRunResults.plotPrecisionAndRecall...
-                 (  runOutput.unlabeled_scoreMatrix_testSet(SingleRun.MAD), ...
-                    runOutput.testSetCorrectLabels(), outputProperties, algorithmParams);
+            outputProperties.algorithmName  = MAD.name();
+            showSingleRunResults.plotPrecisionAndRecall_allLabels...
+                 (  runOutput, SingleRun.MAD, ...
+                    outputProperties, algorithmParams);
         end
         
         %% plot MAD probabilities figures
@@ -216,6 +216,8 @@ methods (Static)
 
     end
         
+    %% plotPrediction
+    
     function current = plotPrediction...
             (numRows, numCols, current, ...
              prediction, correctLabels, numMistakes, ...
@@ -234,15 +236,17 @@ methods (Static)
         current = current + numCols;
     end
     
-    function plotPrecisionAndRecall...
-            (scoreMatrix, correctLabels, outputProperties, algorithmParams)
-        numLabels       = SSLMC_Result.calcNumLabels(scoreMatrix);
+    %% plotPrecisionAndRecall_allLabels
+    
+    function plotPrecisionAndRecall_allLabels...
+            (runOutput, algorithmType, outputProperties, algorithmParams)
+        numLabels       = runOutput.numLabels();
         
         algorithmName       = outputProperties.algorithmName;
         experimentID        = outputProperties.experimentID;
         run_i               = outputProperties.run_i;
         useGraphHeuristics  = algorithmParams.useGraphHeuristics;
-        testSetSize         = length(correctLabels);
+        testSetSize         = runOutput.testSetSize();
         
         disp([  'Algorithm = '              algorithmName...
                 ' Experiment ID = '         num2str(experimentID) ...
@@ -252,18 +256,53 @@ methods (Static)
             
         for labelIndex = 1:numLabels
             outputProperties.class_i = labelIndex;
-            scoreForLabel   = scoreMatrix(:,labelIndex);
-            isCurrentLabel = (correctLabels == labelIndex);
-            prebp = Evaluation.calcPRBEP(scoreForLabel, isCurrentLabel, outputProperties );
+            [prebp precision recall] = runOutput.calcPRBEP_testSet(algorithmType, labelIndex);
+            showSingleRunResults.plotPrecisionAndRecall(precision, recall, outputProperties);
             disp(['prbep for class ' num2str(labelIndex) ' = ' num2str(prebp)]);
         end
+    end % plotPrecisionAndRecall_allLabels
+    
+    %% plotPrecisionAndRecall
+    
+    function plotPrecisionAndRecall( precision, recall, outputProperties )
+        outputDirectory = outputProperties.resultDir;
+        folderName      = outputProperties.folderName;
+        algorithmName   = outputProperties.algorithmName;
+        experimentID    = outputProperties.experimentID;
+        run_i           = outputProperties.run_i;
+        class_i         = outputProperties.class_i;
+
+        t = ['precision and recall ' ...
+             'experimentID = ' num2str(experimentID) ...
+             ' run index = ' num2str(run_i) ...
+             ' class index  = ' num2str(class_i) ... 
+             ' algorithm = '  algorithmName];
+        h = figure('name',t);
+        hold on;
+        plot(precision, 'r');
+        plot(recall,    'g');
+        hold off;
+        title(t);
+        legend('precision','recall');
+        xlabel('threshold #i');
+        ylabel('precision/recall');
+
+        filename = [ outputDirectory folderName '\SingleResults.' ...
+                     num2str(experimentID) '.' num2str(run_i) '.' ...
+                     num2str(class_i) '.' algorithmName ...
+                     '.PrecisionRecall.fig'];
+        saveas(h, filename); close(h);
     end
+    
+    %% plotProbabilities
     
     function plotProbabilities(p, filePrefix)
         showSingleRunResults.scatterFigure('p_inject'    , p.inject, filePrefix);
         showSingleRunResults.scatterFigure('p_continue'  , p.continue, filePrefix);
         showSingleRunResults.scatterFigure('p_abandon'   , p.abandon, filePrefix);
     end
+    
+    %% scatterFigure
     
     function scatterFigure(t, x, filePrefix)
         figure('name',t);
@@ -273,6 +312,8 @@ methods (Static)
         saveas(gcf, filename);
         close(gcf);
     end
+    
+    %% plotBinaryCSSLResults
     
     function plotBinaryCSSLResults(CSSL_prediction, CSSL_confidence, ...
                                    CSSL_margin, correctLabels, sorted, outputProperties, ...

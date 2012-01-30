@@ -3,9 +3,9 @@ clear classes;
 clear all;
 
 %% global shared parameters
-numRunsPerExperiment = 1;
+numRunsPerExperiment = 5;
 graphFileName = 'C:\technion\theses\Experiments\WebKB\data\From Amar\webkb_amar.mat';
-folderName = '2012_01_30_3 CSSLMC explore';
+folderName = '2012_01_30_5 CSSLMC(and F) Vs MAD after heuristics fix. multiple runs';
 
 %% define parameter properties
 
@@ -51,9 +51,9 @@ paramStructs.constructionParams  = ...
 
 %% what algorithms we want to run in the simulation
 algorithmsToRun = zeros( SingleRun.numAvailableAlgorithms(), 1);
-algorithmsToRun(SingleRun.MAD)      = 0;
+algorithmsToRun(SingleRun.MAD)      = 1;
 algorithmsToRun(SingleRun.CSSLMC)   = 1;
-algorithmsToRun(SingleRun.CSSLMCF)  = 0;
+algorithmsToRun(SingleRun.CSSLMCF)  = 1;
 
 %% allocate a multiple runs object per each parameter combination
 %  and run all experiments with all the parameter combinations
@@ -79,8 +79,8 @@ end
 toc(ticID);
 
 %% Define which result figures to display
-outputProperties.showSingleRuns = 1;
-outputProperties.showAccumulativeLoss = 1;
+outputProperties.showSingleRuns = 0;
+outputProperties.showAccumulativeLoss = 0;
 
 %% get total number of experiment
 numExperiments = numParamCombinations;
@@ -103,13 +103,14 @@ outputProperties.folderName = folderName;
 experimentRange = 1:numExperiments;
 
 for experimentID = experimentRange
+    disp(['experiment ID = ' num2str(experimentID) ]);
     multipleRuns = experimentCollection(experimentID);
     for run_i=1:multipleRuns.num_runs()
         showSingleRunResults.show( multipleRuns, ...
                 experimentID, run_i, outputProperties );
     end
-%     showMultipleExperimentsResults...
-%         (multipleRuns, outputProperties, experimentID );
+     showMultipleExperimentsResults.show...
+         (multipleRuns, outputProperties, experimentID );
     experimentFigurePath = ...
         [resultsDir folderName '\experiment.' num2str(experimentID) '.fig'];
     saveas(gcf, experimentFigurePath);

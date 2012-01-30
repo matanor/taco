@@ -3,10 +3,12 @@ classdef Evaluation
     %   Detailed explanation goes here
     
     methods (Static)
-        function r = calcPRBEP( Y_hat_l, Y_l, outputProperties )
+        function [PRBEP precision recall] = calcPRBEP( Y_hat_l, Y_l )
         %%
         %   Y_hat_l - classifier scores for each example for class l.
-        %   Y_l     - correct labeling of examples to class l.
+        %   Y_l     - correct labeling of examples to class l (binary
+        %   vector - a value of 1 indicates that the vertex belong to the
+        %   label).
         
             thresholdRange = sort(Y_hat_l, 'descend').';
             minDifference  = Inf;
@@ -25,53 +27,16 @@ classdef Evaluation
                 i = i + 1;
                 difference = abs(precision - recall);
                 if difference < minDifference
-                    r = precision;  % found a better point where the recall 
+                    PRBEP = precision;  % found a better point where the recall 
                                     % and precision are close.
                     minDifference = difference;
                 end
             end
-            %disp(['Precision recall difference = ' num2str(minDifference)]);
-            Evaluation.plotPrecisionAndRecall(p_i, r_i, outputProperties);
-        end
-        
-        function plotPrecisionAndRecall( precision, recall, outputProperties )
-            %%
-            outputDirectory = outputProperties.resultDir;
-            folderName      = outputProperties.folderName;
-            algorithmName   = outputProperties.algorithmName;
-            experimentID    = outputProperties.experimentID;
-            run_i           = outputProperties.run_i;
-            class_i         = outputProperties.class_i;
-
-            t = ['precision and recall ' ...
-                 'experimentID = ' num2str(experimentID) ...
-                 ' run index = ' num2str(run_i) ...
-                 ' class index  = ' num2str(class_i) ... 
-                 ' algorithm = '  algorithmName];
-            h = figure('name',t);
-            hold on;
-            plot(precision, 'r');
-            plot(recall,    'g');
-            hold off;
-            title(t);
-            legend('precision','recall');
-            xlabel('threshold #i');
-            ylabel('precision/recall');
-            
-            filename = [ outputDirectory folderName '\SingleResults.' ...
-                         num2str(experimentID) '.' num2str(run_i) '.' ...
-                         num2str(class_i) '.' algorithmName ...
-                         '.PrecisionRecall.fig'];
-            saveas(h, filename); close(h);
-
-%             h = figure;
-% %             [sortedPrecision,indices] = sort(precision);
-% %             sortedRecallByPrecision = recall(indices);
-% %             scatter(sortedPrecision,sortedRecallByPrecision);
-%             scatter(recall, precision);
-%             xlabel('recall');
-%             ylabel('precision');
-%             saveas(h, filename); close(h);
+            if (minDifference ~= 0)
+                disp(['Precision recall difference = ' num2str(minDifference)]);
+            end
+            precision = p_i;
+            recall = r_i;
         end
         
         function r = calcPrecision( Y_hat_l, Y_l, threshold )

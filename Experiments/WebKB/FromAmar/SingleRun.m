@@ -66,6 +66,21 @@ classdef SingleRun < handle
             this.m_constructionParams = value;
         end
         
+        %% numIterations
+        
+        function R = numLabels(this)
+            R = length(unique(this.correctLabels));
+        end
+        
+        %% testSetSize
+        
+        function R = testSetSize(this)
+            R = length(this.testSet());
+        end
+
+        
+        %% numIterations
+        
         function R = numIterations(this, algorithmType)
             if (algorithmType == this.CSSLMC)
                 R = this.m_CSSLMC_result.numIterations;
@@ -73,6 +88,8 @@ classdef SingleRun < handle
                 R = this.algorithmParams().numIterations;
             end
         end
+        
+        %% set_results
         
         function set_results( this, R, algorithmType )
             if (algorithmType == this.LP)
@@ -116,9 +133,21 @@ classdef SingleRun < handle
             r( this.trainSet(), : ) = [];
         end
         
+        %% testSetCorrectLabels
+        
         function r = testSetCorrectLabels(this)
             r = this.correctLabels;
             r( this.trainSet(), : ) = [];
+        end
+        
+        function [prbep precision recall] = calcPRBEP_testSet...
+                (this, algorithmType, labelIndex)
+            scoreMatrix = this.unlabeled_scoreMatrix_testSet(algorithmType);
+            correctLabels_testSet = this.testSetCorrectLabels();
+            scoreForLabel   = scoreMatrix(:,labelIndex);
+            isCurrentLabel = (correctLabels_testSet == labelIndex);
+            [prbep precision recall] = Evaluation.calcPRBEP...
+                (scoreForLabel, isCurrentLabel );
         end
        
         %% Return binary prediction for unlabeled vertices
