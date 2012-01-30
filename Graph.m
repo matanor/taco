@@ -33,7 +33,7 @@ classdef Graph < handle
            this.loadFromStruct( loadData.graph );
         end
         
-                function loadFromStruct( this, graphStrcut )
+        function loadFromStruct( this, graphStrcut )
             this.m_W = graphStrcut.W;
             numVertices = this.numVertices();
             this.m_labels         = zeros(numVertices, this.BINARY_NUM_LABELS);
