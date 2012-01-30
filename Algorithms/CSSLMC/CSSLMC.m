@@ -1,18 +1,10 @@
-classdef CSSLMC < handle
+classdef CSSLMC < CSSLBase
 
-    properties (Access=public)
-        m_W;
-        m_num_iterations;
-        m_alpha;
-        m_beta;
-        m_labeledConfidence;
-    end
-    
-    methods (Access=public)
+methods (Access=public)
         
 	function iteration = run( this, labeledY)
 
-        tic;
+        ticID = tic;
         
         alpha               = this.m_alpha;
         beta                = this.m_beta;
@@ -25,20 +17,23 @@ classdef CSSLMC < handle
 
         iteration.mu = zeros( num_vertices, num_labels, num_iterations );
         iteration.v  = ones ( num_vertices, num_labels, num_iterations );
-
+        
+        this.prepareGraph(labeledY);
+        
         iteration_diff = 10^1000;
         diff_epsilon = 0.0001;
 
         % note iteration index starts from 2
         for iter_i = 2:num_iterations
 
-            if ( mod(iter_i, 10) == 0 )
+            if ( mod(iter_i, 5) == 0 )
                 disp([ '#Iteration = ' num2str(iter_i)...
                        ' iteration_diff = ' num2str(iteration_diff)]);
             end
             
             if iteration_diff < diff_epsilon
-                disp(['converged after ' num2str(iter_i-1) ' iterations']);
+                disp([  'converged after '   num2str(iter_i-1) ' iterations'...
+                        ' iteration_diff = ' num2str(iteration_diff)]);
                 iteration.mu(:,:, iter_i:end) = [];
                 iteration.v(:,:, iter_i:end) = [];
                 break;
@@ -52,7 +47,7 @@ classdef CSSLMC < handle
                 for label_i = 1:num_labels
 
                     y_i = labeledY( vertex_i, label_i );
-                    isLabeled = (y_i ~=0);
+                    isLabeled = this.injectionProbability(vertex_i,y_i);
                     
                     neighbours = getNeighbours( this.m_W, vertex_i);
 
@@ -76,7 +71,7 @@ classdef CSSLMC < handle
                 
                 for label_i=1:num_labels
                     y_i = labeledY( vertex_i, label_i );
-                    isLabeled = (y_i ~=0);
+                    isLabeled = this.injectionProbability(vertex_i,y_i);
 
                     neighbours = getNeighbours( this.m_W, vertex_i);
 
@@ -100,18 +95,19 @@ classdef CSSLMC < handle
             iteration_diff = sum((prev_mu(:) - current_mu(:)).^2);
         end
 
-        toc;
+        toc(ticID);
         disp('size(iteration.v)=');
         disp(size(iteration.v));
     
-        end
-    end % methods (Access=public)
+    end
+        
+end % methods (Access=public)
     
-    methods(Static)
-       function r = name()
-           r = 'CSSLMC';
-       end
-    end % methods(Static)
+methods(Static)
+   function r = name()
+       r = 'CSSLMC';
+   end
+end % methods(Static)
     
 end
 

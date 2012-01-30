@@ -5,7 +5,7 @@ classdef CSSLMCF < CSSLBase
         
 	function result = run( this, labeledY)
 
-        tic;
+        ticID = tic;
         
         alpha               = this.m_alpha;
         beta                = this.m_beta;
@@ -24,6 +24,8 @@ classdef CSSLMCF < CSSLBase
         end
 
         inv_gamma = diag( zeros(1,num_labels) + 1 / gamma );
+        
+        this.prepareGraph(labeledY);
         
         iteration_diff  = 10^1000;
         diff_epsilon    = 0.0001;
@@ -58,7 +60,7 @@ classdef CSSLMCF < CSSLBase
                 inv_sigma_i(:,:) = inv_prev_sigma(vertex_i,:,:);
                 
                 y_i       = labeledY( vertex_i, : ).';
-                isLabeled = (sum(y_i) ~=0);
+                isLabeled = this.injectionProbability(vertex_i,y_i);
                 
                 P_i = isLabeled * (inv_sigma_i + inv_gamma);
                     
@@ -87,7 +89,7 @@ classdef CSSLMCF < CSSLBase
             for vertex_i=1:num_vertices
                 
                 y_i       = labeledY( vertex_i, : ).';
-                isLabeled = (sum(y_i) ~=0);
+                isLabeled = this.injectionProbability(vertex_i,y_i);
                 
                 neighbours      = getNeighbours( this.m_W, vertex_i);
                 num_neighbours  = length( neighbours.weights);
@@ -111,7 +113,7 @@ classdef CSSLMCF < CSSLBase
             iteration_diff = sum((prev_mu(:) - current_mu(:)).^2);
         end
 
-        toc;
+        toc(ticID);
     
         end
     end % methods (Access=public)
