@@ -19,7 +19,8 @@ methods (Static)
         alpha               = algorithmParams.alpha;
         beta                = algorithmParams.beta;
         K                   = constructionParams.K;
-        numLabeledPerClass  = constructionParams.numLabeled;
+        numLabeled          = constructionParams.numLabeled;
+        numLabeledPerClass  = constructionParams.numLabeledPerClass;
         makeSymetric        = algorithmParams.makeSymetric;
         useGraphHeuristics  = algorithmParams.useGraphHeuristics;
         maxIterations       = algorithmParams.numIterations;
@@ -33,26 +34,38 @@ methods (Static)
         generalParams = ...
             [' K = '                    num2str(K) ...
              ' makeSymetric = '         num2str(makeSymetric) ...
+             ' numLabeled = '           num2str(numLabeled) ...
              ' numLabeledPerClass = '   num2str(numLabeledPerClass) ...
              ' exp ID = '               num2str(experimentID) ...
              ' run index = '            num2str(run_i)];
-        
-
 
         %% extract info for CSSLMC results figure
 
-        %CSSLMC_confidence    = runOutput.unlabeled_confidence(runOutput.CSSLMC);
-        %CSSLMC_margin        = runOutput.unlabeled_margin(runOutput.CSSLMC);
         correctLabels        = runOutput.unlabeled_correct_labels();
 
         %% plot CSSLMC result figure
 
-        %sortedCSSLMC.by_confidence = runOutput.sorted_by_confidence(runOutput.CSSLMC);
-%         showSingleRunResults.plotBinaryCSSLResults...
-%             (   CSSLMC_prediction, CSSLMC_confidence, ...
-%             	CSSLMC_margin, correctLabels, sortedCSSLMC, outputProperties, ...
-%                 [generalParams '\newline' paramsStringCSSLMC], ...
-%                 'CSSLMC', experimentID, run_i);
+%         if ( runOutput.isResultsAvailable( SingleRun.CSSLMC ) )
+%             
+%             numIterations       = runOutput.numIterations( SingleRun.CSSLMC);
+%             paramsStringCSSLMC = ...
+%                 [' labeledConfidence = '    num2str(labeledConfidence) ...
+%                  ' alpha = '                num2str(alpha) ...
+%                  ' beta = '                 num2str(beta) ...
+%                  ' numIterations = '        num2str(numIterations) ];
+%              
+%             sortedCSSLMC.by_confidence = runOutput.sorted_by_confidence(runOutput.CSSLMC);
+%             
+%             CSSLMC_prediction = runOutput.unlabeled_prediction(runOutput.CSSLMC);
+%             CSSLMC_confidence = runOutput.unlabeled_confidence(runOutput.CSSLMC);
+%             CSSLMC_margin     = runOutput.unlabeled_margin(runOutput.CSSLMC);
+% 
+%             showSingleRunResults.plotBinaryCSSLResults...
+%                 (   CSSLMC_prediction, CSSLMC_confidence, ...
+%                     CSSLMC_margin, correctLabels, sortedCSSLMC, outputProperties, ...
+%                     [generalParams '\newline' paramsStringCSSLMC], ...
+%                     'CSSLMC', experimentID, run_i);
+%         end
 %             
         %% extract info for CSSLMCF results figure
             
@@ -104,7 +117,8 @@ methods (Static)
                 [' labeledConfidence = '    num2str(labeledConfidence) ...
                  ' alpha = '                num2str(alpha) ...
                  ' beta = '                 num2str(beta) ...
-                 ' numIterations = '        num2str(numIterations) ];
+                 ' numIterations = '        num2str(numIterations)...
+                 ' useGraphHeuristics = '   num2str(useGraphHeuristics)];
              
              %% get CSSLMC prediction an plot it.
          
@@ -127,7 +141,8 @@ methods (Static)
                 [' labeledConfidence = '    num2str(labeledConfidence) ...
                  ' alpha = '                num2str(alpha) ...
                  ' beta = '                 num2str(beta) ...
-                 ' numIterations = '        num2str(numIterations) ];
+                 ' numIterations = '        num2str(numIterations)...
+                 ' useGraphHeuristics = '   num2str(useGraphHeuristics)];
              
              %% get CSSLMCF prediction an plot it.
              
@@ -164,22 +179,40 @@ methods (Static)
         close(gcf);
         
         %% plot precision and recall
+
+        outputProperties.experimentID   = experimentID;
+        outputProperties.run_i          = run_i;
+
+        if ( runOutput.isResultsAvailable( SingleRun.CSSLMC ) )
+            outputProperties.algorithmName  = 'CSSLMC';
+            showSingleRunResults.plotPrecisionAndRecall...
+                 (  runOutput.unlabeled_scoreMatrix_testSet(SingleRun.CSSLMC), ...
+                    runOutput.testSetCorrectLabels(), outputProperties, algorithmParams);
+        end
+        
+        if ( runOutput.isResultsAvailable( SingleRun.CSSLMCF ) )
+            outputProperties.algorithmName  = 'CSSLMCF';
+            showSingleRunResults.plotPrecisionAndRecall...
+                 (  runOutput.unlabeled_scoreMatrix_testSet(SingleRun.CSSLMCF), ...
+                    runOutput.testSetCorrectLabels(), outputProperties, algorithmParams);
+        end
         
         if ( runOutput.isResultsAvailable( SingleRun.MAD ) )
-            outputProperties.experimentID   = experimentID;
-            outputProperties.run_i          = run_i;
+            outputProperties.algorithmName  = 'MAD';
             showSingleRunResults.plotPrecisionAndRecall...
                  (  runOutput.unlabeled_scoreMatrix_testSet(SingleRun.MAD), ...
-                    runOutput.testSetCorrectLabels(), outputProperties);
+                    runOutput.testSetCorrectLabels(), outputProperties, algorithmParams);
         end
         
         %% plot MAD probabilities figures
         
-        filePrefix = [ outputFolder folderName '\singleResults.' ...
-                      num2str(experimentID) '.' num2str(run_i)];
+        if ( runOutput.isResultsAvailable( SingleRun.MAD ) )
+            filePrefix = [ outputFolder folderName '\singleResults.' ...
+                          num2str(experimentID) '.' num2str(run_i)];
         
-        MAD_result = runOutput.getAlgorithmResults(SingleRun.MAD);
-        showSingleRunResults.plotProbabilities( MAD_result.probabilities(), filePrefix );
+            MAD_result = runOutput.getAlgorithmResults(SingleRun.MAD);
+            showSingleRunResults.plotProbabilities( MAD_result.probabilities(), filePrefix );
+        end
 
     end
         
@@ -201,8 +234,22 @@ methods (Static)
         current = current + numCols;
     end
     
-    function plotPrecisionAndRecall(scoreMatrix, correctLabels, outputProperties)
+    function plotPrecisionAndRecall...
+            (scoreMatrix, correctLabels, outputProperties, algorithmParams)
         numLabels       = SSLMC_Result.calcNumLabels(scoreMatrix);
+        
+        algorithmName       = outputProperties.algorithmName;
+        experimentID        = outputProperties.experimentID;
+        run_i               = outputProperties.run_i;
+        useGraphHeuristics  = algorithmParams.useGraphHeuristics;
+        testSetSize         = length(correctLabels);
+        
+        disp([  'Algorithm = '              algorithmName...
+                ' Experiment ID = '         num2str(experimentID) ...
+                ' Run_i = '                 num2str(run_i)...
+                ' useGraphHeuristics = '    num2str(useGraphHeuristics)...
+                ' test set size = '         num2str(testSetSize)]);
+            
         for labelIndex = 1:numLabels
             outputProperties.class_i = labelIndex;
             scoreForLabel   = scoreMatrix(:,labelIndex);

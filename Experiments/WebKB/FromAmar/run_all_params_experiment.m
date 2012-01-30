@@ -29,6 +29,7 @@ methods (Static)
             K                    = constructionParams.K;
             numLabeled           = constructionParams.numLabeled;
             numInstancesPerClass = constructionParams.numInstancesPerClass;
+            numFolds             = constructionParams.numFolds;
             
             %%  load the graph
 
@@ -37,7 +38,7 @@ methods (Static)
             %    numInstancesPerClass );
             
             graph = GraphLoader.loadAll( graphFileName );
-            numFolds = 4;
+            
             numVertices = length(graph.labels);
             newNumVertices = numVertices - mod(numVertices, numFolds);
             verticesToRemove = (newNumVertices+1):numVertices;
@@ -45,10 +46,24 @@ methods (Static)
             graph.labels(verticesToRemove) = [];
             graph.weights(verticesToRemove,:) = [];
             graph.weights(:,verticesToRemove) = [];
+            %numVertices = length(graph.labels);
             
             folds = GraphLoader.split(graph, numFolds );
-            labeledVertices = GraphLoader.selectLabeled_atLeastOnePerLabel...
-                                ( folds(1,:), graph.labels, classToLabelMap, numLabeled); 
+            numLabeledPerClass = numLabeled / numFolds;
+            constructionParams.numLabeledPerClass = numLabeledPerClass;
+            
+            labeledVertices  = GraphLoader.selectLabelsUniformly...
+                                (   folds(1,:),    graph.labels,      classToLabelMap, ...
+                                    numLabeledPerClass);
+            %labeledVertices = GraphLoader.selectLabeled_atLeastOnePerLabel...
+            %                    ( folds(1,:), graph.labels, classToLabelMap, numLabeled); 
+            
+            % unlabeled instances from train set
+            % trainSetUnlabeled = setdiff(folds(1,:), labeledVertices);
+            
+            %[graph labeledVertices] = ...
+            %    run_all_params_experiment.removeVertices...
+            %        ( graph, labeledVertices, trainSetUnlabeled );
 
             w_nn = knn(graph.weights,K);
             correctLabels = graph.labels;
@@ -100,6 +115,25 @@ methods (Static)
         end
     
     R = allRuns;
+    end
+    
+    function [graph labeledVertices] = removeVertices...
+            ( graph, labeledVertices, verticesToRemove )
+
+        numVertices = length(graph.labels);
+        verticesID = 1:numVertices;
+        
+        graph.labels(verticesToRemove) = [];
+        graph.weights(verticesToRemove, :) = [];
+        graph.weights(:, verticesToRemove) = [];
+        verticesID(verticesToRemove) = [];
+        
+        numVertices = length(graph.labels);
+
+        %oldLabeledVertices = labeledVertices;
+        labeledPositions = ismember(verticesID,labeledVertices);
+        newVerticesID    = 1:numVertices;
+        labeledVertices  = newVerticesID( labeledPositions );
     end
 
 end % methods (Static)

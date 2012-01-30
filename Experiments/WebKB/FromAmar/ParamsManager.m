@@ -25,6 +25,9 @@ methods (Static)
             
             paramIndex = ParamsManager.findParamIndex( paramProperties, 'numInstancesPerClass');
             new.numInstancesPerClass  = paramsVector (struct_i, paramIndex);
+            
+            paramIndex = ParamsManager.findParamIndex( paramProperties, 'numFolds');
+            new.numFolds  = paramsVector (struct_i, paramIndex);
 
             paramStructs = [paramStructs; new];
         end

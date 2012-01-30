@@ -5,7 +5,7 @@ clear all;
 %% global shared parameters
 numRunsPerExperiment = 1;
 graphFileName = 'C:\technion\theses\Experiments\WebKB\data\From Amar\webkb_amar.mat';
-folderName = '2012_01_26 test new code';
+folderName = '2012_01_30_3 CSSLMC explore';
 
 %% define parameter properties
 
@@ -27,10 +27,12 @@ labeledConfidence.name = 'labeledConfidence';
 makeSymetric.range = [1];
 makeSymetric.name = 'makeSymetric';
 %numIterations.range = [5 10 25 50 100];
-numIterations.range = [50];
+numIterations.range = [20];
 numIterations.name = 'numIterations';
 numLabeled.range = [48];
 numLabeled.name = 'numLabeled';
+numFolds.range = [4];
+numFolds.name = 'numFolds';
 numInstancesPerClass.range = 0; % 0 means all instances
 numInstancesPerClass.name = 'numInstancesPerClass';
 useGraphHeuristics.range = [0 1];
@@ -38,7 +40,7 @@ useGraphHeuristics.name = 'useGraphHeuristics';
 
 paramProperties.algorithms   = [ alpha, beta, labeledConfidence, ...
                                  makeSymetric, numIterations, useGraphHeuristics];
-paramProperties.construction = [ K, numLabeled, numInstancesPerClass];
+paramProperties.construction = [ K, numLabeled, numInstancesPerClass, numFolds];
 
 %% create parameters structures
 
@@ -49,7 +51,9 @@ paramStructs.constructionParams  = ...
 
 %% what algorithms we want to run in the simulation
 algorithmsToRun = zeros( SingleRun.numAvailableAlgorithms(), 1);
-algorithmsToRun(SingleRun.MAD) = 1;
+algorithmsToRun(SingleRun.MAD)      = 0;
+algorithmsToRun(SingleRun.CSSLMC)   = 1;
+algorithmsToRun(SingleRun.CSSLMCF)  = 0;
 
 %% allocate a multiple runs object per each parameter combination
 %  and run all experiments with all the parameter combinations
