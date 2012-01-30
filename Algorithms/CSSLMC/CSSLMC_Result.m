@@ -45,17 +45,10 @@ classdef CSSLMC_Result < SSLMC_Result
         function r = numIterations(this)
             r = SSLMC_Result.calcNumIterations( this.m_Y );
         end
-        
-        function r = binaryPredictionConfidence(this)
-            assert( this.numLabels() == (this.BINARY_NUM_LABELS) );
-            final_mu = this.m_Y(:,:,end);
-            [~,indices] = max(final_mu,[],2);
-            final_v = this.m_v(:,:,end);
-            confidence = zeros(this.numVertices(), 1);
-            for vertex_i=1:length(confidence)
-                confidence( vertex_i ) = final_v( vertex_i, indices(vertex_i) );
-            end
-            r = confidence;
+
+        function r = getConfidence( this, vertex_i, class_i)
+            confidenceMatrix = this.m_v(:,:,end);
+            r = confidenceMatrix( vertex_i, class_i );
         end
         
     end % (Access = public)

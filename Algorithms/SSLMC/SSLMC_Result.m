@@ -25,6 +25,21 @@ classdef SSLMC_Result < handle
             r = indices;
         end
         
+        function r = predictionConfidence(this)
+            scoreMatrix = this.getFinalScoreMatrix();
+            [~,indices] = max(scoreMatrix,[],2);
+            confidence = zeros(this.numVertices(), 1);
+            for vertex_i=1:length(confidence)
+                predictedClass = indices(vertex_i);
+                confidence( vertex_i ) = this.getConfidence( vertex_i, predictedClass );
+            end
+            r = confidence;
+        end
+        
+        function r = this.getConfidence( this, ~, ~)
+            r = 1;
+        end
+        
 %         function r = scoreForLabel(this, label_i)
 %             scores = this.getFinalScoreMatrix();
 %             r = scores(:, label_i);
