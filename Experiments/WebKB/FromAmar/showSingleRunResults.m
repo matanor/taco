@@ -257,14 +257,14 @@ methods (Static)
         for labelIndex = 1:numLabels
             outputProperties.class_i = labelIndex;
             [prebp precision recall] = runOutput.calcPRBEP_testSet(algorithmType, labelIndex);
-            showSingleRunResults.plotPrecisionAndRecall(precision, recall, outputProperties);
+            showSingleRunResults.plotAndSave_PrecisionAndRecall(precision, recall, outputProperties);
             disp(['prbep for class ' num2str(labelIndex) ' = ' num2str(prebp)]);
         end
     end % plotPrecisionAndRecall_allLabels
     
-    %% plotPrecisionAndRecall
+    %% plotAndSave_PrecisionAndRecall
     
-    function plotPrecisionAndRecall( precision, recall, outputProperties )
+    function plotAndSave_PrecisionAndRecall( precision, recall, outputProperties )
         outputDirectory = outputProperties.resultDir;
         folderName      = outputProperties.folderName;
         algorithmName   = outputProperties.algorithmName;
@@ -277,6 +277,19 @@ methods (Static)
              ' run index = ' num2str(run_i) ...
              ' class index  = ' num2str(class_i) ... 
              ' algorithm = '  algorithmName];
+         
+        showSingleRunresults.plotPrecisionAndRecall(precision, recall, t);
+
+        filename = [ outputDirectory folderName '\SingleResults.' ...
+                     num2str(experimentID) '.' num2str(run_i) '.' ...
+                     num2str(class_i) '.' algorithmName ...
+                     '.PrecisionRecall.fig'];
+        saveas(h, filename); close(h);
+    end
+    
+    %% plotPrecisionAndRecall
+    
+    function h = plotPrecisionAndRecall(precision, recall, t)
         h = figure('name',t);
         hold on;
         plot(precision, 'r');
@@ -286,12 +299,6 @@ methods (Static)
         legend('precision','recall');
         xlabel('threshold #i');
         ylabel('precision/recall');
-
-        filename = [ outputDirectory folderName '\SingleResults.' ...
-                     num2str(experimentID) '.' num2str(run_i) '.' ...
-                     num2str(class_i) '.' algorithmName ...
-                     '.PrecisionRecall.fig'];
-        saveas(h, filename); close(h);
     end
     
     %% plotProbabilities
