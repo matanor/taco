@@ -42,7 +42,7 @@ classdef CSSLMCF < CSSLBase
                 disp(['converged after ' num2str(iter_i-1) ' iterations.'...
                       ' iteration_diff = ' num2str(iteration_diff)]);
                 result.mu(:,:, iter_i:end) = [];
-                result.sigma(:,:, iter_i:end) = [];
+                result.sigma(:,:,:, iter_i:end) = [];
                 break;
             end
             
