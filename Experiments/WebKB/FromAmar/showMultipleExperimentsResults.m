@@ -65,9 +65,12 @@ methods (Static)
             ( multipleRuns, algorithmType, algorithmName)
         if multipleRuns.isResultsAvailable( algorithmType )
             disp(['algorithmName =  ' algorithmName]);
-            averagePrbep = multipleRuns.calcAveragePrecisionAndRecall...
-                (algorithmType);
+            [averagePrbep estimatedAveragePRBEP] = ...
+                multipleRuns.calcAveragePrecisionAndRecall(algorithmType);
+            disp('averagePrbep');
             disp(averagePrbep);
+            disp('estimatedAveragePRBEP');
+            disp(estimatedAveragePRBEP);
         end
     end
 

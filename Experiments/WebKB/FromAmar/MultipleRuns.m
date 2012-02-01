@@ -69,21 +69,26 @@ methods
 
     %% calcAveragePrecisionAndRecall
 
-    function prebpAverage = calcAveragePrecisionAndRecall(this, algorithmType)
+    function [prebpAverage estimatedPrebpAverage] = calcAveragePrecisionAndRecall(this, algorithmType)
         numLabels = this.getRun(1).numLabels();
-        prebpAverage = zeros(numLabels, 1);
+        prebpAverage            = zeros(numLabels, 1);
+        estimatedPrebpAverage   = zeros(numLabels, 1);
         for run_i=1:this.numExperiments
 
             disp(['run_i =  ' num2str(run_i)]);
             singleRun = this.getRun(run_i);
 
             for labelIndex = 1:numLabels
-                [prbep, ~, ~] = singleRun.calcPRBEP_testSet(algorithmType, labelIndex);
-                disp(['prbep for class ' num2str(labelIndex) ' = ' num2str(prbep)]);
+                [prbep, ~, ~]   = singleRun.calcPRBEP_testSet(algorithmType, labelIndex);
+                estimated_prbep  = singleRun.estimatePRBEP_testSet(algorithmType, labelIndex);
+                disp(['prbep (estimated) for class ' num2str(labelIndex) ' = ' num2str(prbep)...
+                  ' (' num2str(estimated_prbep) ')']);
                 prebpAverage(labelIndex) = prebpAverage(labelIndex) + prbep;
+                estimatedPrebpAverage(labelIndex) = estimatedPrebpAverage(labelIndex) + estimated_prbep;
             end
         end
-        prebpAverage = prebpAverage / this.numExperiments;
+        prebpAverage          = prebpAverage / this.numExperiments;
+        estimatedPrebpAverage = estimatedPrebpAverage / this.numExperiments;
     end
     
 end

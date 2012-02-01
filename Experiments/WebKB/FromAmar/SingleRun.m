@@ -114,6 +114,15 @@ classdef SingleRun < handle
             r( this.labeled() ) = [];
         end
         
+        %% Return prediction (multi-class) for test set
+        
+        function r = testSet_prediciton(this, algorithmType)
+            algorithmResults = this.getAlgorithmResults( algorithmType );
+
+            r = algorithmResults.prediction();
+            r( this.trainSet() ) = [];            
+        end
+        
         %% Return score matrix (multi-class) for unlabeled vertices
         
         function r = unlabeled_scoreMatrix(this, algorithmType)
@@ -140,6 +149,8 @@ classdef SingleRun < handle
             r( this.trainSet(), : ) = [];
         end
         
+        %% calcPRBEP_testSet
+        
         function [prbep precision recall] = calcPRBEP_testSet...
                 (this, algorithmType, labelIndex)
             scoreMatrix = this.unlabeled_scoreMatrix_testSet(algorithmType);
@@ -148,6 +159,20 @@ classdef SingleRun < handle
             isCurrentLabel = (correctLabels_testSet == labelIndex);
             [prbep precision recall] = Evaluation.calcPRBEP...
                 (scoreForLabel, isCurrentLabel );
+        end
+        
+        %% estimatePRBEP_testSet
+        
+        function [prbep] = estimatePRBEP_testSet...
+                (this, algorithmType, labelIndex)
+            testSet_prediction      = this.testSet_prediciton(algorithmType);
+            correctLabels_testSet   = this.testSetCorrectLabels();
+            
+            isPredictedLabel = (testSet_prediction    == labelIndex);
+            isCurrentLabel   = (correctLabels_testSet == labelIndex);
+            p = Evaluation.calcPrecision(isPredictedLabel, isCurrentLabel );
+            r = Evaluation.calcRecall   (isPredictedLabel, isCurrentLabel );
+            prbep = (p + r)/2;
         end
        
         %% Return binary prediction for unlabeled vertices
@@ -238,16 +263,22 @@ classdef SingleRun < handle
             r = this.m_labeled;
         end
         
+        %% trainSet
+        
         function r = trainSet(this)
             folds = this.m_folds;
             r = folds(1,:).';
         end
+        
+        %% testSet
         
         function r = testSet(this)
             folds = this.m_folds;
             folds(1, :) = []; % remove training group
             r = folds(:);
         end
+        
+        %% calcUnlabeledNumMistakes
         
         function r = calcUnlabeledNumMistakes(this, prediction)
             isCorrect = (this.unlabeled_correct_labels() == prediction);

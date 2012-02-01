@@ -256,9 +256,11 @@ methods (Static)
             
         for labelIndex = 1:numLabels
             outputProperties.class_i = labelIndex;
-            [prebp precision recall] = runOutput.calcPRBEP_testSet(algorithmType, labelIndex);
+            [prbep precision recall] = runOutput.calcPRBEP_testSet    (algorithmType, labelIndex);
+            estimated_prbep          = runOutput.estimatePRBEP_testSet(algorithmType, labelIndex);
             showSingleRunResults.plotAndSave_PrecisionAndRecall(precision, recall, outputProperties);
-            disp(['prbep for class ' num2str(labelIndex) ' = ' num2str(prebp)]);
+            disp(['prbep (estimated) for class ' num2str(labelIndex) ' = ' num2str(prbep)...
+                  ' (' num2str(estimated_prbep) ')']);
         end
     end % plotPrecisionAndRecall_allLabels
     
@@ -278,7 +280,7 @@ methods (Static)
              ' class index  = ' num2str(class_i) ... 
              ' algorithm = '  algorithmName];
          
-        showSingleRunresults.plotPrecisionAndRecall(precision, recall, t);
+        h = showSingleRunResults.plotPrecisionAndRecall(precision, recall, t);
 
         filename = [ outputDirectory folderName '\SingleResults.' ...
                      num2str(experimentID) '.' num2str(run_i) '.' ...

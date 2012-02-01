@@ -5,7 +5,7 @@ clear all;
 %% global shared parameters
 numRunsPerExperiment = 5;
 graphFileName = 'C:\technion\theses\Experiments\WebKB\data\From Amar\webkb_amar.mat';
-folderName = '2012_01_30_5 CSSLMC(and F) Vs MAD after heuristics fix. multiple runs';
+folderName = '2012_01_31_4 5 runs for estimated PRBEP';
 
 %% define parameter properties
 
@@ -79,7 +79,7 @@ end
 toc(ticID);
 
 %% Define which result figures to display
-outputProperties.showSingleRuns = 0;
+outputProperties.showSingleRuns = 1;
 outputProperties.showAccumulativeLoss = 0;
 
 %% get total number of experiment
@@ -102,6 +102,8 @@ outputProperties.folderName = folderName;
 %experimentRange =[334 318 333 313 317 306 378 330 317 357 397 354 329 337 305]
 experimentRange = 1:numExperiments;
 
+disp('**** Single Run Results ****');
+
 for experimentID = experimentRange
     disp(['experiment ID = ' num2str(experimentID) ]);
     multipleRuns = experimentCollection(experimentID);
@@ -109,12 +111,19 @@ for experimentID = experimentRange
         showSingleRunResults.show( multipleRuns, ...
                 experimentID, run_i, outputProperties );
     end
+end
+
+disp('**** Multiple Runs Summary ****');
+
+for experimentID = experimentRange
+    disp(['experiment ID = ' num2str(experimentID) ]);
+    multipleRuns = experimentCollection(experimentID);
      showMultipleExperimentsResults.show...
          (multipleRuns, outputProperties, experimentID );
-    experimentFigurePath = ...
-        [resultsDir folderName '\experiment.' num2str(experimentID) '.fig'];
-    saveas(gcf, experimentFigurePath);
-    close(gcf);
+    %experimentFigurePath = ...
+    %    [resultsDir folderName '\experiment.' num2str(experimentID) '.fig'];
+    %saveas(gcf, experimentFigurePath);
+    %close(gcf);
 end
 
 %% 
