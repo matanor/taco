@@ -8,7 +8,6 @@ end
     
 methods (Access = public)
     function singleRun = run(this, algorithmParams, algorithmsToRun)
-
         %% Prepare algorithm parameters
 
         numIterations     = algorithmParams.numIterations;
@@ -40,14 +39,6 @@ methods (Access = public)
         singleRun.set_graph( w_nn );
         singleRun.set_algorithmParams( algorithmParams );
 
-         %% Run algorithm - label propagation
-
-%         labelPropagation = LP;
-%         lpResultsSource = labelPropagation.run...
-%             ( w_nn, labeledPositive, labeledNegative );
-%         lp_results = LP_Results;
-%         lp_results.set_results( lpResultsSource );
-
         %% prepare params for cssl algorithms
 
         params.w_nn                 = w_nn;
@@ -76,12 +67,6 @@ methods (Access = public)
             singleRun.set_results( csslmcf_result,singleRun.CSSLMCF );
         end
 
-        %%
-
-        %result = cssl.runBinary...
-        %    ( labeledPositive, labeledNegative, ...
-        %      positiveInitialValue,negativeInitialValue);
-
         %% Run algorithm - MAD
 
         if ( algorithmsToRun(SingleRun.MAD) ~= 0)
@@ -104,6 +89,8 @@ methods (Access = public)
         end
                 
     end
+    
+    %% runCSSL
 
     function runCSSL( this, algorithm, algorithm_results, params )
         algorithm.m_W                   = params.w_nn;
@@ -119,9 +106,10 @@ methods (Access = public)
 
         algorithm_results.set_results(algorithmResultsSource);
     end
+    
+    %% createInitialLabeledY
 
     function R = createInitialLabeledY(this)
-        %%
         numVertices= size( this.m_Weights, 1);
         numLabels = length( unique( this.m_correctLabels ) );
         labeledVertices_indices         = this.m_labeledVertices;
