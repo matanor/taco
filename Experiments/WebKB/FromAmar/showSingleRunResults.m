@@ -20,7 +20,7 @@ methods (Static)
         beta                = algorithmParams.beta;
         K                   = constructionParams.K;
         numLabeled          = constructionParams.numLabeled;
-        numLabeledPerClass  = constructionParams.numLabeledPerClass;
+        numLabeledPerClass  = constructionParams.numLabeledPerClass();
         makeSymetric        = algorithmParams.makeSymetric;
         useGraphHeuristics  = algorithmParams.useGraphHeuristics;
         maxIterations       = algorithmParams.numIterations;

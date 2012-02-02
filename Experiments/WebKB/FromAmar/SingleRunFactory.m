@@ -4,6 +4,8 @@ properties (GetAccess = private, SetAccess = public)
     m_Weights;
     m_labeledVertices;         
     m_correctLabels;
+    m_constructionParams;
+    m_folds;
 end
     
 methods (Access = public)
@@ -14,30 +16,23 @@ methods (Access = public)
         labeledConfidence = algorithmParams.labeledConfidence;
         alpha             = algorithmParams.alpha;
         beta              = algorithmParams.beta;
-        classToLabelMap   = algorithmParams.classToLabelMap;
         useGraphHeuristics= algorithmParams.useGraphHeuristics;
         
         %% get graph
         w_nn = this.m_Weights;
         
         %% display parameters
-        paramsString = ...
-            [ 'labeledConfidence = '    num2str(labeledConfidence) ...
-             ' alpha = '                num2str(alpha) ...
-             ' beta = '                 num2str(beta) ...
-             ' makeSymetric = '         num2str(algorithmParams.makeSymetric)...
-             ' numIterations = '        num2str(numIterations) ...
-             ' useGraphHeuristics = '   num2str(useGraphHeuristics) ];
-
-         disp(paramsString);
+        paramsString = [' makeSymetric = ' num2str(algorithmParams.makeSymetric) ];
+        disp(paramsString);
         
         %% create singleRun results object
         singleRun = SingleRun;
         singleRun.m_labeled         = this.m_labeledVertices;
         singleRun.correctLabels     = this.m_correctLabels;
-        singleRun.classToLabelMap   = classToLabelMap;
         singleRun.set_graph( w_nn );
-        singleRun.set_algorithmParams( algorithmParams );
+        singleRun.set_algorithmParams   ( algorithmParams );
+        singleRun.set_constructionParams( this.m_constructionParams );
+        singleRun.set_folds( this.m_folds );
 
         %% prepare params for cssl algorithms
 
@@ -46,7 +41,6 @@ methods (Access = public)
         params.alpha                = alpha;
         params.beta                 = beta;
         params.labeledConfidence    = labeledConfidence;
-        params.classToLabelMap      = classToLabelMap;
         params.useGraphHeuristics   = useGraphHeuristics;
 
         %% Run algorithm - confidence SSL
@@ -72,6 +66,7 @@ methods (Access = public)
         if ( algorithmsToRun(SingleRun.MAD) ~= 0)
             mad = MAD;
 
+            clear params;
             params.mu1 = 1;
             params.mu2 = 1;
             params.mu3 = 1;
@@ -115,10 +110,23 @@ methods (Access = public)
         labeledVertices_indices         = this.m_labeledVertices;
         labeledVertices_correctLabels   = this.m_correctLabels(labeledVertices_indices);
         R = zeros( numVertices, numLabels);
-        for label_i=1:numLabels
+        availableLabels = 1:numLabels;
+        
+        for label_i=availableLabels
             labeledVerticesForClass = ...
                 labeledVertices_indices(labeledVertices_correctLabels == label_i);
+            % set +1 for lebeled vertex belonging to a class.
             R( labeledVerticesForClass, label_i ) = 1;
+            if (0)
+                % set -1 for lebeled vertex not belonging to other classes.
+                otherLabels = setdiff(availableLabels, label_i);
+                R( labeledVerticesForClass, otherLabels ) = -1;
+            end
+        end
+        if (0)
+            % set -1 for unlabeled vertices not belonging to any class.
+            unlabeled = setdiff( 1:numVertices, labeledVertices_indices );
+            R( unlabeled, : ) = -1;
         end
     end
     

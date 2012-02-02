@@ -15,7 +15,7 @@ methods (Static)
               
         %% 
         allConstructionParams   = paramStructs.constructionParams;
-        allAlgorithmParams      = paramStructs.algorithmParams;
+        algorithmParamsCollection      = paramStructs.algorithmParams;
 
         allRuns = [];
         
@@ -23,99 +23,123 @@ methods (Static)
         for construction_i=1:numConstructionStructs
 
             constructionParams = allConstructionParams( construction_i );
-
-            %% extract construction params
-
-            K                    = constructionParams.K;
-            numLabeled           = constructionParams.numLabeled;
-            numInstancesPerClass = constructionParams.numInstancesPerClass;
-            numFolds             = constructionParams.numFolds;
-            
-            %%  load the graph
-
-            %[ graph, labeledVertices ] = GraphLoader.load ...
-            %    ( graphFileName, classToLabelMap, numLabeled, ...
-            %    numInstancesPerClass );
-            
-            graph = GraphLoader.loadAll( graphFileName );
-            
-            numVertices = length(graph.labels);
-            newNumVertices = numVertices - mod(numVertices, numFolds);
-            verticesToRemove = (newNumVertices+1):numVertices;
-            
-            graph.labels(verticesToRemove) = [];
-            graph.weights(verticesToRemove,:) = [];
-            graph.weights(:,verticesToRemove) = [];
-            %numVertices = length(graph.labels);
-            
-            folds = GraphLoader.split(graph, numFolds );
-            numLabeledPerClass = numLabeled / numFolds;
-            constructionParams.numLabeledPerClass = numLabeledPerClass;
-            
-            labeledVertices  = GraphLoader.selectLabelsUniformly...
-                                (   folds(1,:),    graph.labels,      classToLabelMap, ...
-                                    numLabeledPerClass);
-            %labeledVertices = GraphLoader.selectLabeled_atLeastOnePerLabel...
-            %                    ( folds(1,:), graph.labels, classToLabelMap, numLabeled); 
-            
-            % unlabeled instances from train set
-            % trainSetUnlabeled = setdiff(folds(1,:), labeledVertices);
-            
-            %[graph labeledVertices] = ...
-            %    run_all_params_experiment.removeVertices...
-            %        ( graph, labeledVertices, trainSetUnlabeled );
-
-            w_nn = knn(graph.weights,K);
-            correctLabels = graph.labels;
-
-            w_nn_symetric = makeSymetric(w_nn);
-            
-            %% display parameters
-            constructionParamsString = ...
-                [' K = '                        num2str(K) ...
-                 ' numLabeled = '               num2str(numLabeled) ...
-                 ' numInstancesPerClass = '     num2str(numInstancesPerClass) ];
-
-            disp(constructionParamsString );
+            constructionParams.fileName = graphFileName;
+            constructionParams.classToLabelMap = classToLabelMap;
+            graph = run_all_params_experiment.constructGraph( constructionParams );
 
             %% Run all param options on the SAME graph
-            ticID = tic;
-            numAlgorithmParamsStructs = length(allAlgorithmParams);
 
             singleRunFactory = SingleRunFactory;
-            singleRunFactory.m_labeledVertices = labeledVertices;
-            singleRunFactory.m_correctLabels = correctLabels;
-
-            for params_i=1:numAlgorithmParamsStructs
-                %% display progress
-                progressString = ...
-                [ 'on run '      num2str(runIndex)       ' out of ' num2str(numRuns) ...
-                 '. graph '      num2str(construction_i) ' out of ' num2str(numConstructionStructs)...
-                 '. params run ' num2str(params_i)       ' out of ' num2str(numAlgorithmParamsStructs) ];
-
-                disp(progressString);
-                %%
-                
-                algorithmParams = allAlgorithmParams(params_i);
-
-                if ( algorithmParams.makeSymetric ~= 0)
-                    singleRunFactory.m_Weights = w_nn_symetric;
-                else
-                    singleRunFactory.m_Weights = w_nn;
-                end
-                algorithmParams.classToLabelMap = classToLabelMap;
-                singleRun = singleRunFactory.run(algorithmParams, algorithmsToRun );
-                singleRun.set_constructionParams( constructionParams );
-                singleRun.set_folds( folds );
-
-                allRuns = [allRuns singleRun];
-            end
-            toc(ticID);
-
+            singleRunFactory.m_labeledVertices      = graph.labeledVertices;
+            singleRunFactory.m_correctLabels        = graph.labels;
+            singleRunFactory.m_constructionParams   = constructionParams;
+            singleRunFactory.m_folds                = graph.folds;
+            
+            progressParams.runIndex = runIndex;
+            progressParams.numRuns = numRuns;
+            progressParams.construction_i = construction_i;
+            progressParams.numConstructionStructs = numConstructionStructs;
+            allRuns = run_all_params_experiment.runAllParams...
+                        (singleRunFactory, algorithmParamsCollection, ...
+                         graph           , progressParams, ...
+                         algorithmsToRun);
         end
     
     R = allRuns;
     end
+    
+    %% constructGraph
+    
+    function graph = constructGraph(constructionParams)
+        constructionParams.display();
+        % extract construction params
+
+        numFolds             = constructionParams.numFolds;
+            
+        % load the graph
+
+        %[ graph, labeledVertices ] = GraphLoader.load ...
+        %    ( graphFileName, classToLabelMap, numLabeled, ...
+        %    numInstancesPerClass );
+            
+        graph = GraphLoader.loadAll( constructionParams.fileName );
+            
+        numVertices = length(graph.labels);
+        newNumVertices = numVertices - mod(numVertices, numFolds);
+        verticesToRemove = (newNumVertices+1):numVertices;
+            
+        graph.labels(verticesToRemove) = [];
+        graph.weights(verticesToRemove,:) = [];
+        graph.weights(:,verticesToRemove) = [];
+            
+        graph.folds = GraphLoader.split(graph, numFolds );
+            
+        trainingSet = graph.folds(1,:);
+        graph.labeledVertices  = GraphLoader.selectLabelsUniformly...
+                            (   trainingSet, ...
+                                graph.labels, ...
+                                constructionParams.classToLabelMap, ...
+                                constructionParams.numLabeledPerClass() );
+        %labeledVertices = GraphLoader.selectLabeled_atLeastOnePerLabel...
+        %                    ( folds(1,:), graph.labels, classToLabelMap, numLabeled); 
+
+        % unlabeled instances from train set
+        % trainSetUnlabeled = setdiff(folds(1,:), labeledVertices);
+
+        %[graph labeledVertices] = ...
+        %    run_all_params_experiment.removeVertices...
+        %        ( graph, labeledVertices, trainSetUnlabeled );
+
+        graph.w_nn = knn(graph.weights, constructionParams.K);
+
+        graph.w_nn_symetric = makeSymetric(graph.w_nn);
+    end
+    
+    %% runAllParams
+    
+    function R = runAllParams...
+            (singleRunFactory, algorithmParamsCollection,...
+             graph, progressParams, algorithmsToRun)
+        % Run all param options on the SAME graph
+        ticID = tic;
+        numAlgorithmParamsStructs = length(algorithmParamsCollection);
+        progressParams.numAlgorithmParamsStructs = numAlgorithmParamsStructs;
+
+        allRuns = [];
+        for params_i=1:numAlgorithmParamsStructs
+            % Display progress string
+            progressParams.params_i = params_i;
+            run_all_params_experiment.displayProgress(progressParams);
+
+            algorithmParams = algorithmParamsCollection(params_i);
+
+            if ( algorithmParams.makeSymetric ~= 0)
+                singleRunFactory.m_Weights = graph.w_nn_symetric;
+            else
+                singleRunFactory.m_Weights = graph.w_nn;
+            end
+            %algorithmParams.classToLabelMap = classToLabelMap;
+            singleRun = singleRunFactory.run(algorithmParams, algorithmsToRun );
+
+            allRuns = [allRuns singleRun]; %#ok<AGROW>
+        end
+        toc(ticID);
+        R = allRuns;
+    end
+    
+    function displayProgress(progressParams)
+        progressString = ...
+        [ 'on run '      num2str(progressParams.runIndex)               ...
+         ' out of '      num2str(progressParams.numRuns)                ...
+         '. graph '      num2str(progressParams.construction_i)         ...
+         ' out of '      num2str(progressParams.numConstructionStructs) ...
+         '. params run ' num2str(progressParams.params_i)               ...
+         ' out of '      num2str(progressParams.numAlgorithmParamsStructs) ];
+
+        disp(progressString);
+    end
+    
+    %% removeVertices
     
     function [graph labeledVertices] = removeVertices...
             ( graph, labeledVertices, verticesToRemove )

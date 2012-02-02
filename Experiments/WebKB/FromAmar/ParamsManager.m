@@ -3,6 +3,7 @@ classdef ParamsManager < handle
     %   Detailed explanation goes here
     
     properties
+        
     end
     
 methods (Static)
@@ -17,6 +18,7 @@ methods (Static)
         paramStructs = [];
 
         for struct_i=1:numStructs
+            new = ConstructionParams;
             paramIndex = ParamsManager.findParamIndex( paramProperties, 'K');
             new.K = paramsVector (struct_i, paramIndex);
             
