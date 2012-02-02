@@ -10,10 +10,11 @@ methods (Access=public)
         beta                = this.m_beta;
         num_iterations      = this.m_num_iterations;
         gamma               = this.m_labeledConfidence;
+
+        this.displayParams('CSSLMC');
         
         num_vertices = size(labeledY,1);
         num_labels   = size(labeledY,2);
-        disp(['confidenceSSL (multiclass). num vertices: ' num2str(num_vertices)]);
 
         iteration.mu = zeros( num_vertices, num_labels, num_iterations );
         iteration.v  = ones ( num_vertices, num_labels, num_iterations );

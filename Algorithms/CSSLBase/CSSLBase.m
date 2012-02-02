@@ -14,9 +14,25 @@ classdef CSSLBase < handle
 
 methods (Access=public)
     
+    function this = CSSLBase() % constructor
+        this.m_useGraphHeuristics = 0;
+    end
+    
 end %methods (Access=public)
     
 methods (Access=protected)
+    
+    function displayParams(this, algorithmName)
+        numVertices =  this.numVertices();
+        paramsString = ...
+                [' alpha = '                num2str(this.m_alpha) ...
+                 ' beta = '                 num2str(this.m_beta) ...
+                 ' gamma = '                num2str(this.m_labeledConfidence) ...
+                 ' use graph Heuristics = ' num2str(this.m_useGraphHeuristics) ...
+                 ' maximum iterations = '   num2str(this.m_num_iterations)...
+                 ' num vertices = '         num2str(numVertices) ];                
+        disp(['Running ' algorithmName '.' paramsString]);
+    end
     
     function prepareGraph(this, labeledY)
         labeledVertices = find(sum(labeledY,2) ~=0 );
@@ -43,6 +59,10 @@ methods (Access=protected)
         if (this.m_useGraphHeuristics ~=0)
             r = r * this.m_p.inject(vertex_i);
         end
+    end
+    
+    function r = numVertices(this)
+        r = size(this.m_W, 1);
     end
 end % methods (Access=protected)
     

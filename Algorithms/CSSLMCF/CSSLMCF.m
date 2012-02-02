@@ -14,7 +14,7 @@ classdef CSSLMCF < CSSLBase
         
         num_vertices = size(labeledY,1);
         num_labels   = size(labeledY,2);
-        disp(['confidenceSSL (multiclass full). num vertices: ' num2str(num_vertices)]);
+        this.displayParams('CSSLMCF');
 
         result.mu     = zeros( num_vertices, num_labels, num_iterations );
         result.sigma  = ones ( num_vertices, num_labels, num_labels, num_iterations );
