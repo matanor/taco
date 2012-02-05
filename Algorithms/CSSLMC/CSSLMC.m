@@ -97,8 +97,8 @@ methods (Access=public)
         end
 
         toc(ticID);
-        disp('size(iteration.v)=');
-        disp(size(iteration.v));
+%         disp('size(iteration.v)=');
+%         disp(size(iteration.v));
     
     end
         
