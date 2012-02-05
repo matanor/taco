@@ -4,7 +4,6 @@ classdef SingleRun < handle
     
     properties (Access = public)
         correctLabels;
-        classToLabelMap;
     end
    
     properties (Constant)
@@ -64,6 +63,13 @@ classdef SingleRun < handle
         
         function set_constructionParams(this, value)
             this.m_constructionParams = value;
+        end
+        
+        %% getParams
+        
+        function R = getParams(this, algorithmType)
+            algorithmResults = this.getAlgorithmResults( algorithmType );
+            R = algorithmResults.getParams();
         end
         
         %% numIterations
@@ -157,8 +163,21 @@ classdef SingleRun < handle
             correctLabels_testSet = this.testSetCorrectLabels();
             scoreForLabel   = scoreMatrix(:,labelIndex);
             isCurrentLabel = (correctLabels_testSet == labelIndex);
-            [prbep precision recall] = Evaluation.calcPRBEP...
+            [prbep precision recall] = EvaluationUtilities.calcPRBEP...
                 (scoreForLabel, isCurrentLabel );
+        end
+        
+        %% calcAveragePRBEP_testSet
+        
+        function R = calcAveragePRBEP_testSet(this, algorithmType)
+            numLabels = this.numLabels();
+            labelsPRBEP = zeros(numLabels,1);
+            for label_i=1:numLabels
+                [prbep,~,~] = this.calcPRBEP_testSet(algorithmType, label_i);
+                labelsPRBEP(label_i) = prbep;
+            end
+            R = mean(prbep);
+            disp(['calcAveragePRBEP_testSet: ' num2str(R)]);
         end
         
         %% estimatePRBEP_testSet
@@ -170,8 +189,8 @@ classdef SingleRun < handle
             
             isPredictedLabel = (testSet_prediction    == labelIndex);
             isCurrentLabel   = (correctLabels_testSet == labelIndex);
-            p = Evaluation.calcPrecision(isPredictedLabel, isCurrentLabel );
-            r = Evaluation.calcRecall   (isPredictedLabel, isCurrentLabel );
+            p = EvaluationUtilities.calcPrecision(isPredictedLabel, isCurrentLabel );
+            r = EvaluationUtilities.calcRecall   (isPredictedLabel, isCurrentLabel );
             prbep = (p + r)/2;
         end
        

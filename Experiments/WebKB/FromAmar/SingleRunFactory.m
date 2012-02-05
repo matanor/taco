@@ -1,85 +1,69 @@
 classdef SingleRunFactory < handle
     
-properties (GetAccess = private, SetAccess = public)
-    m_Weights;
-    m_labeledVertices;         
-    m_correctLabels;
+properties (Access = public)
     m_constructionParams;
-    m_folds;
+    m_graph;
 end
     
 methods (Access = public)
     function singleRun = run(this, algorithmParams, algorithmsToRun)
-        %% Prepare algorithm parameters
-
-        numIterations     = algorithmParams.numIterations;
-        labeledConfidence = algorithmParams.labeledConfidence;
-        alpha             = algorithmParams.alpha;
-        beta              = algorithmParams.beta;
-        useGraphHeuristics= algorithmParams.useGraphHeuristics;
-        
         %% get graph
-        w_nn = this.m_Weights;
+%         if ( algorithmParams{SingleRun.CSSLMC}.makeSymetric ~= 0)
+%             w_nn = this.m_graph.w_nn_symetric;
+%         else
+%             w_nn = this.m_graph.w_nn;
+%         end
         
         %% display parameters
-        paramsString = [' makeSymetric = ' num2str(algorithmParams.makeSymetric) ];
-        disp(paramsString);
+%         paramsString = [' makeSymetric = ' num2str(algorithmParams{SingleRun.CSSLMC}.makeSymetric) ];
+%         disp(paramsString);
         
         %% create singleRun results object
         singleRun = SingleRun;
-        singleRun.m_labeled         = this.m_labeledVertices;
-        singleRun.correctLabels     = this.m_correctLabels;
-        singleRun.set_graph( w_nn );
+        singleRun.m_labeled         = this.m_graph.labeledVertices;
+        singleRun.correctLabels     = this.m_graph.labels;
+%         singleRun.set_graph( w_nn );
         singleRun.set_algorithmParams   ( algorithmParams );
         singleRun.set_constructionParams( this.m_constructionParams );
-        singleRun.set_folds( this.m_folds );
-
-        %% prepare params for cssl algorithms
-
-        params.w_nn                 = w_nn;
-        params.numIterations        = numIterations;
-        params.alpha                = alpha;
-        params.beta                 = beta;
-        params.labeledConfidence    = labeledConfidence;
-        params.useGraphHeuristics   = useGraphHeuristics;
+        singleRun.set_folds( this.m_graph.folds );
 
         %% Run algorithm - confidence SSL
         
-        if ( algorithmsToRun(SingleRun.CSSLMC) ~= 0)
+        if ( algorithmsToRun.shouldRun(SingleRun.CSSLMC) ~= 0)
             algorithm = CSSLMC;
             csslmc_result = CSSLMC_Result;
-            this.runCSSL( algorithm, csslmc_result, params );
+            this.runCSSL( algorithm, csslmc_result, algorithmParams{SingleRun.CSSLMC} );
             singleRun.set_results( csslmc_result, singleRun.CSSLMC );
         end
 
         %% Run algorithm - confidence SSL MC Full
 
-        if ( algorithmsToRun(SingleRun.CSSLMCF) ~= 0)
+        if ( algorithmsToRun.shouldRun(SingleRun.CSSLMCF) ~= 0)
             algorithm = CSSLMCF;
             csslmcf_result = CSSLMCF_Result;
-            this.runCSSL( algorithm, csslmcf_result, params );
-            singleRun.set_results( csslmcf_result,singleRun.CSSLMCF );
+            this.runCSSL( algorithm, csslmcf_result, algorithmParams{SingleRun.CSSLMCF} );
+            singleRun.set_results( csslmcf_result, singleRun.CSSLMCF );
         end
 
         %% Run algorithm - MAD
 
-        if ( algorithmsToRun(SingleRun.MAD) ~= 0)
+        if ( algorithmsToRun.shouldRun(SingleRun.MAD) ~= 0)
             mad = MAD;
+            if (  algorithmParams{SingleRun.MAD}.makeSymetric ~= 0)
+                w_nn = this.m_graph.w_nn_symetric;
+            else
+                w_nn = this.m_graph.w_nn;
+            end
 
-            clear params;
-            params.mu1 = 1;
-            params.mu2 = 1;
-            params.mu3 = 1;
-            params.maxIterations = numIterations; %This is an upper bound on the number of iterations
-            params.useGraphHeuristics = useGraphHeuristics;
-
+            madParams = algorithmParams{SingleRun.MAD};
             Ylabeled = this.createInitialLabeledY();
 
-            labeledVertices = this.m_labeledVertices;
-            madResultsSource = mad.run( w_nn, Ylabeled, params, labeledVertices );
+            labeledVertices = this.m_graph.labeledVertices;
+            madResultsSource = mad.run( w_nn, Ylabeled, madParams, labeledVertices );
 
             mad_results = MAD_Results;
             mad_results.set_results( madResultsSource );
+            mad_results.set_params( madParams );
             singleRun.set_results( mad_results  , singleRun.MAD );
         end
                 
@@ -88,8 +72,12 @@ methods (Access = public)
     %% runCSSL
 
     function runCSSL( this, algorithm, algorithm_results, params )
-        algorithm.m_W                   = params.w_nn;
-        algorithm.m_num_iterations      = params.numIterations;
+        if ( params.makeSymetric ~= 0)
+            algorithm.m_W = this.m_graph.w_nn_symetric;
+        else
+            algorithm.m_W = this.m_graph.w_nn;
+        end
+        algorithm.m_num_iterations      = params.maxIterations;
         algorithm.m_alpha               = params.alpha;
         algorithm.m_beta                = params.beta;
         algorithm.m_labeledConfidence   = params.labeledConfidence;
@@ -100,15 +88,16 @@ methods (Access = public)
         algorithmResultsSource = algorithm.run( Ylabeled );
 
         algorithm_results.set_results(algorithmResultsSource);
+        algorithm_results.set_params( params );
     end
     
     %% createInitialLabeledY
 
     function R = createInitialLabeledY(this)
-        numVertices= size( this.m_Weights, 1);
-        numLabels = length( unique( this.m_correctLabels ) );
-        labeledVertices_indices         = this.m_labeledVertices;
-        labeledVertices_correctLabels   = this.m_correctLabels(labeledVertices_indices);
+        numVertices= size( this.m_graph.weights, 1);
+        numLabels = length( unique( this.m_graph.labels ) );
+        labeledVertices_indices         = this.m_graph.labeledVertices;
+        labeledVertices_correctLabels   = this.m_graph.labels(labeledVertices_indices);
         R = zeros( numVertices, numLabels);
         availableLabels = 1:numLabels;
         
