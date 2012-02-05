@@ -11,13 +11,12 @@ classdef ConstructionParams < handle
         numInstancesPerClass;
     end % (Access = public)
     
-    methods (Access = public)
+    methods (Static)
         %% display
         function display(this)
         
             s = [' K = '                        num2str(this.K) ...
                  ' numLabeled = '               num2str(this.numLabeled) ...
-                 ' numInstancesPerClass = '     num2str(this.numInstancesPerClass)...
                  ' numFolds = '                 num2str(this.numFolds)];
 
             disp(s );
