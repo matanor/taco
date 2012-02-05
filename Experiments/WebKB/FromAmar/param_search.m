@@ -3,80 +3,25 @@ clear classes;
 clear all;
 
 %% global shared parameters
-numRunsPerExperiment = 5;
-graphFileName = 'C:\technion\theses\Experiments\WebKB\data\From Amar\webkb_amar.mat';
-folderName = '2012_01_31_4 5 runs for estimated PRBEP';
+numRunsPerExperiment = 1;
+%graphFileName = 'C:\technion\theses\Experiments\WebKB\data\Rapid_Miner_Result\webkb_constructed.mat';
+%graphFileName = 'C:\technion\theses\Experiments\WebKB\data\From Amar\webkb_amar.mat';
+folderName = '2012_02_02_1 refactoring';
 
-%% define parameter properties
+%% The parameters manager
 
-%K.range = [1,2,5,10,20,50,100,500];
-K.range = [1000];
-K.name = 'K';
-%alpha.range = [0.0001, 0.001, 0.01,0.1,1];
-%alpha.range = [10^(-5), 10^(-4), 0.001, 0.01,  1, 10^2, 10^4 ];
-alpha.range = [ 1 ];
-alpha.name = 'alpha';
-%beta.range = [1,10, 100,1000,10000];
-%beta.range = [10, 100, 10^3, 10^4,10^5, 10^6, 10^7, 10^8];
-%beta.range = [10^(-5), 10^(-4), 0.001, 0.01, 1, 10^2, 10^4 ];
-beta.range = [ 1 ];
-beta.name = 'beta';
-%labeledConfidence.range = [0.01,0.1];
-labeledConfidence.range = [1];
-labeledConfidence.name = 'labeledConfidence';
-makeSymetric.range = [1];
-makeSymetric.name = 'makeSymetric';
-%numIterations.range = [5 10 25 50 100];
-numIterations.range = [20];
-numIterations.name = 'numIterations';
-numLabeled.range = [48];
-numLabeled.name = 'numLabeled';
-numFolds.range = [4];
-numFolds.name = 'numFolds';
-numInstancesPerClass.range = 0; % 0 means all instances
-numInstancesPerClass.name = 'numInstancesPerClass';
-useGraphHeuristics.range = [0 1];
-useGraphHeuristics.name = 'useGraphHeuristics';
-
-paramProperties.algorithms   = [ alpha, beta, labeledConfidence, ...
-                                 makeSymetric, numIterations, useGraphHeuristics];
-paramProperties.construction = [ K, numLabeled, numInstancesPerClass, numFolds];
-
-%% create parameters structures
-
-paramStructs.algorithmParams    = ...
-    ParamsManager.createAlgorithmParamsStructures(paramProperties.algorithms);
-paramStructs.constructionParams  = ...
-    ParamsManager.createConstructionParamsStructures(paramProperties.construction);
+paramsManager = paramsManager;
 
 %% what algorithms we want to run in the simulation
-algorithmsToRun = zeros( SingleRun.numAvailableAlgorithms(), 1);
-algorithmsToRun(SingleRun.MAD)      = 1;
-algorithmsToRun(SingleRun.CSSLMC)   = 1;
-algorithmsToRun(SingleRun.CSSLMCF)  = 1;
+algorithmsToRun = AlgorithmsCollection;
+algorithmsToRun.setRun(SingleRun.MAD);
+% algorithmsToRun.setRun(SingleRun.CSSLMC);
+% algorithmsToRun.setRun(SingleRun.CSSLMCF);
 
 %% allocate a multiple runs object per each parameter combination
 %  and run all experiments with all the parameter combinations
 
-numParamCombinations =  length(paramStructs.algorithmParams) * ...
-                        length(paramStructs.constructionParams);
-
-for param_combination_i = 1:numParamCombinations
-    experimentCollection(param_combination_i ) = MultipleRuns;
-    experimentCollection(param_combination_i ).numExperiments = numRunsPerExperiment;
-end
-
-ticID = tic;
-for run_i=1:numRunsPerExperiment
-    experimentRuns = run_all_params_experiment.run...
-        ( graphFileName, paramStructs, run_i, numRunsPerExperiment, algorithmsToRun );
-    for param_combination_i=1:numParamCombinations
-        singleRun = experimentRuns(param_combination_i);
-        experimentCollection(param_combination_i).addRun...
-            ( singleRun );
-    end
-end
-toc(ticID);
+experimentRuns = ExperimentRunFactory.run( paramsManager, algorithmsToRun );
 
 %% Define which result figures to display
 outputProperties.showSingleRuns = 1;
