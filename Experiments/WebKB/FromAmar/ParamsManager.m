@@ -7,15 +7,17 @@ properties (GetAccess = public, SetAccess = private)
     m_alpha;
     m_beta;
     m_labeledConfidence;
+    m_mu1;
     m_mu2;
     m_mu3;
     m_makeSymetric;
-    m_numIterations;
+    m_maxIterations;
     m_numLabeled;
     m_numFolds;
     m_numInstancesPerClass; % is required ?
     m_useGraphHeuristics;
     m_fileName;
+    m_numEvaluationRuns;
 end
     
 methods (Access = public)
@@ -31,14 +33,15 @@ methods (Access = public)
         
         %alpha.range = [0.0001, 0.001, 0.01,0.1,1];
         %alpha.range = [10^(-5), 10^(-4), 0.001, 0.01,  1, 10^2, 10^4 ];
-        this = this.createParameter( 'alpha', [1000], isString, [] );
+        this = this.createParameter( 'alpha', [1], isString, [] );
         
         %beta.range = [1,10, 100,1000,10000];
         %beta.range = [10, 100, 10^3, 10^4,10^5, 10^6, 10^7, 10^8];
         %beta.range = [10^(-5), 10^(-4), 0.001, 0.01, 1, 10^2, 10^4 ];
-        this = this.createParameter( 'beta', [1], isString, [] );
+        this = this.createParameter( 'beta', [1 10], isString, [] );
         
-        this = this.createParameter( 'mu2', [1], isString, [] );     
+        this = this.createParameter( 'mu1', [1], isString, [] );     
+        this = this.createParameter( 'mu2', [1 10], isString, [] );     
         this = this.createParameter( 'mu3', [1], isString, [] );
         
         %labeledConfidence.range = [0.01,0.1];
@@ -47,7 +50,7 @@ methods (Access = public)
         this = this.createParameter( 'makeSymetric', [1], isString, [] );     
         
         %numIterations.range = [5 10 25 50 100];
-        this = this.createParameter( 'numIterations', [1], isString, [] );    
+        this = this.createParameter( 'maxIterations', [3], isString, [] );    
         
         this = this.createParameter( 'numLabeled', [48], isString, [] );    
         
@@ -58,6 +61,7 @@ methods (Access = public)
         
         this = this.createParameter( 'useGraphHeuristics', [0 1], isString, [] );
         
+        this = this.createParameter( 'numEvaluationRuns', [1], isString, [] );
     end
     
     %% createParameter
@@ -70,17 +74,16 @@ methods (Access = public)
         this.(memebrName).values = strValues;
     end
     
-    %% algorithmParamsProperties
-    
-    function R = algorithmParamsProperties(this)
-        R = [ this.m_alpha,        this.m_beta,          this.m_labeledConfidence, ...
-              this.m_makeSymetric, this.m_numIterations, this.m_useGraphHeuristics];
-    end
+    %% evaluationParamsProperties
+    function R = evaluationParamsProperties(this)
+        R = [ this.m_makeSymetric, this.m_maxIterations, this.m_useGraphHeuristics, this.m_numEvaluationRuns ];
+    end   
     
     %% constructionParamsProperties
     
     function R = constructionParamsProperties(this)
-        R = [  this.m_fileName, this.m_K, this.m_numLabeled, this.m_numInstancesPerClass, this.m_numFolds];
+        %this.m_numInstancesPerClass,
+        R = [  this.m_fileName, this.m_K, this.m_numLabeled, this.m_numFolds];
     end
     
     %% optimizationParamsCSSL
@@ -91,13 +94,8 @@ methods (Access = public)
     
     %% optimizationParamsMAD
     function R = optimizationParamsMAD(this)
-        R = [ this.m_mu2, this.m_mu3 ];
-    end    
-    
-    %% evaluationParamsProperties
-    function R = evaluationParamsProperties(this)
-        R = [ this.m_useGraphHeuristics ];
-    end        
+        R = [ this.m_mu1, this.m_mu2, this.m_mu3 ];
+    end         
     
     %% optimizationParams_allOptions
 
@@ -118,13 +116,6 @@ methods (Access = public)
         paramProperties = this.constructionParamsProperties();
         R = this.createParameterStructures( paramProperties);
     end
-
-    %% algorithmParams_allOptions
-    
-    function R = algorithmParams_allOptions( this )
-        paramProperties = this.algorithmParamsProperties();
-        R = this.createParameterStructures( paramProperties);
-    end
     
     %% evaluationParams_allOptions
     
@@ -136,6 +127,19 @@ methods (Access = public)
 end % methods (Access = public)
     
 methods (Static)
+    %% addParamsToCollection
+    
+    function R = addParamsToCollection(optionsCollection, paramsToAdd)
+        numOptions = length(optionsCollection);
+        for option_i=1:numOptions
+            currentOption = optionsCollection(option_i);
+            %http://stackoverflow.com/questions/38645/what-are-some-efficient-ways-to-combine-two-structures-in-matlab
+            M = [fieldnames(currentOption)' fieldnames(paramsToAdd)'; ...
+                 struct2cell(currentOption)' struct2cell(paramsToAdd)'];
+            R(option_i)=struct(M{:}); %#ok<AGROW>
+        end
+    end
+    
     %% createParameterStructures
     
     function R = createParameterStructures(paramProperties)
@@ -155,7 +159,7 @@ methods (Static)
                     paramValue = paramsVector   (struct_i, param_i);
                 else
                     paramNumericValue = paramsVector   (struct_i, param_i);
-                    paramValue        = paramProperties(param_i).values(paramNumericValue);
+                    paramValue        = paramProperties(param_i).values{paramNumericValue};
                 end
                 new.(paramName) = paramValue ;
             end
