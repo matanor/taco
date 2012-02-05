@@ -17,11 +17,11 @@ classdef EvaluationUtilities
             p_i = zeros( size(thresholdRange) );
             r_i = zeros( size(thresholdRange) );
             for threshold=thresholdRange
-                precision = Evaluation.calcPrecision_byThreshold ( Y_scores_l, Y_l, threshold );
+                precision = EvaluationUtilities.calcPrecision_byThreshold ( Y_scores_l, Y_l, threshold );
                 if (precision == 0)
                     continue; %ignore this case as a rule of thumb
                 end
-                recall = Evaluation.calcRecall_byThreshold( Y_scores_l, Y_l, threshold );
+                recall = EvaluationUtilities.calcRecall_byThreshold( Y_scores_l, Y_l, threshold );
                 p_i(i) = precision;
                 r_i(i) = recall;
                 i = i + 1;
@@ -43,14 +43,14 @@ classdef EvaluationUtilities
         
         function r = calcPrecision_byThreshold( Y_scores_l, Y_l, threshold )
             belongToClass = (Y_scores_l >= threshold);
-            r = Evaluation.calcPrecision(belongToClass, Y_l);
+            r = EvaluationUtilities.calcPrecision(belongToClass, Y_l);
         end
         
         %% calcRecall_byThreshold
         
         function r = calcRecall_byThreshold( Y_scores_l, Y_l, threshold )
             belongToClass = (Y_scores_l >= threshold);
-            r = Evaluation.calcRecall(belongToClass, Y_l);
+            r = EvaluationUtilities.calcRecall(belongToClass, Y_l);
         end
 
         %% calcPrecision
@@ -71,9 +71,9 @@ classdef EvaluationUtilities
         
         function test()
             scores = rand(10,1);
-            threshold = median(a);
+            threshold = median(scores);
             correct = (scores > threshold);
-            [prbep, precision,recall] = Evaluation.calcPRBEP(scores, correct);
+            [prbep, precision,recall] = EvaluationUtilities.calcPRBEP(scores, correct);
             showSingleRunResults.plotPrecisionAndRecall(precision, recall, 'test');
             disp(['prbep = ' num2str(prbep)]);
         end
