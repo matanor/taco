@@ -21,9 +21,7 @@ properties (GetAccess = public, SetAccess = private)
 end
     
 methods (Access = public)
-    function this = ParamsManager() %constructor        
-        
-        isOnOdin = 0;
+    function this = ParamsManager(isOnOdin) %constructor        
         
         isString = 1;
         if isOnOdin

@@ -2,7 +2,26 @@ classdef RunMain
 
 methods (Static)
 
-    function run()
+    %% runOnDesktop
+    
+    function runOnDesktop()
+        folderName = '2012_02_06_2 useGraphHeuristics experiment new code';
+        resultsDir = 'C:\technion\theses\Experiments\WebKB\results\';
+        isOnOdin = 0;
+        RunMain.run(resultsDir, folderName, isOnOdin);
+    end
+    
+    %% runOnOdin
+    
+    function runOnOdin(folderName)
+        resultsDir = '/u/matanorb/experiments/webkb/results/';
+        isOnOdin = 1;
+        RunMain.run(resultsDir, folderName, isOnOdin);
+    end
+    
+    %% run
+    
+    function run(resultsDir, folderName, isOnOdin)
         %%
         clear classes;
         clear all;
@@ -11,11 +30,11 @@ methods (Static)
         %numRunsPerExperiment = 1;
         %graphFileName = 'C:\technion\theses\Experiments\WebKB\data\Rapid_Miner_Result\webkb_constructed.mat';
         %graphFileName = 'C:\technion\theses\Experiments\WebKB\data\From Amar\webkb_amar.mat';
-        folderName = '2012_02_06_2 useGraphHeuristics experiment new code';
+%         folderName = '2012_02_06_2 useGraphHeuristics experiment new code';
 
         %% The parameters manager
 
-        paramsManager = paramsManager;
+        paramsManager = ParamsManager(isOnOdin);
 
         %% what algorithms we want to run in the simulation
         algorithmsToRun = AlgorithmsCollection;
@@ -33,7 +52,7 @@ methods (Static)
         outputProperties.showAccumulativeLoss = 0;
 
         %%
-        resultsDir = 'C:\technion\theses\Experiments\WebKB\results\';
+%         resultsDir = 'C:\technion\theses\Experiments\WebKB\results\';
         mkdir(resultsDir,folderName);
         outputProperties.resultDir = resultsDir;
         outputProperties.folderName = folderName;
