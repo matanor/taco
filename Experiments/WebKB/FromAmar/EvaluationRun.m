@@ -7,9 +7,16 @@ classdef EvaluationRun < handle
         m_graph;
         m_parameterTuningRuns;
         m_evaluationRuns;
+        m_evaluationParams;
     end
     
 methods (Access = public)
+    %% set_evaluationParams
+    
+    function set_evaluationParams( this, value)
+        this.m_evaluationParams = value;
+    end
+    
     %% setParameterTuningRuns
     
     function setParameterTuningRuns(this, algorithmType, value)
@@ -96,16 +103,22 @@ methods (Access = public)
         graph.folds = GraphLoader.split(graph, constructionParams.numFolds );
             
         trainingSet = graph.folds(1,:);
-        graph.labeledVertices  = GraphLoader.selectLabelsUniformly...
+        if (this.m_evaluationParams.balancedLabeled)
+            graph.labeledVertices  = GraphLoader.selectLabelsUniformly...
                             (   trainingSet, ...
                                 graph.labels, ...
                                 constructionParams.classToLabelMap, ...
                                 ConstructionParams.numLabeledPerClass(constructionParams) );
+        else
+            graph.labeledVertices = GraphLoader.selectLabeled_atLeastOnePerLabel...
+                (   trainingSet, ...
+                    graph.labels,...
+                    constructionParams.classToLabelMap, ...
+                    constructionParams.numLabeled); 
+        end
                             
         this.m_graph = graph;
                             
-        %labeledVertices = GraphLoader.selectLabeled_atLeastOnePerLabel...
-        %                    ( folds(1,:), graph.labels, classToLabelMap, numLabeled); 
 
         % unlabeled instances from train set
         % trainSetUnlabeled = setdiff(folds(1,:), labeledVertices);

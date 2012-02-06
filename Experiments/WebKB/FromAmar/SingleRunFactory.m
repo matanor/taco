@@ -55,7 +55,7 @@ methods (Access = public)
             end
 
             madParams = algorithmParams{SingleRun.MAD};
-            Ylabeled = this.createInitialLabeledY();
+            Ylabeled = this.createInitialLabeledY(madParams.labeledInitMode);
 
             labeledVertices = this.m_graph.labeledVertices;
             madResultsSource = mad.run( w_nn, Ylabeled, madParams, labeledVertices );
@@ -82,7 +82,7 @@ methods (Access = public)
         algorithm.m_labeledConfidence   = params.labeledConfidence;
         algorithm.m_useGraphHeuristics  = params.useGraphHeuristics;
 
-        Ylabeled = this.createInitialLabeledY();
+        Ylabeled = this.createInitialLabeledY(params.labeledInitMode);
         
         algorithmResultsSource = algorithm.run( Ylabeled );
 
@@ -92,7 +92,7 @@ methods (Access = public)
     
     %% createInitialLabeledY
 
-    function R = createInitialLabeledY(this)
+    function R = createInitialLabeledY(this, labeledInitMode)
         numVertices= size( this.m_graph.weights, 1);
         numLabels = length( unique( this.m_graph.labels ) );
         labeledVertices_indices         = this.m_graph.labeledVertices;
@@ -105,13 +105,14 @@ methods (Access = public)
                 labeledVertices_indices(labeledVertices_correctLabels == label_i);
             % set +1 for lebeled vertex belonging to a class.
             R( labeledVerticesForClass, label_i ) = 1;
-            if (0)
+            if (labeledInitMode == ParamsManager.LABELED_INIT_MINUS_PLUS_ONE ||...
+                labeledInitMode == ParamsManager.LABELED_INIT_MINUS_PLUS_ONE_UNLABELED)
                 % set -1 for lebeled vertex not belonging to other classes.
                 otherLabels = setdiff(availableLabels, label_i);
                 R( labeledVerticesForClass, otherLabels ) = -1;
             end
         end
-        if (0)
+        if (labeledInitMode == ParamsManager.LABELED_INIT_MINUS_PLUS_ONE_UNLABELED)
             % set -1 for unlabeled vertices not belonging to any class.
             unlabeled = setdiff( 1:numVertices, labeledVertices_indices );
             R( unlabeled, : ) = -1;

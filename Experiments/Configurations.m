@@ -16,8 +16,8 @@ methods (Static)
     function runOnDesktop()
         Configurations.clearEverything();
         
-        folderName = '2012_02_06_3 useGraphHeuristics experiment new code';
-        resultsDir = 'C:\technion\theses\Experiments\WebKB\results\';
+        folderName = '2012_02_06_4 MAD optimization';
+        resultsDir = 'C:/technion/theses/Experiments/WebKB/results/';
         isOnOdin = 0;
         RunMain.run(resultsDir, folderName, isOnOdin);
     end

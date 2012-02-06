@@ -18,6 +18,24 @@ properties (GetAccess = public, SetAccess = private)
     m_useGraphHeuristics;
     m_fileName;
     m_numEvaluationRuns;
+    m_labeledInitMode;
+    m_balancedFolds;
+    m_balancedLabeled;
+end
+
+properties( Constant)
+    % unlabeled:0 
+    % labeled: +1 - belong to class,
+    %           0 does not belong to class.
+    LABELED_INIT_ZERO_ONE = 1;
+    % unlabeled:0 
+    % labeled: +1 - belong to class,
+    %          -1 does not belong to class.
+    LABELED_INIT_MINUS_PLUS_ONE = 2;
+    % unlabeled:-1
+    % labeled: +1 - belong to class,
+    %          -1 does not belong to class.
+    LABELED_INIT_MINUS_PLUS_ONE_UNLABELED = 3;
 end
     
 methods (Access = public)
@@ -44,9 +62,12 @@ methods (Access = public)
         %beta.range = [10^(-5), 10^(-4), 0.001, 0.01, 1, 10^2, 10^4 ];
         this = this.createParameter( 'beta', [1], isString, [] );
         
+        paperOprimizationRange = [1e-8 1e-4 1e-2 1 10 1e2 1e3];
         this = this.createParameter( 'mu1', [1], isString, [] );     
-        this = this.createParameter( 'mu2', [1], isString, [] );     
-        this = this.createParameter( 'mu3', [1], isString, [] );
+        this = this.createParameter( 'mu2', paperOprimizationRange, isString, [] );  
+        this = this.createParameter( 'mu3', paperOprimizationRange, isString, [] );
+        %this = this.createParameter( 'mu2', [1], isString, [] );     
+%         this = this.createParameter( 'mu3', [1], isString, [] );
         
         %labeledConfidence.range = [0.01,0.1];
         this = this.createParameter( 'labeledConfidence', [1], isString, [] );     
@@ -54,7 +75,7 @@ methods (Access = public)
         this = this.createParameter( 'makeSymetric', [1], isString, [] );     
         
         %numIterations.range = [5 10 25 50 100];
-        this = this.createParameter( 'maxIterations', [1], isString, [] );    
+        this = this.createParameter( 'maxIterations', [10], isString, [] );    
         
         this = this.createParameter( 'numLabeled', [48], isString, [] );    
         
@@ -65,7 +86,13 @@ methods (Access = public)
         
         this = this.createParameter( 'useGraphHeuristics', [0 1], isString, [] );
         
-        this = this.createParameter( 'numEvaluationRuns', [1], isString, [] );
+        this = this.createParameter( 'numEvaluationRuns', [5], isString, [] );
+        
+        this = this.createParameter( 'labeledInitMode', [LABELED_INIT_ZERO_ONE], isString, [] );
+        
+        this = this.createParameter( 'balancedFolds',   [1], isString, [] );
+        this = this.createParameter( 'balancedLabeled', [1], isString, [] );
+        
     end
     
     %% createParameter
@@ -80,7 +107,9 @@ methods (Access = public)
     
     %% evaluationParamsProperties
     function R = evaluationParamsProperties(this)
-        R = [ this.m_makeSymetric, this.m_maxIterations, this.m_useGraphHeuristics, this.m_numEvaluationRuns ];
+        R = [ this.m_makeSymetric,       this.m_maxIterations, ...
+              this.m_useGraphHeuristics, this.m_labeledInit, ...
+              this.m_numEvaluationRuns ];
     end   
     
     %% constructionParamsProperties

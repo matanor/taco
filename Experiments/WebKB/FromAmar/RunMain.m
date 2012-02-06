@@ -6,10 +6,8 @@ methods (Static)
     function run(resultsDir, folderName, isOnOdin)
 
         %% global shared parameters
-        %numRunsPerExperiment = 1;
         %graphFileName = 'C:\technion\theses\Experiments\WebKB\data\Rapid_Miner_Result\webkb_constructed.mat';
         %graphFileName = 'C:\technion\theses\Experiments\WebKB\data\From Amar\webkb_amar.mat';
-%         folderName = '2012_02_06_2 useGraphHeuristics experiment new code';
 
         %% The parameters manager
 
@@ -18,8 +16,8 @@ methods (Static)
         %% what algorithms we want to run in the simulation
         algorithmsToRun = AlgorithmsCollection;
         algorithmsToRun.setRun(SingleRun.MAD);
-        algorithmsToRun.setRun(SingleRun.CSSLMC);
-        algorithmsToRun.setRun(SingleRun.CSSLMCF);
+%         algorithmsToRun.setRun(SingleRun.CSSLMC);
+%         algorithmsToRun.setRun(SingleRun.CSSLMCF);
 
         %% allocate a multiple runs object per each parameter combination
         %  and run all experiments with all the parameter combinations

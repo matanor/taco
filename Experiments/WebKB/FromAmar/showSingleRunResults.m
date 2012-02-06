@@ -115,11 +115,13 @@ methods (Static)
             (singleRun, algorithmType, outputProperties)
         numLabels       = singleRun.numLabels();
         
-        useGraphHeuristics  = singleRun.getParams(algorithmType).useGraphHeuristics;
+        paramsString = ...
+            Utilities.StructToStringConverter(singleRun.getParams(algorithmType));
+%         useGraphHeuristics  = singleRun.getParams(algorithmType).useGraphHeuristics;
         testSetSize         = singleRun.testSetSize();
         
         disp([  'Algorithm = '              outputProperties.algorithmName...
-                ' useGraphHeuristics = '    num2str(useGraphHeuristics)...
+                paramsString...
                 ' test set size = '         num2str(testSetSize)]);
             
         for labelIndex = 1:numLabels

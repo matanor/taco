@@ -43,10 +43,11 @@ methods (Static)
                 
                 singleEvaluation    = experimentRun.createEvaluationRun();
                 
+                evaluationParams = evaluationParams_allOptions(evaluation_i);
+                singleEvaluation.set_evaluationParams( evaluationParams );
+                
                 % this will create the training split
                 singleEvaluation.createTrunsductionSplit();
-                
-                evaluationParams = evaluationParams_allOptions(evaluation_i);
 
                 disp('******** Optimizing ********');
                 
