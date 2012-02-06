@@ -25,7 +25,7 @@ methods (Access = public)
         
         isString = 1;
         if isOnOdin
-            fileNames = [ {'/u/matanorb/experiments/webkb/data/Rapid_Miner_Result' } ];
+            fileNames = [ {'/u/matanorb/experiments/webkb/data/Rapid_Miner_Result/webkb_constructed.mat' } ];
         else
             fileNames = [ {'C:\technion\theses\Experiments\WebKB\data\Rapid_Miner_Result\webkb_constructed.mat'}];
         end
@@ -54,7 +54,7 @@ methods (Access = public)
         this = this.createParameter( 'makeSymetric', [1], isString, [] );     
         
         %numIterations.range = [5 10 25 50 100];
-        this = this.createParameter( 'maxIterations', [10], isString, [] );    
+        this = this.createParameter( 'maxIterations', [1], isString, [] );    
         
         this = this.createParameter( 'numLabeled', [48], isString, [] );    
         
@@ -65,7 +65,7 @@ methods (Access = public)
         
         this = this.createParameter( 'useGraphHeuristics', [0 1], isString, [] );
         
-        this = this.createParameter( 'numEvaluationRuns', [5], isString, [] );
+        this = this.createParameter( 'numEvaluationRuns', [1], isString, [] );
     end
     
     %% createParameter

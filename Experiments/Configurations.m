@@ -22,20 +22,6 @@ methods (Static)
         RunMain.run(resultsDir, folderName, isOnOdin);
     end
     
-    %% runOnOdin
-    
-    function runOnOdin(folderName)
-        Configurations.clearEverything();
-
-        codeRoot = '/u/matanorb/matlab';
-        codeFolders = genpath(codeRoot);
-        addpath(codeFolders);
-
-        resultsDir = '/u/matanorb/experiments/webkb/results/';
-        isOnOdin = 1;
-        RunMain.run(resultsDir, folderName, isOnOdin);
-    end
-    
 end
 
 end
