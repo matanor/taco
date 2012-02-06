@@ -2,10 +2,19 @@ classdef RunMain
 
 methods (Static)
 
-    %% runOnDesktop
+    %% clearEverything
     
+    function clearEverything()
+        clear classes;
+        clear all;
+    end
+
+	%% runOnDesktop
+        
     function runOnDesktop()
-        folderName = '2012_02_06_2 useGraphHeuristics experiment new code';
+        RunMain.clearEverything();
+                
+        folderName = '2012_02_06_3 useGraphHeuristics experiment new code';
         resultsDir = 'C:\technion\theses\Experiments\WebKB\results\';
         isOnOdin = 0;
         RunMain.run(resultsDir, folderName, isOnOdin);
@@ -14,6 +23,8 @@ methods (Static)
     %% runOnOdin
     
     function runOnOdin(folderName)
+        RunMain.clearEverything();
+        
         resultsDir = '/u/matanorb/experiments/webkb/results/';
         isOnOdin = 1;
         RunMain.run(resultsDir, folderName, isOnOdin);
@@ -22,9 +33,6 @@ methods (Static)
     %% run
     
     function run(resultsDir, folderName, isOnOdin)
-        %%
-        clear classes;
-        clear all;
 
         %% global shared parameters
         %numRunsPerExperiment = 1;
