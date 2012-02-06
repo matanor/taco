@@ -1,35 +1,6 @@
 classdef RunMain
 
 methods (Static)
-
-    %% clearEverything
-    
-    function clearEverything()
-        clear classes;
-        clear all;
-    end
-
-	%% runOnDesktop
-        
-    function runOnDesktop()
-        RunMain.clearEverything();
-                
-        folderName = '2012_02_06_3 useGraphHeuristics experiment new code';
-        resultsDir = 'C:\technion\theses\Experiments\WebKB\results\';
-        isOnOdin = 0;
-        RunMain.run(resultsDir, folderName, isOnOdin);
-    end
-    
-    %% runOnOdin
-    
-    function runOnOdin(folderName)
-        RunMain.clearEverything();
-        
-        resultsDir = '/u/matanorb/experiments/webkb/results/';
-        isOnOdin = 1;
-        RunMain.run(resultsDir, folderName, isOnOdin);
-    end
-    
     %% run
     
     function run(resultsDir, folderName, isOnOdin)
