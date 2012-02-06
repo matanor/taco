@@ -23,8 +23,14 @@ end
 methods (Access = public)
     function this = ParamsManager() %constructor        
         
+        isOnOdin = 0;
+        
         isString = 1;
-        fileNames = [ {'C:\technion\theses\Experiments\WebKB\data\Rapid_Miner_Result\webkb_constructed.mat'}];
+        if isOnOdin
+            fileNames = [ {'/u/matanorb/experiments/webkb/data/Rapid_Miner_Result' } ];
+        else
+            fileNames = [ {'C:\technion\theses\Experiments\WebKB\data\Rapid_Miner_Result\webkb_constructed.mat'}];
+        end
         this = this.createParameter( 'fileName', [1] , isString, fileNames );
         
         isString = 0;
