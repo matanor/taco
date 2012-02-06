@@ -38,10 +38,10 @@ methods (Access = public)
         %beta.range = [1,10, 100,1000,10000];
         %beta.range = [10, 100, 10^3, 10^4,10^5, 10^6, 10^7, 10^8];
         %beta.range = [10^(-5), 10^(-4), 0.001, 0.01, 1, 10^2, 10^4 ];
-        this = this.createParameter( 'beta', [1 10], isString, [] );
+        this = this.createParameter( 'beta', [1], isString, [] );
         
         this = this.createParameter( 'mu1', [1], isString, [] );     
-        this = this.createParameter( 'mu2', [1 10], isString, [] );     
+        this = this.createParameter( 'mu2', [1], isString, [] );     
         this = this.createParameter( 'mu3', [1], isString, [] );
         
         %labeledConfidence.range = [0.01,0.1];
@@ -50,7 +50,7 @@ methods (Access = public)
         this = this.createParameter( 'makeSymetric', [1], isString, [] );     
         
         %numIterations.range = [5 10 25 50 100];
-        this = this.createParameter( 'maxIterations', [3], isString, [] );    
+        this = this.createParameter( 'maxIterations', [10], isString, [] );    
         
         this = this.createParameter( 'numLabeled', [48], isString, [] );    
         
@@ -61,7 +61,7 @@ methods (Access = public)
         
         this = this.createParameter( 'useGraphHeuristics', [0 1], isString, [] );
         
-        this = this.createParameter( 'numEvaluationRuns', [1], isString, [] );
+        this = this.createParameter( 'numEvaluationRuns', [5], isString, [] );
     end
     
     %% createParameter

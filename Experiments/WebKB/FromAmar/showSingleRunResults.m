@@ -1,227 +1,100 @@
 classdef showSingleRunResults < handle
 
 methods (Static)
-    function show...
-        ( experiment, experimentID, run_i, ...
-          outputProperties)
+    function show( singleRun, outputProperties)
     %SHOWSINGLERUNRESULTS Summary of this function goes here
     %   Detailed explanation goes here
 
-        %% Extract single run output
-
-        runOutput = experiment.getRun(run_i); % should get a SingleRun class instance
-
-        %% extract parameters
-        algorithmParams     = experiment.algorithmParams();
-        constructionParams  = experiment.constructionParams();
-
-        labeledConfidence   = algorithmParams.labeledConfidence;
-        alpha               = algorithmParams.alpha;
-        beta                = algorithmParams.beta;
-        K                   = constructionParams.K;
-        numLabeled          = constructionParams.numLabeled;
-        numLabeledPerClass  = constructionParams.numLabeledPerClass();
-        makeSymetric        = algorithmParams.makeSymetric;
-        useGraphHeuristics  = algorithmParams.useGraphHeuristics;
-        maxIterations       = algorithmParams.numIterations;
+        % extract parameters
+        constructionParams  = singleRun.constructionParams();
 
         %% Show final prediction & confidence
         if (outputProperties.showSingleRuns == 0) 
             return;
         end
 
-        %% create general params string
+        % create general params string
         generalParams = ...
-            [' K = '                    num2str(K) ...
-             ' makeSymetric = '         num2str(makeSymetric) ...
-             ' numLabeled = '           num2str(numLabeled) ...
-             ' numLabeledPerClass = '   num2str(numLabeledPerClass) ...
-             ' exp ID = '               num2str(experimentID) ...
-             ' run index = '            num2str(run_i)];
+            [' K = '                    num2str(constructionParams.K) ...
+             ' numLabeled = '           num2str(constructionParams.numLabeled) ];
+%              ' numLabeledPerClass = '   num2str(constructionParams.numLabeledPerClass) ];
+             
+        % algorithm comparison
 
-        %% extract info for CSSLMC results figure
+        t = [ 'Algorithms Compare.' outputProperties.description ' ' generalParams];
 
-        correctLabels        = runOutput.unlabeled_correct_labels();
-
-        %% plot CSSLMC result figure
-
-%         if ( runOutput.isResultsAvailable( SingleRun.CSSLMC ) )
-%             
-%             numIterations       = runOutput.numIterations( SingleRun.CSSLMC);
-%             paramsStringCSSLMC = ...
-%                 [' labeledConfidence = '    num2str(labeledConfidence) ...
-%                  ' alpha = '                num2str(alpha) ...
-%                  ' beta = '                 num2str(beta) ...
-%                  ' numIterations = '        num2str(numIterations) ];
-%              
-%             sortedCSSLMC.by_confidence = runOutput.sorted_by_confidence(runOutput.CSSLMC);
-%             
-%             CSSLMC_prediction = runOutput.unlabeled_prediction(runOutput.CSSLMC);
-%             CSSLMC_confidence = runOutput.unlabeled_confidence(runOutput.CSSLMC);
-%             CSSLMC_margin     = runOutput.unlabeled_margin(runOutput.CSSLMC);
-% 
-%             showSingleRunResults.plotBinaryCSSLResults...
-%                 (   CSSLMC_prediction, CSSLMC_confidence, ...
-%                     CSSLMC_margin, correctLabels, sortedCSSLMC, outputProperties, ...
-%                     [generalParams '\newline' paramsStringCSSLMC], ...
-%                     'CSSLMC', experimentID, run_i);
-%         end
-%             
-        %% extract info for CSSLMCF results figure
-            
-        %CSSLMCF_confidence    = runOutput.unlabeled_confidence(runOutput.CSSLMCF);
-        %CSSLMCF_margin        = runOutput.unlabeled_margin(runOutput.CSSLMCF);
-        
-        %% plot CSSLMCF result figure
-            
-        %sortedCSSLMCF.by_confidence = runOutput.sorted_by_confidence(runOutput.CSSLMCF);
-%         showSingleRunResults.plotBinaryCSSLResults...
-%             (   CSSLMCF_prediction, CSSLMCF_confidence, ...
-%             	CSSLMCF_margin, correctLabels, sortedCSSLMCF, outputProperties, ...
-%                 [generalParams '\newline' paramsStringCSSLMCF],...
-%                 'CSSLMCF', experimentID, run_i);
-%                                
-        %% extract info for results comparison figure
-
-        %LP_prediction       = runOutput.unlabeled_prediction(runOutput.LP);
-        
-        %mistakes.CSSL       = runOutput.unlabeled_num_mistakes_CSSL();
-        %mistakes.LP         = runOutput.unlabeled_num_mistakes(runOutput.LP);
-
-        %% plot LP vs CSSLMC vs MAD
-        
-        generalAlgorithmParamsString = ...
-                [' labeledConfidence = '    num2str(labeledConfidence) ...
-                 ' alpha = '                num2str(alpha) ...
-                 ' beta = '                 num2str(beta) ...
-                 ' maxIterations = '        num2str(maxIterations) ];
-        firstAlgorithmTitlePrefix = ['\newline' generalParams '\newline'];
-
-        t = [ 'Algorithms Compare.' generalParams '. ' generalAlgorithmParamsString ];
-
-        numRows = runOutput.isResultsAvailable( SingleRun.CSSLMC ) + ...
-                  runOutput.isResultsAvailable( SingleRun.CSSLMCF ) + ...
-                  runOutput.isResultsAvailable( SingleRun.MAD );
+        numRows = singleRun.isResultsAvailable( SingleRun.CSSLMC ) + ...
+                  singleRun.isResultsAvailable( SingleRun.CSSLMCF ) + ...
+                  singleRun.isResultsAvailable( SingleRun.MAD );
         numCols = 1;
 
         figure('name', t);
 
-        %% plot algorithms output
-        
+        % plot all algorithms output
+
+        correctLabels = singleRun.unlabeled_correct_labels();
         current = 1;
-        if ( runOutput.isResultsAvailable( SingleRun.CSSLMC ) )
-            %% create params string for CSSLMC
-
-            numIterations       = runOutput.numIterations( SingleRun.CSSLMC);
-            paramsStringCSSLMC = ...
-                [' labeledConfidence = '    num2str(labeledConfidence) ...
-                 ' alpha = '                num2str(alpha) ...
-                 ' beta = '                 num2str(beta) ...
-                 ' numIterations = '        num2str(numIterations)...
-                 ' useGraphHeuristics = '   num2str(useGraphHeuristics)];
-             
-             %% get CSSLMC prediction an plot it.
-         
-            mistakes_CSSLMC     = runOutput.unlabeled_num_mistakes(runOutput.CSSLMC);
-
-            CSSLMC_prediction = runOutput.unlabeled_prediction(runOutput.CSSLMC);
+        
+        for algorithm_i = singleRun.availableResultsAlgorithmRange()
             current = showSingleRunResults.plotPrediction...
-                (numRows, numCols, current, CSSLMC_prediction, ...
-                 correctLabels, mistakes_CSSLMC, 'CSSLMC', ...
-                 [firstAlgorithmTitlePrefix paramsStringCSSLMC]);
-             firstAlgorithmTitlePrefix = [];
+                (singleRun, numRows, numCols, current, correctLabels, algorithm_i );
         end
-
-        if ( runOutput.isResultsAvailable( SingleRun.CSSLMCF ) )
-            %% create params string for CSSLMCF
-
-            numIterations       = runOutput.numIterations( SingleRun.CSSLMCF );
-            
-            paramsStringCSSLMCF = ...
-                [' labeledConfidence = '    num2str(labeledConfidence) ...
-                 ' alpha = '                num2str(alpha) ...
-                 ' beta = '                 num2str(beta) ...
-                 ' numIterations = '        num2str(numIterations)...
-                 ' useGraphHeuristics = '   num2str(useGraphHeuristics)];
-             
-             %% get CSSLMCF prediction an plot it.
-             
-             mistakes_CSSLMCF    = runOutput.unlabeled_num_mistakes(runOutput.CSSLMCF);
-
-            CSSLMCF_prediction    = runOutput.unlabeled_prediction(runOutput.CSSLMCF);
-            current = showSingleRunResults.plotPrediction...
-                (numRows, numCols, current, CSSLMCF_prediction, ...
-                 correctLabels, mistakes_CSSLMCF, 'CSSLMCF', ...
-                 [firstAlgorithmTitlePrefix paramsStringCSSLMCF]);
-             firstAlgorithmTitlePrefix=[];
-        end
-
-        if ( runOutput.isResultsAvailable( SingleRun.MAD ) )
-            %% get MAD prediction an plot it.
-            
-            mistakes_MAD        = runOutput.unlabeled_num_mistakes(runOutput.MAD);
-            MAD_prediction      = runOutput.unlabeled_prediction(runOutput.MAD);
-            
-            madParamsString = [' useGraphHeuristice = ' num2str(useGraphHeuristics)];
-
-            current = showSingleRunResults.plotPrediction...
-                (numRows, numCols, current, MAD_prediction, ...
-                 correctLabels, mistakes_MAD, 'MAD', ...
-                 [firstAlgorithmTitlePrefix madParamsString]); %#ok<NASGU>
-             firstAlgorithmTitlePrefix = []; %#ok<NASGU>             
-        end
-
+        
         outputFolder = outputProperties.resultDir;
-        folderName    = outputProperties.folderName;
+        folderName   = outputProperties.folderName;
         filename = [ outputFolder folderName '\singleResults.' ...
-                      num2str(experimentID) '.' num2str(run_i) '.LP_vs_CSSL_vs_MAD.fig'];
+                      outputProperties.description '.AlgorithmCompare.fig'];
         saveas(gcf, filename);
         close(gcf);
         
-        %% plot precision and recall
-
-        outputProperties.experimentID   = experimentID;
-        outputProperties.run_i          = run_i;
-
-        if ( runOutput.isResultsAvailable( SingleRun.CSSLMC ) )
-            outputProperties.algorithmName  = CSSLMC.name();
+        % plot precision and recall
+        
+        for algorithm_i = singleRun.availableResultsAlgorithmRange()
+            outputProperties.algorithmName = ...
+                showSingleRunResults.AlgorithmTypeToStringConverter( algorithm_i );
             showSingleRunResults.plotPrecisionAndRecall_allLabels...
-                 (  runOutput, SingleRun.CSSLMC, ...
-                    outputProperties, algorithmParams);
+                 (  singleRun, algorithm_i, outputProperties);
         end
         
-        if ( runOutput.isResultsAvailable( SingleRun.CSSLMCF ) )
-            outputProperties.algorithmName  = CSSLMCF.name();
-            showSingleRunResults.plotPrecisionAndRecall_allLabels...
-                 (  runOutput, SingleRun.CSSLMCF, ...
-                    outputProperties, algorithmParams);
-        end
+        % plot MAD probabilities figures
         
-        if ( runOutput.isResultsAvailable( SingleRun.MAD ) )
-            outputProperties.algorithmName  = MAD.name();
-            showSingleRunResults.plotPrecisionAndRecall_allLabels...
-                 (  runOutput, SingleRun.MAD, ...
-                    outputProperties, algorithmParams);
-        end
-        
-        %% plot MAD probabilities figures
-        
-        if ( runOutput.isResultsAvailable( SingleRun.MAD ) )
+        if ( singleRun.isResultsAvailable( SingleRun.MAD ) )
             filePrefix = [ outputFolder folderName '\singleResults.' ...
-                          num2str(experimentID) '.' num2str(run_i)];
+                          outputProperties.description];
         
-            MAD_result = runOutput.getAlgorithmResults(SingleRun.MAD);
+            MAD_result = singleRun.getAlgorithmResults(SingleRun.MAD);
             showSingleRunResults.plotProbabilities( MAD_result.probabilities(), filePrefix );
         end
 
     end
         
+    %% AlgorithmTypeToStringConverter
+    
+    function R = AlgorithmTypeToStringConverter( algorithmType )
+        table = [   {SingleRun.MAD,     MAD.name() }; ...
+                    {SingleRun.CSSLMC,  CSSLMC.name()};
+                    {SingleRun.CSSLMCF, CSSLMCF.name()} ];
+        R = [];
+        numEntries = size(table, 1);
+        for table_entry_i=1:numEntries
+            entryValue = table(table_entry_i,:);
+            if entryValue{1} == algorithmType
+                R = entryValue{2};
+            end
+        end
+    end
+    
     %% plotPrediction
     
     function current = plotPrediction...
-            (numRows, numCols, current, ...
-             prediction, correctLabels, numMistakes, ...
-             algorithmName, paramsString)
+            (singleRun, numRows, numCols, current, correctLabels, algorithmType)
+        algorithmParams = singleRun.getParams( algorithmType );    
+        paramsString    = Utilities.StructToStringConverter( algorithmParams );
+         
+        algorithmName = showSingleRunResults.AlgorithmTypeToStringConverter( algorithmType );
+        numMistakes = singleRun.unlabeled_num_mistakes(algorithmType);
+        prediction  = singleRun.unlabeled_prediction(algorithmType);
+
         subplot(numRows, numCols, current);
         hold on;
         scatter(1:length(prediction), prediction, 'b');
@@ -239,25 +112,20 @@ methods (Static)
     %% plotPrecisionAndRecall_allLabels
     
     function plotPrecisionAndRecall_allLabels...
-            (runOutput, algorithmType, outputProperties, algorithmParams)
-        numLabels       = runOutput.numLabels();
+            (singleRun, algorithmType, outputProperties)
+        numLabels       = singleRun.numLabels();
         
-        algorithmName       = outputProperties.algorithmName;
-        experimentID        = outputProperties.experimentID;
-        run_i               = outputProperties.run_i;
-        useGraphHeuristics  = algorithmParams.useGraphHeuristics;
-        testSetSize         = runOutput.testSetSize();
+        useGraphHeuristics  = singleRun.getParams(algorithmType).useGraphHeuristics;
+        testSetSize         = singleRun.testSetSize();
         
-        disp([  'Algorithm = '              algorithmName...
-                ' Experiment ID = '         num2str(experimentID) ...
-                ' Run_i = '                 num2str(run_i)...
+        disp([  'Algorithm = '              outputProperties.algorithmName...
                 ' useGraphHeuristics = '    num2str(useGraphHeuristics)...
                 ' test set size = '         num2str(testSetSize)]);
             
         for labelIndex = 1:numLabels
             outputProperties.class_i = labelIndex;
-            [prbep precision recall] = runOutput.calcPRBEP_testSet    (algorithmType, labelIndex);
-            estimated_prbep          = runOutput.estimatePRBEP_testSet(algorithmType, labelIndex);
+            [prbep precision recall] = singleRun.calcPRBEP_testSet    (algorithmType, labelIndex);
+            estimated_prbep          = singleRun.estimatePRBEP_testSet(algorithmType, labelIndex);
             showSingleRunResults.plotAndSave_PrecisionAndRecall(precision, recall, outputProperties);
             disp(['prbep (estimated) for class ' num2str(labelIndex) ' = ' num2str(prbep)...
                   ' (' num2str(estimated_prbep) ')']);
@@ -270,20 +138,16 @@ methods (Static)
         outputDirectory = outputProperties.resultDir;
         folderName      = outputProperties.folderName;
         algorithmName   = outputProperties.algorithmName;
-        experimentID    = outputProperties.experimentID;
-        run_i           = outputProperties.run_i;
         class_i         = outputProperties.class_i;
 
         t = ['precision and recall ' ...
-             'experimentID = ' num2str(experimentID) ...
-             ' run index = ' num2str(run_i) ...
              ' class index  = ' num2str(class_i) ... 
              ' algorithm = '  algorithmName];
          
         h = showSingleRunResults.plotPrecisionAndRecall(precision, recall, t);
 
         filename = [ outputDirectory folderName '\SingleResults.' ...
-                     num2str(experimentID) '.' num2str(run_i) '.' ...
+                     outputProperties.description '.' ...
                      num2str(class_i) '.' algorithmName ...
                      '.PrecisionRecall.fig'];
         saveas(h, filename); close(h);

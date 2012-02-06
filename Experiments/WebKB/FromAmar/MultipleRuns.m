@@ -1,10 +1,6 @@
 classdef MultipleRuns < handle
     %MULTIPLERUNS Summary of this class goes here
     %   Detailed explanation goes here
-    
-properties (Access=public)
-    numExperiments;
-end
 
 properties (Access=private)
     m_runs;
@@ -15,6 +11,12 @@ methods
     function this = MultipleRuns() % Constructor
         this.m_runs= [];
         this.m_sorted.by_confidence = [];
+    end
+    
+    %% availableResultsAlgorithmRange
+        
+    function R = availableResultsAlgorithmRange(this)
+        R = this.getRun(1).availableResultsAlgorithmRange();
     end
 
     %% constructionParams
@@ -32,10 +34,10 @@ methods
     %% addRun
     
     function addRun(this, singleRun )
-        if ~isempty( this.m_runs )
-            this.checkConstructionParams (singleRun.constructionParams());
-            this.checkAlgorithmParams    (singleRun.algorithmParams());
-        end
+%         if ~isempty( this.m_runs )
+%             %this.checkConstructionParams (singleRun.constructionParams());
+%             %this.checkAlgorithmParams    (singleRun.algorithmParams());
+%         end
         this.m_runs = [this.m_runs; singleRun];
     end
 
@@ -45,7 +47,7 @@ methods
         r = this.m_runs(run_i);
     end
 
-    %% num_runs
+    %% sorted_by_confidence
     
     function r = sorted_by_confidence( this, algorithmType )
         r = this.calsSortedByConfidence(algorithmType);
@@ -58,7 +60,7 @@ methods
     %% num_runs
 
     function r = num_runs(this)
-        r = this.numExperiments;
+        r = length(this.m_runs);
     end
     
     %% isResultsAvailable
@@ -73,7 +75,7 @@ methods
         numLabels = this.getRun(1).numLabels();
         prebpAverage            = zeros(numLabels, 1);
         estimatedPrebpAverage   = zeros(numLabels, 1);
-        for run_i=1:this.numExperiments
+        for run_i=1:this.num_runs()
 
             disp(['run_i =  ' num2str(run_i)]);
             singleRun = this.getRun(run_i);
@@ -87,8 +89,8 @@ methods
                 estimatedPrebpAverage(labelIndex) = estimatedPrebpAverage(labelIndex) + estimated_prbep;
             end
         end
-        prebpAverage          = prebpAverage / this.numExperiments;
-        estimatedPrebpAverage = estimatedPrebpAverage / this.numExperiments;
+        prebpAverage          = prebpAverage / this.num_runs();
+        estimatedPrebpAverage = estimatedPrebpAverage / this.num_runs();
     end
     
 end
@@ -125,7 +127,7 @@ methods (Access = private)
         sorted.by_confidence.confidence   = zeros(numUnlabeled, 1);
         sorted.by_confidence.margin       = zeros(numUnlabeled, 1);
 
-        for run_i=1:this.numExperiments
+        for run_i=1:this.num_runs()
             singleRun = this.getRun(run_i);
 
             run_sorted_by_confidence = ...
@@ -145,11 +147,11 @@ methods (Access = private)
         end
 
         sorted.by_confidence.accumulative = ...
-        sorted.by_confidence.accumulative / this.numExperiments;
+        sorted.by_confidence.accumulative / this.num_runs();
         sorted.by_confidence.confidence = ...
-        sorted.by_confidence.confidence / this.numExperiments;
+        sorted.by_confidence.confidence / this.num_runs();
         sorted.by_confidence.margin = ...
-        sorted.by_confidence.margin / this.numExperiments;
+        sorted.by_confidence.margin / this.num_runs();
 
         r = sorted.by_confidence;
     end

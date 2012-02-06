@@ -8,6 +8,7 @@ classdef ExperimentRun < handle
     
     properties (SetAccess = private, GetAccess=public)
         m_graph;
+        m_parameterRuns;
     end
     
 methods (Access = public)
@@ -65,6 +66,24 @@ methods (Access = public)
         R = EvaluationRun;
         R.m_constructionParams = this.m_constructionParams;
         R.m_graph = this.m_graph;
+    end
+    
+    %% addParameterRun
+    
+    function addParameterRun(this, value)
+        this.m_parameterRuns = [this.m_parameterRuns;value];
+    end
+    
+    %% getParameterRun
+    
+    function R = getParameterRun(this, index)
+        R = this.m_parameterRuns(index);
+    end
+    
+    %% numParameterRuns
+    
+    function R = numParameterRuns(this)
+        R = length(this.m_parameterRuns);
     end
 
 end

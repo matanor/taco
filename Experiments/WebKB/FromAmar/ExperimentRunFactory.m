@@ -20,7 +20,7 @@ methods (Static)
         constructionParams_allOptions = paramsManager.constructionParams_allOptions();
         evaluationParams_allOptions   = paramsManager.evaluationParams_allOptions();
 
-        allRuns = [];
+        experimentCollection = [];
         
         numConstructionStructs = length(constructionParams_allOptions);
         progressParams.numExperiments = numConstructionStructs;
@@ -51,27 +51,23 @@ methods (Static)
                 disp('******** Optimizing ********');
                 
                 clear optimalParams;
-                optimalParams{SingleRun.MAD} = ...
-                    ExperimentRunFactory.optimizeParameters....
-                    ( singleEvaluation,    paramsManager,      progressParams, ...
-                      algorithmsToRun,  evaluationParams,   SingleRun.MAD   ); %#ok<AGROW>
-
-                optimalParams{SingleRun.CSSLMC} = ...
-                    ExperimentRunFactory.optimizeParameters...
-                    ( singleEvaluation,    paramsManager,      progressParams, ...
-                      algorithmsToRun,  evaluationParams,   SingleRun.CSSLMC ); %#ok<AGROW>
-
-                optimalParams{SingleRun.CSSLMCF} = ...
-                    ExperimentRunFactory.optimizeParameters...
-                    ( singleEvaluation,    paramsManager,      progressParams, ...
-                      algorithmsToRun,  evaluationParams,   SingleRun.CSSLMCF ); %#ok<AGROW>
+                for algorithm_i=algorithmsToRun.algorithmsRange()
+                    algorithmType = algorithm_i;
+                    optimalParams{algorithmType} = ...
+                        ExperimentRunFactory.optimizeParameters....
+                            ( singleEvaluation,    paramsManager,      progressParams, ...
+                              algorithmsToRun,     evaluationParams,   algorithmType   ); %#ok<AGROW>
+                end
 
                 % run evaluations
                 
                 disp('******** Running Evaluations ********');
 
+                progressParams.numEvaluationRuns = evaluationParams.numEvaluationRuns;
                 allEvaluationRuns = MultipleRuns;
                 for evaluation_run_i=1:evaluationParams.numEvaluationRuns
+                    progressParams.evaluation_run_i = evaluation_run_i;
+                    ExperimentRunFactory.displayEvaluationProgress(progressParams);
                     % this will create a test split
                     singleEvaluation.createTrunsductionSplit();
                     singleRunFactory = singleEvaluation.createSingleRunFactory();
@@ -79,10 +75,12 @@ methods (Static)
                     allEvaluationRuns.addRun(singleRun);
                 end
                 singleEvaluation.setEvaluationRuns( allEvaluationRuns );
+                experimentRun.addParameterRun( singleEvaluation );
             end
+            experimentCollection = [experimentCollection; experimentRun ]; %#ok<AGROW>
         end
     
-    R = allRuns;
+    R = experimentCollection;
     end
     
     %% optimizeParameters
@@ -101,6 +99,13 @@ methods (Static)
             optimizationParams_allOptions = ...
                 paramsManager.addParamsToCollection...
                 (optimizationParams_allOptions, evaluationParams);
+            
+            if length(optimizationParams_allOptions) == 1
+                % only one option in optimization options
+                disp('Only 1 optimization option. Skipping optimization runs.');
+                optimal = optimizationParams_allOptions;
+                return;
+            end
             
             optimizationRuns = ExperimentRunFactory.runOptionsCollection...
                     (singleRunFactory, optimizationParams_allOptions, ...
@@ -127,7 +132,7 @@ methods (Static)
         for params_i=1:numOptions
             % Display progress string
             progressParams.params_i = params_i;
-            ExperimentRunFactory.displayProgress(progressParams);
+            ExperimentRunFactory.displayOptimizationProgress(progressParams);
 
             clear singleOption;
             singleOption{algorithmType} = optionsCollection(params_i); %#ok<AGROW>
@@ -140,16 +145,30 @@ methods (Static)
         R = allRuns;
     end
     
-    %% displayProgress
+    %% displayEvaluationProgress
     
-    function displayProgress(progressParams)
+    function displayEvaluationProgress(progressParams)
         progressString = ...
-        [ 'on experiment '  num2str(progressParams.experiment_i)         ...
-         ' out of '         num2str(progressParams.numExperiments)        ...
-         '. evaluation '    num2str(progressParams.evaluation_i)         ...
-         ' out of '         num2str(progressParams.numEvaluations)       ...
-         '. params run '    num2str(progressParams.params_i)             ...
-         ' out of '         num2str(progressParams.numParametersOptions) ];
+        [ 'on experiment '   num2str(progressParams.experiment_i)         ...
+         ' out of '          num2str(progressParams.numExperiments)        ...
+         '. evaluation '     num2str(progressParams.evaluation_i)         ...
+         ' out of '          num2str(progressParams.numEvaluations)       ...
+         '. evaluation run ' num2str(progressParams.evaluation_run_i)             ...
+         ' out of '          num2str(progressParams.numEvaluationRuns) ];
+
+        disp(progressString);
+    end
+    
+    %% displayOptimizationProgress
+    
+    function displayOptimizationProgress(progressParams)
+        progressString = ...
+        [ 'on experiment '      num2str(progressParams.experiment_i)         ...
+         ' out of '             num2str(progressParams.numExperiments)        ...
+         '. evaluation '        num2str(progressParams.evaluation_i)         ...
+         ' out of '             num2str(progressParams.numEvaluations)       ...
+         '. optimization run '  num2str(progressParams.params_i)             ...
+         ' out of '             num2str(progressParams.numParametersOptions) ];
 
         disp(progressString);
     end

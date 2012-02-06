@@ -9,7 +9,7 @@ end
 methods (Access = public)
     
     function this = AlgorithmsCollection()
-        numAlgorithms = SingleRun.numAvailableAlgorithms();
+        numAlgorithms = AlgorithmsCollection.numAlgorithms();
         this.m_algorithms = zeros( numAlgorithms, 1);
     end
     
@@ -20,7 +20,22 @@ methods (Access = public)
     function R = shouldRun(this, algorithmsType)
         R = this.m_algorithms( algorithmsType );
     end
-end
     
+    function R = algorithmsRange(this)
+        R = [];
+        for algorithm_i=1:AlgorithmsCollection.numAlgorithms()
+            if this.shouldRun( algorithm_i) 
+                R = [R algorithm_i]; %#ok<AGROW>
+            end
+        end
+    end
+end
+
+methods (Static)
+    function R = numAlgorithms()
+        R = SingleRun.numAvailableAlgorithms();
+    end
+end % methods (Static)
+
 end
 

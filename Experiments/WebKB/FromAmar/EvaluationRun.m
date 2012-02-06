@@ -16,10 +16,48 @@ methods (Access = public)
         this.m_parameterTuningRuns{algorithmType} = value;
     end
     
+    %% numOptimizationRuns
+    
+    function R = numOptimizationRuns(this, algorithmType)
+        R = length(this.m_parameterTuningRuns{algorithmType});
+    end
+    
+    %% getOptimizationRun
+    
+    function R = getOptimizationRun(this, algorithmType, index)
+        allOptimizationRuns = this.m_parameterTuningRuns{algorithmType};
+        R = allOptimizationRuns(index);
+    end
+    
     %% setEvaluationRuns
     
     function setEvaluationRuns(this, value)
         this.m_evaluationRuns = value;
+    end
+    
+    %% numEvaluationRuns
+    
+    function R = numEvaluationRuns(this)
+        R = length(this.m_evaluationRuns);
+    end
+    
+    %% getEvaluationRun
+    
+    function R = getEvaluationRun(this)
+        R = this.m_evaluationRuns;
+    end
+    
+    %% algorithmsRange
+    
+    function R = algorithmsRange(this)
+        R = [];
+        maxAlgorithmID = length(this.m_parameterTuningRuns);
+        for algorithm_i=1:SingleRun.numAvailableAlgorithms()
+            if algorithm_i <= maxAlgorithmID && ...
+               ~isempty(this.m_parameterTuningRuns{algorithm_i})
+                R = [R algorithm_i]; %#ok<AGROW>
+            end
+        end
     end
     
     %% optimalParams

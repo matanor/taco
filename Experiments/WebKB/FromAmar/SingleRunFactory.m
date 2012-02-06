@@ -23,7 +23,6 @@ methods (Access = public)
         singleRun.m_labeled         = this.m_graph.labeledVertices;
         singleRun.correctLabels     = this.m_graph.labels;
 %         singleRun.set_graph( w_nn );
-        singleRun.set_algorithmParams   ( algorithmParams );
         singleRun.set_constructionParams( this.m_constructionParams );
         singleRun.set_folds( this.m_graph.folds );
 

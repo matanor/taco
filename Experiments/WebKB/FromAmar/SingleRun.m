@@ -15,7 +15,6 @@ classdef SingleRun < handle
     end
     
     properties (Access=public)
-        m_algorithmParams;
         m_constructionParams;
 
         m_labeled;
@@ -29,33 +28,39 @@ classdef SingleRun < handle
         
         m_folds;
         m_W_nn;
+        m_algorithmsCollection;
     end
     
     methods (Access=public)
         function this = SingleRun() % Constructor
             this.m_labeled = [];
             this.m_unlabeled_num_mistakes = zeros( SingleRun.numAvailableAlgorithms(),1 );
+            this.m_algorithmsCollection = AlgorithmsCollection;
         end
         
-        function r = isResultsAvailable( this, algorithmType )
-            r = (0 == isempty( this.getAlgorithmResults(algorithmType) ) );
+        %% availableResultsAlgorithmRange
+        
+        function R = availableResultsAlgorithmRange(this)
+            R = this.m_algorithmsCollection.algorithmsRange();
         end
+        
+        %% isResultsAvailable
+        
+        function r = isResultsAvailable( this, algorithmType )
+            r = this.m_algorithmsCollection.shouldRun(algorithmType);
+        end
+        
+        %% set_folds
         
         function set_folds(this, value)
             this.m_folds = value;
         end
         
+        %% set_graph
+        
         function set_graph(this, value)
             this.m_W_nn = value;
-        end
-        
-        function R = algorithmParams(this)
-            R = this.m_algorithmParams;
-        end
-        
-        function set_algorithmParams(this, value)
-            this.m_algorithmParams = value;
-        end        
+        end      
         
         function R = constructionParams(this)
             R = this.m_constructionParams;
@@ -88,11 +93,12 @@ classdef SingleRun < handle
         %% numIterations
         
         function R = numIterations(this, algorithmType)
-            if (algorithmType == this.CSSLMC)
-                R = this.m_CSSLMC_result.numIterations;
-            else 
-                R = this.algorithmParams().numIterations;
-            end
+%             if (algorithmType == this.CSSLMC)
+            R = this.getParams(algorithmType);
+            R = R.maxIterations;
+%             else 
+%                 R = this.algorithmParams().numIterations;
+%             end
         end
         
         %% set_results
@@ -109,6 +115,7 @@ classdef SingleRun < handle
             elseif (algorithmType == this.CSSLMCF)
                 this.m_CSSLMCF_result = R;
             end
+            this.m_algorithmsCollection.setRun( algorithmType );
         end
         
         %% Return prediction (multi-class) for unlabeled vertices

@@ -1,40 +1,37 @@
 classdef showMultipleExperimentsResults < handle
 
 methods (Static)
-    function show( experiment, outputProperties, experimentID )
+    function show( multipleRuns, outputProperties )
     %SHOWRESULTS Summary of this function goes here
     %   Detailed explanation goes here
 
         %%
-        multipleRuns        = experiment;
-        algorithmParams     = multipleRuns.algorithmParams();
-        constructionParams  = multipleRuns.constructionParams();
+%         algorithmParams     = multipleRuns.algorithmParams();
+%         constructionParams  = multipleRuns.constructionParams();
 
         %% extract parameters
 
-        labeledConfidence   = algorithmParams.labeledConfidence;
-        alpha               = algorithmParams.alpha;
-        beta                = algorithmParams.beta;
-        K                   = constructionParams.K;
-        numLabeledPreClass  = constructionParams.numLabeled;
-        makeSymetric        = algorithmParams.makeSymetric;
+%         labeledConfidence   = algorithmParams.labeledConfidence;
+%         alpha               = algorithmParams.alpha;
+%         beta                = algorithmParams.beta;
+%         K                   = constructionParams.K;
+%         numLabeledPreClass  = constructionParams.numLabeled;
+%         makeSymetric        = algorithmParams.makeSymetric;
 
-        paramsString = ...
-            [' labeledConfidence = ' num2str(labeledConfidence) ...
-             ' alpha = '    num2str(alpha) ...
-             ' beta = '     num2str(beta) ...
-             ' K = '        num2str(K) ...
-             '\newline' ...
-             ' makeSymetric = ' num2str(makeSymetric) ...
-             ' numLabeledPreClass = ' num2str(numLabeledPreClass ) ...
-             ' exp ID = '   num2str(experimentID)];
+%         paramsString = ...
+%             [' labeledConfidence = ' num2str(labeledConfidence) ...
+%              ' alpha = '    num2str(alpha) ...
+%              ' beta = '     num2str(beta) ...
+%              ' K = '        num2str(K) ...
+%              '\newline' ...
+%              ' makeSymetric = ' num2str(makeSymetric) ...
+%              ' numLabeledPreClass = ' num2str(numLabeledPreClass ) ...
+%              ' exp ID = '   num2str(experimentID)];
 
-         showMultipleExperimentsResults.showAveragePrecisionAndRecall...
-             ( multipleRuns, SingleRun.CSSLMC, CSSLMC.name());
-         showMultipleExperimentsResults.showAveragePrecisionAndRecall...
-             ( multipleRuns, SingleRun.CSSLMCF, CSSLMCF.name());
-         showMultipleExperimentsResults.showAveragePrecisionAndRecall....
-             ( multipleRuns, SingleRun.MAD, MAD.name());
+        for algorithm_i=multipleRuns.availableResultsAlgorithmRange()
+            showMultipleExperimentsResults.showAveragePrecisionAndRecall...
+                 ( multipleRuns, algorithm_i);
+        end
          
         %% Show accumulative loss sorted by confidence
 
@@ -61,9 +58,9 @@ methods (Static)
     
     %% showAveragePrecisionAndRecall
     
-    function showAveragePrecisionAndRecall...
-            ( multipleRuns, algorithmType, algorithmName)
+    function showAveragePrecisionAndRecall( multipleRuns, algorithmType)
         if multipleRuns.isResultsAvailable( algorithmType )
+            algorithmName = showSingleRunResults.AlgorithmTypeToStringConverter( algorithmType );
             disp(['algorithmName =  ' algorithmName]);
             [averagePrbep estimatedAveragePRBEP] = ...
                 multipleRuns.calcAveragePrecisionAndRecall(algorithmType);
