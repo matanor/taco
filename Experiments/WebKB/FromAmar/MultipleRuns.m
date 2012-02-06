@@ -77,7 +77,7 @@ methods
         estimatedPrebpAverage   = zeros(numLabels, 1);
         for run_i=1:this.num_runs()
 
-            disp(['run_i =  ' num2str(run_i)]);
+            disp(['MultipleRuns::calcAveragePrecisionAndRecall. run_i =  ' num2str(run_i)]);
             singleRun = this.getRun(run_i);
 
             for labelIndex = 1:numLabels

@@ -141,14 +141,20 @@ methods (Static)
         disp('**** Single Run Results ****');
 
         for experimentID = experimentRange
-            disp(['experiment ID = ' num2str(experimentID) ]);
+            disp(['experiment ID = ' num2str(experimentID) ...
+                  ' of ' num2str(numExperiments)]);
             experimentRun = experimentRuns(experimentID);
             numParameterRuns = experimentRun.numParameterRuns();
             for parameter_run_i=1:numParameterRuns
+                disp(['parameters run index = ' num2str(parameter_run_i) ...
+                      ' of ' num2str(numParameterRuns)]);
                 parameterRun = experimentRun.getParameterRun(parameter_run_i);
                 for algorithm_i = parameterRun.algorithmsRange()
+                    disp(['algorithm = ' showSingleRunResults.AlgorithmTypeToStringConverter(algorithm_i)]);
                     numOptimizationRuns = parameterRun.numOptimizationRuns(algorithm_i);
                     for optimization_run_i=1:numOptimizationRuns
+                        disp(['optimization run = ' num2str(optimization_run_i) ...
+                              ' of ' num2str(numOptimizationRuns)]);
                         optimizationRun = parameterRun.getOptimizationRun(algorithm_i, optimization_run_i);
                         outputProperties.description = ...
                             ['Optimization.' num2str(parameter_run_i) '.' num2str(optimization_run_i)];
@@ -157,6 +163,8 @@ methods (Static)
                 end
                 allEvaluationRuns = parameterRun.getEvaluationRun();
                 for evaluation_run_i=1:allEvaluationRuns.num_runs()
+                    disp(['evaluation run = ' num2str(evaluation_run_i) ...
+                           ' of ' num2str(allEvaluationRuns.num_runs())]);
                     evaluation_run = allEvaluationRuns.getRun(evaluation_run_i);
                     outputProperties.description = ...
                         ['Evaluation.' num2str(parameter_run_i) '.' num2str(evaluation_run_i)];
@@ -179,6 +187,7 @@ methods (Static)
             experimentRun = experimentRuns(experimentID);
             numParameterRuns = experimentRun.numParameterRuns();
             for parameter_run_i=1:numParameterRuns
+                disp(['parameters run index = ' num2str(parameter_run_i) ]);
                 parameterRun = experimentRun.getParameterRun(parameter_run_i);
                 
                 allEvaluationRuns = parameterRun.getEvaluationRun();
