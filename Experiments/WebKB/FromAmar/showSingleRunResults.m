@@ -40,7 +40,7 @@ methods (Static)
                 (singleRun, numRows, numCols, current, correctLabels, algorithm_i );
         end
         
-        outputFolder = outputProperties.resultDir;
+        outputFolder = outputProperties.resultsDir;
         folderName   = outputProperties.folderName;
         filename = [ outputFolder folderName '/singleResults.' ...
                       outputProperties.description '.AlgorithmCompare.fig'];
@@ -137,7 +137,7 @@ methods (Static)
     %% plotAndSave_PrecisionAndRecall
     
     function plotAndSave_PrecisionAndRecall( precision, recall, outputProperties )
-        outputDirectory = outputProperties.resultDir;
+        outputDirectory = outputProperties.resultsDir;
         folderName      = outputProperties.folderName;
         algorithmName   = outputProperties.algorithmName;
         class_i         = outputProperties.class_i;
@@ -249,7 +249,7 @@ methods (Static)
         xlabel('vertex #i');
         ylabel('margin (mu*y)');
 
-        outputFolder = outputProperties.resultDir;
+        outputFolder = outputProperties.resultsDir;
         folderName    = outputProperties.folderName;
         filename = [ outputFolder folderName '/singleResults.' ...
                      algorithmName '.' num2str(experimentID) '.' ...

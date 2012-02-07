@@ -24,7 +24,7 @@ methods (Access = public)
         [~, fileName, ~] = fileparts(fileFullPath);
         
         % run qsub command
-        outputDir   = outputProperties.resultDir;
+        outputDir   = outputProperties.resultsDir;
         folderName  = outputProperties.folderName;
         runName     = 'CSSLMC';
         codeRoot    = outputProperties.codeRoot;
