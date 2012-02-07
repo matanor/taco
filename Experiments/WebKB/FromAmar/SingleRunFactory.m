@@ -35,10 +35,11 @@ methods (Access = public)
                    outputFile ' -e ' errorFile ' "matlab -nodesktop -r "\""asyncSingleRun(''' ...
                    fileFullPath ''',''' codeRoot ''')"\"" -logfile ' logFile '"' ];
         disp(['command = "' command '"']);
-        [status, ~] = system(command);
+        [status, result] = system(command);
         if status ~= 0
             disp(['Error scheduling async run. file: ' fileFullPath...
                   ' statuc = ' num2str(status)]);
+            disp(result);
         end
     end
     
