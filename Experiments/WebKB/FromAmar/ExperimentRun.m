@@ -27,37 +27,14 @@ methods (Access = public)
     %% constructGraph
     
     function constructGraph(this)
-        
-        constructionParams = this.m_constructionParams;
-        
-        ConstructionParams.display(constructionParams);
-            
-        this.m_graph = GraphLoader.loadAll( constructionParams.fileName );
-        
-        this.removeExtraSplitVertices();
-        
-        this.m_graph.w_nn = knn(this.m_graph.weights, constructionParams.K);
-
-        this.m_graph.w_nn_symetric = makeSymetric(this.m_graph.w_nn);
-        
-%         this.createTrunsductionSplit();
+        this.m_graph = GraphLoader.constructGraph(this.m_constructionParams);
     end
     
     %% removeExtraSplitVertices
     
     function removeExtraSplitVertices(this)
-        graph = this.m_graph;
-        numFolds = this.m_constructionParams.numFolds;
-        
-        numVertices = length(graph.labels);
-        newNumVertices = numVertices - mod(numVertices, numFolds);
-        verticesToRemove = (newNumVertices+1):numVertices;
-            
-        graph.labels(verticesToRemove) = [];
-        graph.weights(verticesToRemove,:) = [];
-        graph.weights(:,verticesToRemove) = [];
-        
-        this.m_graph = graph;
+        this.m_graph = GraphLoader.removeExtraSplitVertices...
+            (this.m_graph,  this.m_constructionParams.numFolds);
     end
     
     %% createEvaluationRun

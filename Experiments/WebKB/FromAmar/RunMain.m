@@ -3,7 +3,7 @@ classdef RunMain
 methods (Static)
     %% run
     
-    function run(resultsDir, folderName, isOnOdin)
+    function run(outputProperties, isOnOdin)
 
         %% global shared parameters
         %graphFileName = 'C:\technion\theses\Experiments\WebKB\data\Rapid_Miner_Result\webkb_constructed.mat';
@@ -22,7 +22,8 @@ methods (Static)
         %% allocate a multiple runs object per each parameter combination
         %  and run all experiments with all the parameter combinations
 
-        experimentRuns = ExperimentRunFactory.run( paramsManager, algorithmsToRun );
+        experimentRuns = ExperimentRunFactory.run...
+            ( paramsManager, algorithmsToRun, outputProperties );
 
         %% Define which result figures to display
         outputProperties.showSingleRuns = 1;
@@ -30,9 +31,9 @@ methods (Static)
 
         %%
 %         resultsDir = 'C:\technion\theses\Experiments\WebKB\results\';
-        mkdir(resultsDir,folderName);
-        outputProperties.resultDir = resultsDir;
-        outputProperties.folderName = folderName;
+        mkdir(outputProperties.resultsDir,outputProperties.folderName);
+%         outputProperties.resultDir = resultsDir;
+%         outputProperties.folderName = folderName;
 
         %%
         RunMain.plotAllSingleResults(experimentRuns, outputProperties);
@@ -40,7 +41,8 @@ methods (Static)
         %%
         RunMain.plotEvaluationSummary(experimentRuns, outputProperties);
 
-        save( [resultsDir folderName '/experimentRuns'],'experimentRuns');
+        save( [ outputProperties.resultsDir outputProperties.folderName ...
+                '/experimentRuns'],'experimentRuns');
         
         return ;
         %% get total number of experiment

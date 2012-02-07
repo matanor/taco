@@ -45,6 +45,10 @@ properties (Constant)
 end
 
 properties (Constant)
+    ASYNC_RUNS = 0;
+end
+
+properties (Constant)
     OPTIMIZE_BY_ACCURACY = 0;
 end
 
@@ -108,15 +112,15 @@ methods (Access = public)
         % 0 means all instances
         this = this.createParameter( 'numInstancesPerClass', [0], isString, [] );    
         
-        this = this.createParameter( 'useGraphHeuristics', [1], isString, [] );
+        this = this.createParameter( 'useGraphHeuristics', [0], isString, [] );
         
         this = this.createParameter( 'numEvaluationRuns', [10], isString, [] );
         
         this = this.createParameter( 'labeledInitMode', ...
             [ParamsManager.LABELED_INIT_ZERO_ONE], isString, [] );
         
-        this = this.createParameter( 'balancedFolds',   [0], isString, [] );
-        this = this.createParameter( 'balancedLabeled', [0], isString, [] );
+        this = this.createParameter( 'balancedFolds',   [1], isString, [] );
+        this = this.createParameter( 'balancedLabeled', [1], isString, [] );
         
         this = this.createParameter( 'optimizeBy', [ParamsManager.OPTIMIZE_BY_ACCURACY], isString, [] );
         

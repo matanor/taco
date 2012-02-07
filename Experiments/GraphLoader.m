@@ -25,6 +25,32 @@ methods (Static)
         outGraph = graph;
     end
     
+    %% constructGraph
+    
+    function graph = constructGraph(constructionParams)
+        ConstructionParams.display(constructionParams);
+            
+        graph = GraphLoader.loadAll( constructionParams.fileName );
+        
+        graph = GraphLoader.removeExtraSplitVertices(graph, constructionParams.numFolds);
+        
+        graph.w_nn = knn(this.m_graph.weights, constructionParams.K);
+
+        graph.w_nn_symetric = makeSymetric(this.m_graph.w_nn);
+    end
+    
+    %% removeExtraSplitVertices
+    
+    function graph = removeExtraSplitVertices(graph, numFolds)
+        numVertices = length(graph.labels);
+        newNumVertices = numVertices - mod(numVertices, numFolds);
+        verticesToRemove = (newNumVertices+1):numVertices;
+            
+        graph.labels(verticesToRemove) = [];
+        graph.weights(verticesToRemove,:) = [];
+        graph.weights(:,verticesToRemove) = [];
+    end
+    
     %% split
     
     function outFolds = split(graph, numFolds)

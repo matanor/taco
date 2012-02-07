@@ -6,6 +6,38 @@ properties (Access = public)
 end
     
 methods (Access = public)
+    
+    function scheduleAsyncRun(this, algorithmParams, algorithmsToRun, ...
+                              fileName, outputProperties )
+        % save us to a file.
+        this.m_graph.w_nn = []; % This will be reconstructed
+        this.m_graph.w_nn_symetric  = []; % This will be reconstructed
+        this.m_graph.weights = []; % This will be reconstructed
+        save(fileName,'this','algorithmParams','algorithmsToRun');
+        
+        % delete the finished file flag, id already exits.
+        finishedFileName    = [fileName '.finished'];
+        delete(finishedFileName);
+        
+        % run qsub command
+        outputDir   = outputProperties.resultDir;
+        folderName  = outputProperties.folderName;
+        runName     = 'CSSLMC';
+        codeRoot    = outputProperties.codeRoot;
+        outputFile  = [outputDir folderName '/output.txt'];
+        errorFile   = [outputDir folderName '/error.txt'];
+        logFile     = [outputDir folderName '/matlab.log'];
+        command = ['qsub -N ' runName ' -wd ' codeRoot '/Experiments -q all.q -b y -o ' ...
+                   outputFile ' -e ' errorFile ' "matlab -nodesktop -r "\""asyncSingleRun(''' ...
+                   fileName ''',''' codeRoot ''')"\"" -logfile ' logFile '"' ];
+        disp(['command = "' command '"']);
+        [status, ~] = system(command);
+        if status ~= 0
+            disp(['Error scheduling async run. file: ' fileName...
+                  ' statuc = ' num2str(status)]);
+        end
+    end
+    
     function singleRun = run(this, algorithmParams, algorithmsToRun)
         %% get graph
 %         if ( algorithmParams{SingleRun.CSSLMC}.makeSymetric ~= 0)

@@ -19,7 +19,9 @@ methods (Static)
         folderName = '2012_02_07_2 testing new options - unbalanced';
         resultsDir = 'C:/technion/theses/Experiments/WebKB/results/';
         isOnOdin = 0;
-        RunMain.run(resultsDir, folderName, isOnOdin);
+        outputProperties.resultsDir = resultsDir;
+        outputProperties.folderName = folderName;
+        RunMain.run(outputProperties, isOnOdin);
     end
     
 end

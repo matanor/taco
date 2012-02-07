@@ -4,7 +4,7 @@ methods (Static)
     
     %% run
     %graphFileName, paramStructs
-    function R = run( paramsManager, algorithmsToRun)
+    function R = run( paramsManager, algorithmsToRun, outputProperties)
 
         % define the classes we use
 
@@ -60,7 +60,8 @@ methods (Static)
                     optimalParams{algorithmType} = ...
                         ExperimentRunFactory.optimizeParameters....
                             ( singleEvaluation,    paramsManager,      progressParams, ...
-                              algorithmsToRun,     evaluationParams,   algorithmType   ); %#ok<AGROW>
+                              algorithmsToRun,     evaluationParams,   algorithmType,...
+                              outputProperties); %#ok<AGROW>
                 end
 
                 % run evaluations
@@ -91,7 +92,7 @@ methods (Static)
     
     function optimal = optimizeParameters...
                 ( singleEvaluation, paramsManager,    progressParams, ...
-                  algorithmsToRun , evaluationParams, algorithmType )
+                  algorithmsToRun , evaluationParams, algorithmType, outputProperties )
         optimal = [];
         if algorithmsToRun.shouldRun( algorithmType )
             
@@ -113,7 +114,7 @@ methods (Static)
             
             optimizationRuns = ExperimentRunFactory.runOptionsCollection...
                     (singleRunFactory, optimizationParams_allOptions, ...
-                     progressParams  , algorithmType);
+                     progressParams  , algorithmType, outputProperties);
                  
             singleEvaluation.setParameterTuningRuns( algorithmType, optimizationRuns );
             optimal = singleEvaluation.optimalParams(algorithmType);
@@ -128,7 +129,7 @@ methods (Static)
     
     function R = runOptionsCollection...
             (singleRunFactory, optionsCollection,...
-             progressParams  , algorithmType)
+             progressParams  , algorithmType, outputProperties)
         ticID = tic;
         numOptions = length(optionsCollection);
         progressParams.numParametersOptions = numOptions;
@@ -137,6 +138,7 @@ methods (Static)
         algorithmsToRun.setRun(algorithmType);
             
         allRuns = [];
+        waitingForRuns = [];
         for params_i=1:numOptions
             % Display progress string
             progressParams.params_i = params_i;
@@ -145,12 +147,57 @@ methods (Static)
             clear singleOption;
             singleOption{algorithmType} = optionsCollection(params_i); %#ok<AGROW>
 
-            singleRun = singleRunFactory.run(singleOption, algorithmsToRun );
-
-            allRuns = [allRuns singleRun]; %#ok<AGROW>
+            if ParamsManager.ASYNC_RUNS == 0
+                singleRun = singleRunFactory.run(singleOption, algorithmsToRun );
+                allRuns = [allRuns singleRun]; %#ok<AGROW>
+            else
+                fileName = ExperimentRunFactory.optimizationSingleRunName...
+                    (progressParams, algorithmType, outputProperties);
+                singleRunFactory.scheduleAsyncRun...
+                    (singleOption, algorithmsToRun, ...
+                     sharedGraphFileName, fileName, outputProperties );
+                 waitingForRuns = [waitingForRuns;{fileName}];
+            end
         end
+        
+        if ParamsManager.ASYNC_RUNS == 1
+            sleepIntervalInSeconds = 30;
+            for params_i=1:numOptions
+                optimizationRunFileName = waitingForRuns{param_i};
+                finishedRunFileName = [optimizationRunFileName '.finished'];
+                outputRunFileName = [optimizationRunFileName '.out'];
+                wait = 1;
+                while wait
+                    if exist(finishedRunFileName, 2)
+                        wait = 0;
+                        data = load(outputRunFileName);
+                        allRuns = [allRuns data.singleRun]; %#ok<AGROW>
+                    else
+                       pause(sleepIntervalInSeconds) 
+                    end
+                end
+            end
+        end
+        
         toc(ticID);
         R = allRuns;
+    end
+    
+    %% evaluationSingleRunName
+    
+    function r = evaluationSingleRunName(progressParams, outputProperties)
+        r = [outputProperties.resultsDir outputProperties.folderName ...
+            '/Evaluation.' num2str(progressParams.evaluation_i) '.' num2str(progressParams.evaluation_run_i)];
+    end
+    
+        
+    %% optimizationSingleRunName
+    
+    function r = optimizationSingleRunName(progressParams, algorithmType)
+        algorithmName = showSingleRunResults.AlgorithmTypeToStringConverter(algorithmType);
+        r = [outputProperties.resultsDir outputProperties.folderName ...
+            '/Optimization.' num2str(progressParams.evaluation_i) '.' ...
+             num2str(progressParams.params_i) '.' algorithmName];
     end
     
     %% displayEvaluationProgress
