@@ -188,16 +188,18 @@ methods (Static)
     function r = evaluationSingleRunName(progressParams, outputProperties)
         r = [outputProperties.resultsDir outputProperties.folderName ...
             '/Evaluation.' num2str(progressParams.evaluation_i) '.' num2str(progressParams.evaluation_run_i)];
+        disp(['evaluationSingleRunName = ' r]);
     end
     
         
     %% optimizationSingleRunName
     
-    function r = optimizationSingleRunName(progressParams, algorithmType)
+    function r = optimizationSingleRunName(progressParams, algorithmType, outputProperties)
         algorithmName = showSingleRunResults.AlgorithmTypeToStringConverter(algorithmType);
         r = [outputProperties.resultsDir outputProperties.folderName ...
             '/Optimization.' num2str(progressParams.evaluation_i) '.' ...
              num2str(progressParams.params_i) '.' algorithmName];
+         disp(['optimizationSingleRunName = ' r]);
     end
     
     %% displayEvaluationProgress
