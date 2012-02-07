@@ -9,6 +9,9 @@ properties (Constant)
 end
     
 methods (Static)
+    
+    %% loadAll
+    
     function outGraph = loadAll(graphFileName)
         fileData = load( graphFileName, 'graph' );
         graph = fileData.graph;
@@ -21,6 +24,8 @@ methods (Static)
         end
         outGraph = graph;
     end
+    
+    %% split
     
     function outFolds = split(graph, numFolds)
         availabelLabels = unique(graph.labels).';
@@ -37,6 +42,8 @@ methods (Static)
         outFolds = folds;
     end
     
+    %% randomSplit
+    
     function folds = randomSplit( data, numGroups )
         dataSize    = numel(data);                      %# get number of elements
         groupSize   = floor(dataSize/numGroups);       %# assuming here that it's neatly divisible 
@@ -49,6 +56,8 @@ methods (Static)
         groupsOrder = randperm(numGroups);
         folds       = folds(groupsOrder,:);
     end    
+    
+    %% load
     
     function [ outGraph, labeled ] = load...
             (   graphFileName       , classToLabelMap, ...
@@ -92,6 +101,8 @@ methods (Static)
 
     end
     
+    %% selectLabeled_atLeastOnePerLabel
+    
     function lebeledVertices = selectLabeled_atLeastOnePerLabel...
             ( vertices, correctLabels, classToLabelMap, numRequired )
         %% 
@@ -126,6 +137,8 @@ methods (Static)
         end
     end
     
+    %% selectLabelsUniformly
+    
     function R = selectLabelsUniformly(vertices,        correctLabels, ...
                                        classToLabelMap, numLabeledPerClass)
         %% Select labeled vertices, the same amount of labled vertices for
@@ -147,8 +160,10 @@ methods (Static)
         R = labeled;
     end
 
+    %% randomSelectWithValue
+    
     function selectedIndices = randomSelectWithValue(data, required, requiredValue)
-    %% RANDOMSELECTWITHVALUE eandomly select data items with a specific value.
+    % RANDOMSELECTWITHVALUE eandomly select data items with a specific value.
     %   data                - data items.
     %   numRequired         - number of items to select.
     %   requiredValue       - select onlt from items with this value.
@@ -160,8 +175,10 @@ methods (Static)
         selectedIndices = indicesWithRequiredValue(selected);
     end
     
+    %% SELECTCLASSES
+    
     function selected = selectClasses(graph, requiredLabels)
-        %% SELECTCLASSES Select only nodes with specific labels from the graph.
+        % SELECTCLASSES Select only nodes with specific labels from the graph.
         % graph - the graph structure:
         %           weigths - weights matrix
         %           labels  - vector
