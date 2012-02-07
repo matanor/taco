@@ -162,7 +162,7 @@ methods (Static)
         
         if ParamsManager.ASYNC_RUNS == 1
             sleepIntervalInSeconds = 30;
-            for params_i=1:numOptions
+            for param_i=1:numOptions
                 optimizationRunFileName = waitingForRuns{param_i};
                 finishedRunFileName = [optimizationRunFileName '.finished'];
                 outputRunFileName = [optimizationRunFileName '.out'];
