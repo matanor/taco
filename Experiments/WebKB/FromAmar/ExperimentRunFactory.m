@@ -29,6 +29,7 @@ methods (Static)
             constructionParams = constructionParams_allOptions( construction_i );
             constructionParams.classToLabelMap = classToLabelMap;
 
+            disp(['File Name = ' constructionParams.fileName]);
             experimentRun = ExperimentRun;
             experimentRun.set_constructionParams( constructionParams );
             experimentRun.constructGraph();
@@ -44,6 +45,8 @@ methods (Static)
                 singleEvaluation    = experimentRun.createEvaluationRun();
                 
                 evaluationParams = evaluationParams_allOptions(evaluation_i);
+                evaluationParamsString = Utilities.StructToStringConverter(evaluationParams);
+                disp(['Evaluation Params. ' evaluationParamsString]);
                 singleEvaluation.set_evaluationParams( evaluationParams );
                 
                 % this will create the training split
