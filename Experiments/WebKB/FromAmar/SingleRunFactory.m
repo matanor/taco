@@ -5,35 +5,39 @@ properties (Access = public)
     m_graph;
 end
     
-methods (Access = public)
+methods (Access = public)   
+    %% scheduleAsyncRun
     
     function scheduleAsyncRun(this, algorithmParams, algorithmsToRun, ...
-                              fileName, outputProperties )
+                              fileFullPath, outputProperties )
+        disp('scheduleAsyncRun');
         % save us to a file.
         this.m_graph.w_nn = []; % This will be reconstructed
         this.m_graph.w_nn_symetric  = []; % This will be reconstructed
         this.m_graph.weights = []; % This will be reconstructed
-        save(fileName,'this','algorithmParams','algorithmsToRun');
+        save(fileFullPath,'this','algorithmParams','algorithmsToRun');
         
         % delete the finished file flag, id already exits.
-        finishedFileName    = [fileName '.finished'];
+        finishedFileName    = [fileFullPath '.finished'];
         delete(finishedFileName);
+        
+        [~, fileName, ~] = fileparts(fileFullPath);
         
         % run qsub command
         outputDir   = outputProperties.resultDir;
         folderName  = outputProperties.folderName;
         runName     = 'CSSLMC';
         codeRoot    = outputProperties.codeRoot;
-        outputFile  = [outputDir folderName '/output.txt'];
-        errorFile   = [outputDir folderName '/error.txt'];
-        logFile     = [outputDir folderName '/matlab.log'];
+        outputFile  = [outputDir folderName '/' fileName '.output.txt'];
+        errorFile   = [outputDir folderName '/' fileName '.error.txt'];
+        logFile     = [outputDir folderName '/' fileName '.matlab.log'];
         command = ['qsub -N ' runName ' -wd ' codeRoot '/Experiments -q all.q -b y -o ' ...
                    outputFile ' -e ' errorFile ' "matlab -nodesktop -r "\""asyncSingleRun(''' ...
-                   fileName ''',''' codeRoot ''')"\"" -logfile ' logFile '"' ];
+                   fileFullPath ''',''' codeRoot ''')"\"" -logfile ' logFile '"' ];
         disp(['command = "' command '"']);
         [status, ~] = system(command);
         if status ~= 0
-            disp(['Error scheduling async run. file: ' fileName...
+            disp(['Error scheduling async run. file: ' fileFullPath...
                   ' statuc = ' num2str(status)]);
         end
     end
