@@ -34,9 +34,9 @@ methods (Static)
         
         graph = GraphLoader.removeExtraSplitVertices(graph, constructionParams.numFolds);
         
-        graph.w_nn = knn(this.m_graph.weights, constructionParams.K);
+        graph.w_nn = knn(graph.weights, constructionParams.K);
 
-        graph.w_nn_symetric = makeSymetric(this.m_graph.w_nn);
+        graph.w_nn_symetric = makeSymetric(graph.w_nn);
     end
     
     %% removeExtraSplitVertices
