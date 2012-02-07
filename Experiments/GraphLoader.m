@@ -28,6 +28,12 @@ methods (Static)
     %% split
     
     function outFolds = split(graph, numFolds)
+        outFolds = GraphLoader.randomSplit( graph.labels, numFolds );
+    end
+    
+    %% splitBalanced
+    
+    function outFolds = splitBalanced(graph, numFolds)
         availabelLabels = unique(graph.labels).';
         folds = [];
         %allDiscarded = [];

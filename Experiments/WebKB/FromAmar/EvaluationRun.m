@@ -103,8 +103,12 @@ methods (Access = public)
     function createTrunsductionSplit(this)
         graph = this.m_graph;
         constructionParams = this.m_constructionParams;
-                
-        graph.folds = GraphLoader.split(graph, constructionParams.numFolds );
+               
+        if (this.m_evaluationParams.balancedFolds)
+            graph.folds = GraphLoader.splitBalanced(graph, constructionParams.numFolds );
+        else
+            graph.folds = GraphLoader.split(graph, constructionParams.numFolds );
+        end
             
         trainingSet = graph.folds(1,:);
         if (this.m_evaluationParams.balancedLabeled)
