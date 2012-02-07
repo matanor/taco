@@ -41,6 +41,7 @@ classdef MAD < handle
             disp(['Running MAD.' paramsString]);
 
             numVertices = size(W, 1);
+            disp(['numVertices = ' num2str(numVertices)]);
 
             disp('Calculating probabilities...');
             if (useGraphHeuristics ~=0)
@@ -53,6 +54,7 @@ classdef MAD < handle
 
             % add dummy label. initialy no vertex is
             % associated with the dummy label.
+            disp(['size(Y) = ' num2str(size(Y))]);
             Y = [Y zeros(numVertices, 1) ];
             numLabels = size( Y, 2 );
 
