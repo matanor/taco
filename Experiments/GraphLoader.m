@@ -28,7 +28,8 @@ methods (Static)
     %% split
     
     function outFolds = split(graph, numFolds)
-        outFolds = GraphLoader.randomSplit( graph.labels, numFolds );
+        numVertices = length(graph.labels);
+        outFolds = GraphLoader.randomSplit( 1:numVertices, numFolds );
     end
     
     %% splitBalanced
