@@ -200,6 +200,23 @@ classdef SingleRun < handle
             r = EvaluationUtilities.calcRecall   (isPredictedLabel, isCurrentLabel );
             prbep = (p + r)/2;
         end
+        
+        %% num_mistakes_testSet
+        
+        function r = num_mistakes_testSet(this, algorithmType)
+            testSet_prediction      = this.testSet_prediciton(algorithmType);
+            correctLabels_testSet   = this.testSetCorrectLabels();
+            r = this.calcNumMistakes(testSet_prediction, correctLabels_testSet);
+        end
+        
+        %% accuracy_testSet
+        
+        function r = accuracy_testSet(this, algorithmType)
+            numMistakes = this.num_mistakes_testSet(algorithmType);
+            testSetSize = this.testSetSize();
+            numCorrect = testSetSize - numMistakes;
+            r = numCorrect / testSetSize;
+        end
        
         %% Return binary prediction for unlabeled vertices
                 
@@ -246,7 +263,7 @@ classdef SingleRun < handle
             if (this.m_unlabeled_num_mistakes(algorithmType) == 0)
                 prediction = this.unlabeled_prediction( algorithmType );
                 this.m_unlabeled_num_mistakes(algorithmType) = ...
-                    this.calcUnlabeledNumMistakes(prediction);
+                    this.calcNumMistakes(prediction, this.unlabeled_correct_labels());
             end
             r = this.m_unlabeled_num_mistakes(algorithmType) ;
         end
@@ -304,10 +321,10 @@ classdef SingleRun < handle
             r = folds(:);
         end
         
-        %% calcUnlabeledNumMistakes
+        %% calcNumMistakes
         
-        function r = calcUnlabeledNumMistakes(this, prediction)
-            isCorrect = (this.unlabeled_correct_labels() == prediction);
+        function r = calcNumMistakes(~, prediction, correct)
+            isCorrect = (correct == prediction);
             isWrong    = 1 - isCorrect;
             r = sum(isWrong);            
         end

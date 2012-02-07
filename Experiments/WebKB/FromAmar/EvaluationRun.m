@@ -83,11 +83,16 @@ methods (Access = public)
     
     %% evaluateRun
     
-    function R = evaluateRun(~, singleRun, algorithmType)
+    function R = evaluateRun(this, singleRun, algorithmType)
         params = singleRun.getParams(algorithmType);
         paramsString = Utilities.StructToStringConverter(params);
         disp(paramsString);
-        R = singleRun.calcAveragePRBEP_testSet(algorithmType);
+        if (this.m_evaluationParams.optimizeBy == ParamsManager.OPTIMIZE_BY_ACCURACY) 
+            R = singleRun.accuracy_testSet(algorithmType);
+            disp(['Accuracy = ' num2str(R)]);
+        else
+            R = singleRun.calcAveragePRBEP_testSet(algorithmType);
+        end
     end
     
     %% createSingleRunFactory
