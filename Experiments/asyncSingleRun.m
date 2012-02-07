@@ -4,7 +4,6 @@ function asyncSingleRun(fileName, codeRoot)
     disp('asyncSingleRun');
     Configurations.clearEverything();
 
-    disp(['sharedGraphFileName = ' sharedGraphFileName]);
     disp(['fileName = ' fileName]);
     disp(['codeRoot = ' codeRoot]);
     
