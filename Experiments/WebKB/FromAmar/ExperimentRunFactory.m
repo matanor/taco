@@ -165,7 +165,7 @@ methods (Static)
             for param_i=1:numOptions
                 optimizationRunFileName = waitingForRuns{param_i};
                 finishedRunFileName = [optimizationRunFileName '.finished'];
-                outputRunFileName = [optimizationRunFileName '.out'];
+                outputRunFileName = [optimizationRunFileName '.out.mat'];
                 wait = 1;
                 while wait
                     if exist(finishedRunFileName, 2)

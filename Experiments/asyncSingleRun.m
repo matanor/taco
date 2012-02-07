@@ -21,7 +21,7 @@ function asyncSingleRun(fileName, codeRoot)
     
     singleRun = singleRunFactory.run( runData.algorithmParams, runData.algorithmsToRun );
     
-    outputFileName      = [fileName '.out'];
+    outputFileName      = [fileName '.out.mat'];
     finishedFileName    = [fileName '.finished'];
     dummy = 1;
     save(outputFileName, 'singleRun');
