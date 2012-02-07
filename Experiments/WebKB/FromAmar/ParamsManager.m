@@ -36,6 +36,8 @@ properties( Constant)
     % labeled: +1 - belong to class,
     %          -1 does not belong to class.
     LABELED_INIT_MINUS_PLUS_ONE_UNLABELED = 3;
+    
+    SAVE_ALL_ITERATIONS_IN_RESULT = 0;
 end
     
 methods (Access = public)
@@ -64,10 +66,10 @@ methods (Access = public)
         
         paperOprimizationRange = [1e-8 1e-4 1e-2 1 10 1e2 1e3];
         this = this.createParameter( 'mu1', [1], isString, [] );     
-        this = this.createParameter( 'mu2', paperOprimizationRange, isString, [] );  
-        this = this.createParameter( 'mu3', paperOprimizationRange, isString, [] );
-        %this = this.createParameter( 'mu2', [1], isString, [] );     
-%         this = this.createParameter( 'mu3', [1], isString, [] );
+%          this = this.createParameter( 'mu2', paperOprimizationRange, isString, [] );  
+%          this = this.createParameter( 'mu3', paperOprimizationRange, isString, [] );
+        this = this.createParameter( 'mu2', [1], isString, [] );     
+        this = this.createParameter( 'mu3', [1], isString, [] );
         
         %labeledConfidence.range = [0.01,0.1];
         this = this.createParameter( 'labeledConfidence', [1], isString, [] );     
@@ -75,7 +77,7 @@ methods (Access = public)
         this = this.createParameter( 'makeSymetric', [1], isString, [] );     
         
         %numIterations.range = [5 10 25 50 100];
-        this = this.createParameter( 'maxIterations', [10], isString, [] );    
+        this = this.createParameter( 'maxIterations', [3], isString, [] );    
         
         this = this.createParameter( 'numLabeled', [48], isString, [] );    
         
@@ -86,9 +88,10 @@ methods (Access = public)
         
         this = this.createParameter( 'useGraphHeuristics', [0 1], isString, [] );
         
-        this = this.createParameter( 'numEvaluationRuns', [5], isString, [] );
+        this = this.createParameter( 'numEvaluationRuns', [1], isString, [] );
         
-        this = this.createParameter( 'labeledInitMode', [LABELED_INIT_ZERO_ONE], isString, [] );
+        this = this.createParameter( 'labeledInitMode', ...
+            [ParamsManager.LABELED_INIT_ZERO_ONE], isString, [] );
         
         this = this.createParameter( 'balancedFolds',   [1], isString, [] );
         this = this.createParameter( 'balancedLabeled', [1], isString, [] );
@@ -108,8 +111,9 @@ methods (Access = public)
     %% evaluationParamsProperties
     function R = evaluationParamsProperties(this)
         R = [ this.m_makeSymetric,       this.m_maxIterations, ...
-              this.m_useGraphHeuristics, this.m_labeledInit, ...
-              this.m_numEvaluationRuns ];
+              this.m_useGraphHeuristics, this.m_labeledInitMode, ...
+              this.m_numEvaluationRuns,  this.m_balancedLabeled, ...
+              this.m_balancedFolds];
     end   
     
     %% constructionParamsProperties

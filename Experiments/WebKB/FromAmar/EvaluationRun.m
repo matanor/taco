@@ -84,10 +84,14 @@ methods (Access = public)
     %% evaluateRun
     
     function R = evaluateRun(~, singleRun, algorithmType)
+        params = singleRun.getParams(algorithmType);
+        paramsString = Utilities.StructToStringConverter(params);
+        disp(paramsString);
         R = singleRun.calcAveragePRBEP_testSet(algorithmType);
     end
     
     %% createSingleRunFactory
+    
     function singleRunFactory = createSingleRunFactory(this)
         singleRunFactory = SingleRunFactory;
         singleRunFactory.m_constructionParams   = this.m_constructionParams;

@@ -114,6 +114,10 @@ methods (Static)
                  
             singleEvaluation.setParameterTuningRuns( algorithmType, optimizationRuns );
             optimal = singleEvaluation.optimalParams(algorithmType);
+            optimalString = Utilities.StructToStringConverter(optimal);
+            algorithmName = showSingleRunResults.AlgorithmTypeToStringConverter( algorithmType );
+            disp(['algorithm = ' algorithmName ' optimal: ' ...
+                   optimalString]);
         end;
     end
     

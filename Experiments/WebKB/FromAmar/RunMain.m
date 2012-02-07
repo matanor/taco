@@ -40,6 +40,8 @@ methods (Static)
         %%
         RunMain.plotEvaluationSummary(experimentRuns, outputProperties);
 
+        save( [resultsDir folderName '/experimentRuns'],'experimentRuns');
+        
         return ;
         %% get total number of experiment
         numExperiments = length(experimentRuns);
