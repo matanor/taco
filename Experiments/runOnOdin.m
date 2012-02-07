@@ -1,10 +1,10 @@
-function runOnOdin(folderName)
+function runOnOdin(folderName, codeRoot)
 %RUNONODIN Summary of this function goes here
 %   Detailed explanation goes here
     disp('runOnOdin');
     Configurations.clearEverything();
 
-    codeRoot = '/u/matanorb/matlab';
+    disp(['codeRoot = ' codeRoot]);
     codeFolders = genpath(codeRoot);
     addpath(codeFolders);
 
