@@ -155,7 +155,7 @@ methods (Static)
                     (progressParams, algorithmType, outputProperties);
                 singleRunFactory.scheduleAsyncRun...
                     (singleOption, algorithmsToRun, ...
-                     sharedGraphFileName, fileName, outputProperties );
+                     fileName, outputProperties );
                  waitingForRuns = [waitingForRuns;{fileName}];
             end
         end
