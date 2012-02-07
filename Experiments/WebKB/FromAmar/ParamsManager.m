@@ -51,12 +51,12 @@ end
 methods (Access = public)
     function this = ParamsManager(isOnOdin) %constructor        
         
-        optimize = 0;
+        optimize = 1;
         
         isString = 1;
         if isOnOdin
 %           fileNames = [ {'/u/matanorb/experiments/webkb/data/Rapid_Miner_Result/webkb_constructed.mat' } ];
-            fileNames = [ {'/u/matanorb/experiments/webkb/data/from_amar/webkb_constructed.mat/webkb_amar.mat' } ];
+            fileNames = [ {'/u/matanorb/experiments/webkb/data/from_amar/webkb_amar.mat' } ];
         else
             fileNames = [ {'C:\technion\theses\Experiments\WebKB\data\Rapid_Miner_Result\webkb_constructed.mat'}];
         end
@@ -99,7 +99,7 @@ methods (Access = public)
         this = this.createParameter( 'makeSymetric', [1], isString, [] );     
         
         %numIterations.range = [5 10 25 50 100];
-        this = this.createParameter( 'maxIterations', [3], isString, [] );    
+        this = this.createParameter( 'maxIterations', [10], isString, [] );    
         
         this = this.createParameter( 'numLabeled', [48], isString, [] );    
         
@@ -110,7 +110,7 @@ methods (Access = public)
         
         this = this.createParameter( 'useGraphHeuristics', [1], isString, [] );
         
-        this = this.createParameter( 'numEvaluationRuns', [1], isString, [] );
+        this = this.createParameter( 'numEvaluationRuns', [10], isString, [] );
         
         this = this.createParameter( 'labeledInitMode', ...
             [ParamsManager.LABELED_INIT_ZERO_ONE], isString, [] );
