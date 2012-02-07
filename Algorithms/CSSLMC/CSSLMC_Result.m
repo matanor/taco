@@ -9,8 +9,14 @@ classdef CSSLMC_Result < SSLMC_Result
     methods (Access = public)
         
         function set_results(this, resultSource)
-            this.m_Y = resultSource.mu;
-            this.m_v = resultSource.v;
+            this.m_numIterations = SSLMC_Result.calcNumIterations( resultSource.mu );
+            if ParamsManager.SAVE_ALL_ITERATIONS_IN_RESULT
+                this.m_Y = resultSource.mu;
+                this.m_v = resultSource.v;
+            else
+                this.m_Y = resultSource.mu(:,:,end);
+                this.m_v = resultSource.v(:,:,end);
+            end
         end
         
         function add_vertex(this)
@@ -40,10 +46,6 @@ classdef CSSLMC_Result < SSLMC_Result
         
         function r = legend(~)
             r = '(mu,v) (+1) \newline(mu,v) (-1)';
-        end
-        
-        function r = numIterations(this)
-            r = SSLMC_Result.calcNumIterations( this.m_Y );
         end
 
         function r = getConfidence( this, vertex_i, class_i)

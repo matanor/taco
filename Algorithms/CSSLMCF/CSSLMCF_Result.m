@@ -10,8 +10,15 @@ classdef CSSLMCF_Result < SSLMC_Result
     methods (Access = public)
         
         function set_results(this, resultSource)
-            this.m_Y     = resultSource.mu;
-            this.m_sigma  = resultSource.sigma;
+            this.m_numIterations = ...
+                SSLMC_Result.calcNumIterations( resultSource.mu );
+            if ParamsManager.SAVE_ALL_ITERATIONS_IN_RESULT
+                this.m_Y = resultSource.mu;
+                this.m_sigma = resultSource.sigma;
+            else
+                this.m_Y = resultSource.mu(:,:,end);
+                this.m_sigma = resultSource.sigma(:,:,:,end);
+            end
         end
         
         function add_vertex(this)

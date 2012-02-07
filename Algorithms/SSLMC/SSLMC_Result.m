@@ -4,6 +4,7 @@ classdef SSLMC_Result < handle
 properties (Access=public)
     m_Y; % vertices X labels X iterations
     m_params;
+    m_numIterations; % number of iterations that the algorithm had run
 end
 
 properties (Access = protected)
@@ -108,7 +109,7 @@ methods (Access = public )
     %% numIterations
     
     function r = numIterations(this)
-        r = SSLMC_Result.calcNumIterations(this.m_Y);
+        r = this.m_numIterations;
     end
 
     %% numLabels

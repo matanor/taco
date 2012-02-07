@@ -17,7 +17,13 @@ classdef MAD_Results < SSLMC_Result
         end
         
         function set_results(this, resultSource)
-            this.m_Y             = resultSource.Y;
+            this.m_numIterations = ...
+                SSLMC_Result.calcNumIterations( resultSource.Y );
+            if ParamsManager.SAVE_ALL_ITERATIONS_IN_RESULT
+                this.m_Y = resultSource.Y;
+            else
+                this.m_Y = resultSource.Y(:,:,end);
+            end
             this.m_probabilities = resultSource.p;
         end
         
