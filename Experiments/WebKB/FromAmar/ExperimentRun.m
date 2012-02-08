@@ -6,7 +6,7 @@ classdef ExperimentRun < handle
         m_constructionParams;
     end %(Access = public)
     
-    properties (SetAccess = private, GetAccess=public)
+    properties (SetAccess = public, GetAccess=public)
         m_graph;
         m_parameterRuns;
     end
