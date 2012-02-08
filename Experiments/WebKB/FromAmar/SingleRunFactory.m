@@ -39,8 +39,8 @@ methods (Access = public)
         if status ~= 0
             disp(['Error scheduling async run. file: ' fileFullPath...
                   ' statuc = ' num2str(status)]);
-            disp(result);
         end
+        disp(result);
     end
     
     function singleRun = run(this, algorithmParams, algorithmsToRun)
