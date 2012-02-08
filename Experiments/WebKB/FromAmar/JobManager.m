@@ -98,16 +98,18 @@ methods (Static)
         idleTimeout = idleTimeoutInSeconds / sleepIntervalInSeconds;
         while ~isempty( jobsCollection )
             numJobs = length(jobsCollection);
+            finished_jobs = [];
             for job_i=1:numJobs
                 job = jobsCollection(job_i);
                 jobStatus = job.checkJobStatus();
                 if jobStatus == Job.JOB_STATUS_FINISHED
-                    jobsCollection(job_i) = [];
+                    finished_jobs = [finished_jobs;job_i]; %#ok<AGROW>
                 elseif jobStatus == Job.JOB_STATUS_IDLE && ...
                        job.idleCount > idleTimeout
                     JobManager.restartJob( job );
                 end
             end
+            jobsCollection(finished_jobs) = [];
             pause(sleepIntervalInSeconds);
         end
     end  
@@ -122,6 +124,9 @@ methods (Static)
             disp(['Error restarting job run. file: ' job.name()...
                   ' status = ' num2str(status)]);
         end
+        job.submitResult = result;
+        job.lastLogFileSize = 0;
+        job.idleCount = 0;
         disp(result);
     end
     
