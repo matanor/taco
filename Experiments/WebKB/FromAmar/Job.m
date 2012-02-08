@@ -42,7 +42,7 @@ methods (Access = public)
            disp(['job ' fileName ' has finished']);
            R = Job.JOB_STATUS_FINISHED;
         else
-           R = this.anyProgressDone(job);
+           R = this.anyProgressDone();
         end
     end    
     
