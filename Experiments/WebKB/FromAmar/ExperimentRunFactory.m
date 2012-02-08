@@ -139,7 +139,7 @@ methods (Static)
                fileFullPath = ExperimentRunFactory.evaluteOptimizationJobName( algorithmType, outputProperties );
                optimizeBy = evaluationParams.optimizeBy; %#ok<NASGU>
                save(fileFullPath, 'optimizationJobNames', 'algorithmType', 'optimizeBy');
-               JobManager.scheduleJob(fileFullPath, 'asyncEvaluateOptimization', outputProperties)
+               JobManager.scheduleJob(fileFullPath, 'asyncEvaluateOptimizations', outputProperties)
                JobManager.waitForJobs( {fileFullPath} );
                optimal = JobManager.loadJobOutput(fileFullPath);
             end
