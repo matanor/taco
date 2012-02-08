@@ -96,7 +96,8 @@ methods (Static)
         sleepIntervalInSeconds = 30;
         idleTimeoutInSeconds = 300; % 5 minutes 
         idleTimeout = idleTimeoutInSeconds / sleepIntervalInSeconds;
-        while ~isempty( jobsCollection )
+        finished = 0;
+        while ~finished
             numJobs = length(jobsCollection);
             finished_jobs = [];
             for job_i=1:numJobs
@@ -110,7 +111,10 @@ methods (Static)
                 end
             end
             jobsCollection(finished_jobs) = [];
-            pause(sleepIntervalInSeconds);
+            finished = isempty( jobsCollection );
+            if ~finished
+                pause(sleepIntervalInSeconds);
+            end
         end
     end  
     
