@@ -1,14 +1,5 @@
 function asyncSingleRun(fileFullPath, codeRoot)
-%RUNONODIN Summary of this function goes here
-%   Detailed explanation goes here
-    disp('asyncSingleRun');
-    Configurations.clearEverything();
-
-    disp(['fileFullPath = ' fileFullPath]);
-    disp(['codeRoot = ' codeRoot]);
-    
-    codeFolders = genpath(codeRoot);
-    addpath(codeFolders);
+    Configurations.setupAsyncRun('asyncSingleRun', fileFullPath, codeRoot)
 
     runData = load(fileFullPath);
     singleRunFactory = runData.this;

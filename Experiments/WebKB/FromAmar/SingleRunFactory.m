@@ -17,29 +17,7 @@ methods (Access = public)
         this.m_graph.weights = []; % This will be reconstructed
         save(fileFullPath,'this','algorithmParams','algorithmsToRun');
         
-        JonManager.signalJobIsStarting( fileFullPath );
-        
-        [~, fileName, ~] = fileparts(fileFullPath);
-        
-        % run qsub command
-        outputDir   = outputProperties.resultsDir;
-        folderName  = outputProperties.folderName;
-        runName     = fileName;
-        codeRoot    = outputProperties.codeRoot;
-        outputFile  = [outputDir folderName '/' fileName '.output.txt'];
-        errorFile   = [outputDir folderName '/' fileName '.error.txt'];
-        logFile     = [outputDir folderName '/' fileName '.matlab.log'];
-        command = ['qsub -N ' runName ' -wd ' codeRoot '/Experiments -q all.q -b y -o ' ...
-                   outputFile ' -e ' errorFile ' "matlab -nodesktop -r "\""asyncSingleRun(''' ...
-                   fileFullPath ''',''' codeRoot ''')"\"" -logfile ' logFile '"' ];
-        disp(['command = "' command '"']);
-        [status, result] = system(command);
-        if status ~= 0
-            disp(['Error scheduling async run. file: ' fileFullPath...
-                  ' statuc = ' num2str(status)]);
-        end
-        disp(result);
-        pause(5);
+        JobManager.scheduleJob(fileFullPath, 'asyncSingleRun', outputProperties);
     end
     
     function singleRun = run(this, algorithmParams, algorithmsToRun)

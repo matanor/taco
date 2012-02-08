@@ -4,6 +4,17 @@ classdef Configurations
     
 methods (Static)
     
+    function setupAsyncRun(functionName, fileFullPath, codeRoot)
+        disp(functionName);
+        Configurations.clearEverything();
+
+        disp(['fileFullPath = ' fileFullPath]);
+        disp(['codeRoot = ' codeRoot]);
+    
+        codeFolders = genpath(codeRoot);
+        addpath(codeFolders);
+    end
+    
     %% clearEverything
     
     function clearEverything()

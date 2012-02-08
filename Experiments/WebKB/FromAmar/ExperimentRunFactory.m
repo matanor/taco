@@ -112,17 +112,37 @@ methods (Static)
                 return;
             end
             
-            optimizationRuns = ExperimentRunFactory.runOptionsCollection...
+            optimizationJobNames = ExperimentRunFactory.runOptionsCollection...
                     (singleRunFactory, optimizationParams_allOptions, ...
                      progressParams  , algorithmType, outputProperties);
-                 
-            singleEvaluation.setParameterTuningRuns( algorithmType, optimizationRuns );
-            optimal = singleEvaluation.optimalParams(algorithmType);
-            optimalString = Utilities.StructToStringConverter(optimal);
-            algorithmName = showSingleRunResults.AlgorithmTypeToStringConverter( algorithmType );
-            disp(['algorithm = ' algorithmName ' optimal: ' ...
-                   optimalString]);
+            if ParamsManager.ASYNC_RUNS == 0     
+               optimal = ExperimentRunFactory.evaluateAndFindOptimalParams(optimizationJobNames);
+            else
+                fileFullPath = ExperimentRunFactory.evaluteOptimizationJobName( algorithmType, outputProperties );
+                save(fileFullPath, 'optimizationJobNames');
+                JobManager.scheduleJob(fileFullPath, 'asyncEvaluateOptimization', outputProperties)
+                JobManager.waitForJobs( {fileFullPath} );
+                optimal = JobManager.loadJobOutput(fileFullPath);
+            end
         end;
+    end
+    
+    %% evaluateAndFindOptimalParams
+    
+    function optimal = evaluateAndFindOptimalParams(optimizationJobNames, algorithmType)
+        numOptimizationRuns = length(optimizationJobNames);
+        optimizationRuns = [];
+        for optimization_run_i=1:numOptimizationRuns
+            singleRun = JobManager.loadJobOutput( optimizationJobNames{optimization_run_i} );
+            optimizationRuns = [optimizationRuns; singleRun]; %#ok<AGROW>
+        end
+        
+        singleEvaluation.setParameterTuningRuns( algorithmType, optimizationRuns );
+        optimal = singleEvaluation.optimalParams(algorithmType);
+        optimalString = Utilities.StructToStringConverter(optimal);
+        algorithmName = showSingleRunResults.AlgorithmTypeToStringConverter( algorithmType );
+        disp(['algorithm = ' algorithmName ' optimal: ' ...
+                   optimalString]);
     end
     
     %% runOptionsCollection
@@ -137,8 +157,7 @@ methods (Static)
         algorithmsToRun = AlgorithmsCollection;
         algorithmsToRun.setRun(algorithmType);
             
-        allRuns = [];
-        waitingForRuns = [];
+        optimizationJobNames = [];
         for params_i=1:numOptions
             % Display progress string
             progressParams.params_i = params_i;
@@ -153,35 +172,28 @@ methods (Static)
             if ParamsManager.ASYNC_RUNS == 0
                 singleRun = singleRunFactory.run(singleOption, algorithmsToRun );
                 JobManager.saveJobData( singleRun, fileName);
-                %allRuns = [allRuns singleRun]; %#ok<AGROW>
+                JobManager.signalJobIsFinished( fileName );
             else
                 singleRunFactory.scheduleAsyncRun...
                     (singleOption, algorithmsToRun, ...
                      fileName, outputProperties );
-                waitingForRuns = [waitingForRuns;{fileName}];
             end
+            optimizationJobNames = [optimizationJobNames;{fileName}]; %#ok<AGROW>
         end
         
-        if ParamsManager.ASYNC_RUNS == 1
-            sleepIntervalInSeconds = 30;
-            for param_i=1:numOptions
-                optimizationRunFileName = waitingForRuns{param_i};
-                wait = 1;
-                while wait
-                    if JobManager.isJobFinished(optimizationRunFileName)
-                        wait = 0;
-                        singleRun = JobManager.loadJobOutput( optimizationRunFileName );
-                        allRuns = [allRuns singleRun]; %#ok<AGROW>
-                    else
-                       pause(sleepIntervalInSeconds) 
-                    end
-                end
-            end
-            disp('all optimization runs have finished');
-        end
+        JobManager.waitForJobs( optimizationJobNames );
+        disp('all options collection runs are finished');
         
         toc(ticID);
-        R = allRuns;
+        R = optimizationJobNames;
+    end
+    
+    %% evaluteOptimizationJobName
+    
+    function r = evaluteOptimizationJobName( algorithmType, outputProperties )
+        algorithmName = showSingleRunResults.AlgorithmTypeToStringConverter(algorithmType);
+        r = [outputProperties.resultsDir outputProperties.folderName ...
+             '/EvaluateOptimization.' algorithmName '.mat'];
     end
     
     %% evaluationSingleRunName
