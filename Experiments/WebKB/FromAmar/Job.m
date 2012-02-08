@@ -57,10 +57,10 @@ methods (Access=private)
         if ( currentLogFileSize ~= this.lastLogFileSize) % any progress?
             this.lastLogFileSize = currentLogFileSize;
             this.idleCount = 0;
-            R = JobManager.JOB_STATUS_WORKING;
+            R = Job.JOB_STATUS_WORKING;
         else
             this.idleCount = this.idleCount + 1;
-            R = JobManager.JOB_STATUS_IDLE;
+            R = Job.JOB_STATUS_IDLE;
         end
     end
 end
