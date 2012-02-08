@@ -22,7 +22,7 @@ mkdir $outputDir/$folderName
 cd $workingDirectory
 echo currentDirectory = "$(pwd)"
 echo "matlab -nodesktop -r "\""runOnOdin('$folderName','$codeRoot')"\"" "
-matlab -nodesktop -r "runOnOdin('$folderName','$codeRoot')" -logfile $logFile
+matlab -nodesktop -r "runOnOdin('$folderName','$codeRoot');quit;" -logfile $logFile
 cd $startDirectory
 
 #echo qsub -N $runName -wd $codeRoot/Experiments -q all.q -b y -o $outputFile -e $errorFile "matlab -nodesktop -r "\""runOnOdin('$folderName','$codeRoot')"\"" -logfile $logFile"
