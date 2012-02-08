@@ -6,7 +6,7 @@ methods (Static)
     
     %% scheduleJob
     
-    function scheduleJob(fileFullPath, functionName, outputProperties)
+    function job = scheduleJob(fileFullPath, functionName, outputProperties)
         
         JobManager.signalJobIsStarting( fileFullPath );
         
@@ -23,13 +23,21 @@ methods (Static)
                    outputFile ' -e ' errorFile ' "matlab -nodesktop -r "\""' functionName '(''' ...
                    fileFullPath ''',''' codeRoot ''')"\"" -logfile ' logFile '"' ];
         disp(['command = "' command '"']);
-        [status, result] = system(command);
+        [status, submitResult] = system(command);
         if status ~= 0
             disp(['Error scheduling async run. file: ' fileFullPath...
-                  ' statuc = ' num2str(status)]);
+                  ' status = ' num2str(status)]);
         end
-        disp(result);
+        disp(submitResult);
         pause(5);
+        
+        job = Job;
+        job.startCommand = command;
+        job.submitResult = submitResult;
+        job.fileFullPath = fileFullPath;
+        job.logFile = logFile;
+        job.lastLogFileSize = 0;
+        job.idleCount = 0;
     end
     
     %% finishedFileFullPath
@@ -84,25 +92,54 @@ methods (Static)
     
     %% waitForJobs
     
-    function waitForJobs( jobNamesCollection )
-        numJobs = length(jobNamesCollection);
+    function waitForJobs( jobsCollection )
         sleepIntervalInSeconds = 30;
-        for job_i=1:numJobs
-            jobFileFullPath = jobNamesCollection{job_i};
-            wait = 1;
-            while wait
-                if JobManager.isJobFinished(jobFileFullPath)
-                    wait = 0;
-                    [~, fileName, ~] = fileparts(jobFileFullPath);
-                    disp(['job ' fileName ' has finished']);
-                else
-                   pause(sleepIntervalInSeconds) 
+        idleTimeoutInSeconds = 300; % 5 minutes 
+        idleTimeout = idleTimeoutInSeconds / sleepIntervalInSeconds;
+        while ~isempty( jobsColletion )
+            numJobs = length(jobsCollection);
+            for job_i=1:numJobs
+                job = jobsCollection(job_i);
+                jobStatus = job.checkJobStatus();
+                if jobStatus == JobManager.JOB_STATUS_FINISHED
+                    jobsCollection(job_i) = [];
+                elseif jobStatus == JobManager.JOB_STATUS_IDLE && ...
+                       job.idleCount > idleTimeout
+                    JobManager.restartJob( job );
                 end
             end
+            pause(sleepIntervalInSeconds);
         end
+    end  
+    
+    %% restartJob
+    
+    function restartJob(job)
+        JobManager.deleteCommand(job);
+        disp(['restart command = "' job.startCommand '"']);
+        [status, result] = system(job.startCommand);
+        if status ~= 0
+            disp(['Error restarting job run. file: ' job.name()...
+                  ' status = ' num2str(status)]);
+        end
+        disp(result);
     end
     
+    %% deleteJob
+    
+    function deleteJob(job)
+        id = job.jobID();
+        deleteCommand = ['qdel ' num2str(id) ];
+        disp(['deleteCommand = "' deleteCommand '"']);
+        [status, result] = system(deleteCommand);
+        if status ~= 0
+            disp(['Error deleting job run. file: ' job.name()...
+                  ' status = ' num2str(status)]);
+        end
+        disp(result);
+    end
+
 end
     
-end
+end % classdef
 

@@ -86,6 +86,7 @@ methods (Static)
         disp('******** Running Evaluations ********');
         progressParams.numEvaluationRuns = numEvaluationRuns;
         evaluationJobNames = [];
+        evaluationJobs = [];
         for evaluation_run_i=1:numEvaluationRuns
             progressParams.evaluation_run_i = evaluation_run_i;
             ExperimentRunFactory.displayEvaluationProgress(progressParams);
@@ -94,11 +95,12 @@ methods (Static)
             
             singleRunFactory = singleEvaluation.createSingleRunFactory();
             fileName =  ExperimentRunFactory.evaluationSingleRunName(progressParams, outputProperties);
-            ExperimentRunFactory.runAndSaveSingleRun...
+            job = ExperimentRunFactory.runAndSaveSingleRun...
                 ( singleRunFactory, optimalParams, algorithmsToRun, fileName, outputProperties );
             evaluationJobNames = [evaluationJobNames; {fileName}]; %#ok<AGROW>
+            evaluationJobs = [evaluationJobs; job]; %#ok<AGROW>
         end
-        JobManager.waitForJobs(evaluationJobNames);
+        JobManager.waitForJobs(evaluationJobs);
         disp('all evaluation runs are finished');
         singleEvaluation.setEvaluationRunsJobNames(evaluationJobNames);
         R = evaluationJobNames;
@@ -139,8 +141,8 @@ methods (Static)
                fileFullPath = ExperimentRunFactory.evaluteOptimizationJobName( algorithmType, outputProperties );
                optimizeBy = evaluationParams.optimizeBy; %#ok<NASGU>
                save(fileFullPath, 'optimizationJobNames', 'algorithmType', 'optimizeBy');
-               JobManager.scheduleJob(fileFullPath, 'asyncEvaluateOptimizations', outputProperties)
-               JobManager.waitForJobs( {fileFullPath} );
+               job = JobManager.scheduleJob(fileFullPath, 'asyncEvaluateOptimizations', outputProperties)
+               JobManager.waitForJobs( job );
                optimal = JobManager.loadJobOutput(fileFullPath);
                % also print optimal value to main script output
                optimalString = Utilities.StructToStringConverter(optimal);
@@ -180,6 +182,7 @@ methods (Static)
         algorithmsToRun.setRun(algorithmType);
             
         optionsJobNames = [];
+        optionsJobs = [];
         for params_i=1:numOptions
             % Display progress string
             progressParams.params_i = params_i;
@@ -191,13 +194,14 @@ methods (Static)
             fileName = ExperimentRunFactory.optimizationSingleRunName...
                     (progressParams, algorithmType, outputProperties);
 
-            ExperimentRunFactory.runAndSaveSingleRun...
+            job = ExperimentRunFactory.runAndSaveSingleRun...
                 ( singleRunFactory, singleOption, algorithmsToRun, fileName, outputProperties );
 
             optionsJobNames = [optionsJobNames;{fileName}]; %#ok<AGROW>
+            optionsJobs = [optionsJobs; job]; %#ok<AGROW>
         end
         
-        JobManager.waitForJobs( optionsJobNames );
+        JobManager.waitForJobs( optionsJobs );
         disp('all options collection runs are finished');
         
         toc(ticID);
@@ -206,14 +210,14 @@ methods (Static)
     
     %% runAndSaveSingleRun
     
-    function runAndSaveSingleRun( singleRunFactory, singleOption, ...
+    function job = runAndSaveSingleRun( singleRunFactory, singleOption, ...
                                   algorithmsToRun, fileName, outputProperties )
         if ParamsManager.ASYNC_RUNS == 0
             singleRun = singleRunFactory.run(singleOption, algorithmsToRun );
             JobManager.saveJobOutput( singleRun, fileName);
             JobManager.signalJobIsFinished( fileName );
         else
-            singleRunFactory.scheduleAsyncRun...
+            job = singleRunFactory.scheduleAsyncRun...
                 (singleOption, algorithmsToRun, ...
                  fileName, outputProperties );
         end
