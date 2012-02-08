@@ -82,7 +82,7 @@ classdef MAD < handle
                     break;
                 end
                 
-                if ( mod(iter_i, 5) == 0 )
+                if ( mod(iter_i, 2) == 0 )
                     disp([  '#Iteration = '      num2str(iter_i)...
                             ' iteration_diff = ' num2str(iteration_diff)]);
                 end

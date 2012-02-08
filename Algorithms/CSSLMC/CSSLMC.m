@@ -27,7 +27,7 @@ methods (Access=public)
         % note iteration index starts from 2
         for iter_i = 2:num_iterations
 
-            if ( mod(iter_i, 5) == 0 )
+            if ( mod(iter_i, 2) == 0 )
                 disp([ '#Iteration = ' num2str(iter_i)...
                        ' iteration_diff = ' num2str(iteration_diff)]);
             end
