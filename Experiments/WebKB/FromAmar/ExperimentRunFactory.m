@@ -156,7 +156,7 @@ methods (Static)
                 singleRunFactory.scheduleAsyncRun...
                     (singleOption, algorithmsToRun, ...
                      fileName, outputProperties );
-                 waitingForRuns = [waitingForRuns;{fileName}];
+                waitingForRuns = [waitingForRuns;{fileName}];
             end
         end
         
@@ -167,8 +167,9 @@ methods (Static)
                 finishedRunFileName = [optimizationRunFileName '.finished'];
                 outputRunFileName = [optimizationRunFileName '.out.mat'];
                 wait = 1;
+                EXIST_RESURN_STATUS_FILE_EXITS = 2;
                 while wait
-                    if exist(finishedRunFileName, 2)
+                    if EXIST_RESURN_STATUS_FILE_EXITS == exist(finishedRunFileName, 'file')
                         wait = 0;
                         data = load(outputRunFileName);
                         allRuns = [allRuns data.singleRun]; %#ok<AGROW>
@@ -177,6 +178,7 @@ methods (Static)
                     end
                 end
             end
+            disp('all optimization runs have finished');
         end
         
         toc(ticID);
