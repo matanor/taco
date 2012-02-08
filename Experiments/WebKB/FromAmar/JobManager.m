@@ -101,9 +101,9 @@ methods (Static)
             for job_i=1:numJobs
                 job = jobsCollection(job_i);
                 jobStatus = job.checkJobStatus();
-                if jobStatus == JobManager.JOB_STATUS_FINISHED
+                if jobStatus == Job.JOB_STATUS_FINISHED
                     jobsCollection(job_i) = [];
-                elseif jobStatus == JobManager.JOB_STATUS_IDLE && ...
+                elseif jobStatus == Job.JOB_STATUS_IDLE && ...
                        job.idleCount > idleTimeout
                     JobManager.restartJob( job );
                 end
