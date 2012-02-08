@@ -18,6 +18,9 @@ methods (Static)
         algorithmsToRun.setRun(SingleRun.MAD);
         algorithmsToRun.setRun(SingleRun.CSSLMC);
         algorithmsToRun.setRun(SingleRun.CSSLMCF);
+        
+        %% make output folder
+        mkdir(outputProperties.resultsDir,outputProperties.folderName);
 
         %% allocate a multiple runs object per each parameter combination
         %  and run all experiments with all the parameter combinations
@@ -28,12 +31,6 @@ methods (Static)
         %% Define which result figures to display
         outputProperties.showSingleRuns = 1;
         outputProperties.showAccumulativeLoss = 0;
-
-        %%
-%         resultsDir = 'C:\technion\theses\Experiments\WebKB\results\';
-        mkdir(outputProperties.resultsDir,outputProperties.folderName);
-%         outputProperties.resultDir = resultsDir;
-%         outputProperties.folderName = folderName;
 
         %%
         RunMain.plotAllSingleResults(experimentRuns, outputProperties);

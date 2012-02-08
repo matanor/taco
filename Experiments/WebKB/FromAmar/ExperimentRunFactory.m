@@ -65,27 +65,42 @@ methods (Static)
                 end
 
                 % run evaluations
-                
-                disp('******** Running Evaluations ********');
 
-                progressParams.numEvaluationRuns = evaluationParams.numEvaluationRuns;
-                allEvaluationRuns = MultipleRuns;
-                for evaluation_run_i=1:evaluationParams.numEvaluationRuns
-                    progressParams.evaluation_run_i = evaluation_run_i;
-                    ExperimentRunFactory.displayEvaluationProgress(progressParams);
-                    % this will create a test split
-                    singleEvaluation.createTrunsductionSplit();
-                    singleRunFactory = singleEvaluation.createSingleRunFactory();
-                    singleRun = singleRunFactory.run(optimalParams, algorithmsToRun );
-                    allEvaluationRuns.addRun(singleRun);
-                end
-                singleEvaluation.setEvaluationRuns( allEvaluationRuns );
+                evaluationJobNames = ExperimentRunFactory.runEvaluations...
+                    ( singleEvaluation, progressParams, optimalParams, ...
+                      evaluationParams.numEvaluationRuns, algorithmsToRun, outputProperties);
+
+                singleEvaluation.setEvaluationRunsJobNames( evaluationJobNames );
                 experimentRun.addParameterRun( singleEvaluation );
             end
             experimentCollection = [experimentCollection; experimentRun ]; %#ok<AGROW>
         end
     
     R = experimentCollection;
+    end
+    
+    %% runEvaluations
+    
+    function R = runEvaluations(singleEvaluation, progressParams, optimalParams, ...
+                                numEvaluationRuns, algorithmsToRun, outputProperties)
+        disp('******** Running Evaluations ********');
+        progressParams.numEvaluationRuns = numEvaluationRuns;
+        evaluationJobNames = [];
+        for evaluation_run_i=1:numEvaluationRuns
+            progressParams.evaluation_run_i = evaluation_run_i;
+            ExperimentRunFactory.displayEvaluationProgress(progressParams);
+            % this will create a test split
+            singleEvaluation.createTrunsductionSplit();
+            
+            singleRunFactory = singleEvaluation.createSingleRunFactory();
+            fileName =  ExperimentRunFactory.evaluationSingleRunName(progressParams, outputProperties);
+            ExperimentRunFactory.runAndSaveSingleRun...
+                ( singleRunFactory, optimalParams, algorithmsToRun, fileName, outputProperties );
+            evaluationJobNames = [evaluationJobNames; {fileName}]; %#ok<AGROW>
+        end
+        JobManager.waitForJobs(evaluationJobNames);
+        disp('all evaluation runs are finished');
+        R = evaluationJobNames;
     end
     
     %% optimizeParameters
@@ -116,20 +131,22 @@ methods (Static)
                     (singleRunFactory, optimizationParams_allOptions, ...
                      progressParams  , algorithmType, outputProperties);
             if ParamsManager.ASYNC_RUNS == 0     
-               optimal = ExperimentRunFactory.evaluateAndFindOptimalParams(optimizationJobNames);
+               optimal = ExperimentRunFactory.evaluateAndFindOptimalParams...
+                   (optimizationJobNames, algorithmType, evaluationParams.optimizeBy);
             else
-                fileFullPath = ExperimentRunFactory.evaluteOptimizationJobName( algorithmType, outputProperties );
-                save(fileFullPath, 'optimizationJobNames');
-                JobManager.scheduleJob(fileFullPath, 'asyncEvaluateOptimization', outputProperties)
-                JobManager.waitForJobs( {fileFullPath} );
-                optimal = JobManager.loadJobOutput(fileFullPath);
+               fileFullPath = ExperimentRunFactory.evaluteOptimizationJobName( algorithmType, outputProperties );
+               optimizeBy = evaluationParams.optimizeBy; %#ok<NASGU>
+               save(fileFullPath, 'optimizationJobNames', 'algorithmType', 'optimizeBy');
+               JobManager.scheduleJob(fileFullPath, 'asyncEvaluateOptimization', outputProperties)
+               JobManager.waitForJobs( {fileFullPath} );
+               optimal = JobManager.loadJobOutput(fileFullPath);
             end
         end;
     end
     
     %% evaluateAndFindOptimalParams
     
-    function optimal = evaluateAndFindOptimalParams(optimizationJobNames, algorithmType)
+    function optimal = evaluateAndFindOptimalParams(optimizationJobNames, algorithmType, optimizeBy)
         numOptimizationRuns = length(optimizationJobNames);
         optimizationRuns = [];
         for optimization_run_i=1:numOptimizationRuns
@@ -137,12 +154,10 @@ methods (Static)
             optimizationRuns = [optimizationRuns; singleRun]; %#ok<AGROW>
         end
         
-        singleEvaluation.setParameterTuningRuns( algorithmType, optimizationRuns );
-        optimal = singleEvaluation.optimalParams(algorithmType);
+        optimal = EvaluationRun.calcOptimalParams(optimizationRuns, algorithmType, optimizeBy);
         optimalString = Utilities.StructToStringConverter(optimal);
         algorithmName = showSingleRunResults.AlgorithmTypeToStringConverter( algorithmType );
-        disp(['algorithm = ' algorithmName ' optimal: ' ...
-                   optimalString]);
+        disp(['algorithm = ' algorithmName ' optimal: ' optimalString]);
     end
     
     %% runOptionsCollection
@@ -169,15 +184,9 @@ methods (Static)
             fileName = ExperimentRunFactory.optimizationSingleRunName...
                     (progressParams, algorithmType, outputProperties);
 
-            if ParamsManager.ASYNC_RUNS == 0
-                singleRun = singleRunFactory.run(singleOption, algorithmsToRun );
-                JobManager.saveJobData( singleRun, fileName);
-                JobManager.signalJobIsFinished( fileName );
-            else
-                singleRunFactory.scheduleAsyncRun...
-                    (singleOption, algorithmsToRun, ...
-                     fileName, outputProperties );
-            end
+            ExperimentRunFactory.runAndSaveSingleRun...
+                ( singleRunFactory, singleOption, algorithmsToRun, fileName, outputProperties );
+
             optimizationJobNames = [optimizationJobNames;{fileName}]; %#ok<AGROW>
         end
         
@@ -186,6 +195,21 @@ methods (Static)
         
         toc(ticID);
         R = optimizationJobNames;
+    end
+    
+    %% runAndSaveSingleRun
+    
+    function runAndSaveSingleRun( singleRunFactory, singleOption, ...
+                                  algorithmsToRun, fileName, outputProperties )
+        if ParamsManager.ASYNC_RUNS == 0
+            singleRun = singleRunFactory.run(singleOption, algorithmsToRun );
+            JobManager.saveJobOutput( singleRun, fileName);
+            JobManager.signalJobIsFinished( fileName );
+        else
+            singleRunFactory.scheduleAsyncRun...
+                (singleOption, algorithmsToRun, ...
+                 fileName, outputProperties );
+        end
     end
     
     %% evaluteOptimizationJobName

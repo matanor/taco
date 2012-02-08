@@ -6,7 +6,9 @@ classdef EvaluationRun < handle
         m_constructionParams;
         m_graph;
         m_parameterTuningRuns;
+        m_parameterTuningRunsJobNames;
         m_evaluationRuns;
+        m_evaluationRunsJobNames;
         m_evaluationParams;
     end
     
@@ -17,10 +19,10 @@ methods (Access = public)
         this.m_evaluationParams = value;
     end
     
-    %% setParameterTuningRuns
+    %% setParameterTuningRunsJobNames
     
-    function setParameterTuningRuns(this, algorithmType, value)
-        this.m_parameterTuningRuns{algorithmType} = value;
+    function setParameterTuningRunsJobNames(this, algorithmType, value)
+        this.m_parameterTuningRunsJobNames{algorithmType} = value;
     end
     
     %% numOptimizationRuns
@@ -36,10 +38,10 @@ methods (Access = public)
         R = allOptimizationRuns(index);
     end
     
-    %% setEvaluationRuns
+    %% setEvaluationRunsJobNames
     
-    function setEvaluationRuns(this, value)
-        this.m_evaluationRuns = value;
+    function setEvaluationRunsJobNames(this, value)
+        this.m_evaluationRunsJobNames = value;
     end
     
     %% numEvaluationRuns
@@ -69,32 +71,12 @@ methods (Access = public)
     
     %% optimalParams
     
-    function R = optimalParams(this, algorithmType)
-        tuneRuns = this.m_parameterTuningRuns{algorithmType};
-        numTuningRuns = length(tuneRuns);
-        scores = zeros(numTuningRuns ,1);
-        for tuning_run_i=1:numTuningRuns 
-            scores(tuning_run_i) = this.evaluateRun...
-                ( tuneRuns( tuning_run_i ), algorithmType );
-        end
-        [~,bestRunIndex] = max(scores);
-        R = tuneRuns(bestRunIndex).getParams( algorithmType );
-    end
-    
-    %% evaluateRun
-    
-    function R = evaluateRun(this, singleRun, algorithmType)
-        params = singleRun.getParams(algorithmType);
-        paramsString = Utilities.StructToStringConverter(params);
-        disp(paramsString);
-        if (this.m_evaluationParams.optimizeBy == ParamsManager.OPTIMIZE_BY_ACCURACY) 
-            R = singleRun.accuracy_testSet(algorithmType);
-            disp(['Accuracy = ' num2str(R)]);
-        else
-            R = singleRun.calcAveragePRBEP_testSet(algorithmType);
-        end
-    end
-    
+%     function R = optimalParams(this, algorithmType)
+%         R = EvaluationRun.calcOptimalParams...
+%             (   this.m_parameterTuningRuns{algorithmType}, ...
+%                 algorithmType, this.m_evaluationParams.optimizeBy);
+%     end
+
     %% createSingleRunFactory
     
     function singleRunFactory = createSingleRunFactory(this)
@@ -139,6 +121,35 @@ methods (Access = public)
         %[graph labeledVertices] = ...
         %    ExperimentRun.removeVertices...
         %        ( graph, labeledVertices, trainSetUnlabeled );
+    end
+end
+
+methods (Static)
+    %% calcOptimalParams
+    
+    function R = calcOptimalParams(tuneRuns, algorithmType, optimizeBy)
+        numTuningRuns = length(tuneRuns);
+        scores = zeros(numTuningRuns ,1);
+        for tuning_run_i=1:numTuningRuns 
+            scores(tuning_run_i) = EvaluationRun.doEvaluateRun...
+                ( tuneRuns( tuning_run_i ), algorithmType, optimizeBy );
+        end
+        [~,bestRunIndex] = max(scores);
+        R = tuneRuns(bestRunIndex).getParams( algorithmType );
+    end
+    
+    %% doEvaluateRun
+    
+    function R = doEvaluateRun(singleRun, algorithmType, optimizeBy)
+        params = singleRun.getParams(algorithmType);
+        paramsString = Utilities.StructToStringConverter(params);
+        disp(paramsString);
+        if (optimizeBy == ParamsManager.OPTIMIZE_BY_ACCURACY) 
+            R = singleRun.accuracy_testSet(algorithmType);
+            disp(['Accuracy = ' num2str(R)]);
+        else
+            R = singleRun.calcAveragePRBEP_testSet(algorithmType);
+        end
     end
 end
     

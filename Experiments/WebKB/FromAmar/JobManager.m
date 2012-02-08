@@ -85,7 +85,7 @@ methods (Static)
     %% waitForJobs
     
     function waitForJobs( jobNamesCollection )
-        numJobs = jobNamesCollection;
+        numJobs = length(jobNamesCollection);
         sleepIntervalInSeconds = 30;
         for job_i=1:numJobs
             jobFileFullPath = jobNamesCollection{job_i};
@@ -93,7 +93,7 @@ methods (Static)
             while wait
                 if JobManager.isJobFinished(jobFileFullPath)
                     wait = 0;
-                    [~, fileName, ~] = fileparts(fileFullPath);
+                    [~, fileName, ~] = fileparts(jobFileFullPath);
                     disp(['job ' fileName ' has finished']);
                 else
                    pause(sleepIntervalInSeconds) 
