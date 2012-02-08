@@ -100,6 +100,7 @@ methods (Static)
         end
         JobManager.waitForJobs(evaluationJobNames);
         disp('all evaluation runs are finished');
+        singleEvaluation.setEvaluationRunsJobNames(evaluationJobNames);
         R = evaluationJobNames;
     end
     
@@ -130,6 +131,7 @@ methods (Static)
             optimizationJobNames = ExperimentRunFactory.runOptionsCollection...
                     (singleRunFactory, optimizationParams_allOptions, ...
                      progressParams  , algorithmType, outputProperties);
+            singleEvaluation.setParameterTuningRunsJobNames(algorithmType, optimizationJobNames);     
             if ParamsManager.ASYNC_RUNS == 0     
                optimal = ExperimentRunFactory.evaluateAndFindOptimalParams...
                    (optimizationJobNames, algorithmType, evaluationParams.optimizeBy);
@@ -172,7 +174,7 @@ methods (Static)
         algorithmsToRun = AlgorithmsCollection;
         algorithmsToRun.setRun(algorithmType);
             
-        optimizationJobNames = [];
+        optionsJobNames = [];
         for params_i=1:numOptions
             % Display progress string
             progressParams.params_i = params_i;
@@ -187,14 +189,14 @@ methods (Static)
             ExperimentRunFactory.runAndSaveSingleRun...
                 ( singleRunFactory, singleOption, algorithmsToRun, fileName, outputProperties );
 
-            optimizationJobNames = [optimizationJobNames;{fileName}]; %#ok<AGROW>
+            optionsJobNames = [optionsJobNames;{fileName}]; %#ok<AGROW>
         end
         
-        JobManager.waitForJobs( optimizationJobNames );
+        JobManager.waitForJobs( optionsJobNames );
         disp('all options collection runs are finished');
         
         toc(ticID);
-        R = optimizationJobNames;
+        R = optionsJobNames;
     end
     
     %% runAndSaveSingleRun

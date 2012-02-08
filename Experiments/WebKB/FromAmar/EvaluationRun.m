@@ -5,9 +5,7 @@ classdef EvaluationRun < handle
     properties (Access = public)
         m_constructionParams;
         m_graph;
-        m_parameterTuningRuns;
         m_parameterTuningRunsJobNames;
-        m_evaluationRuns;
         m_evaluationRunsJobNames;
         m_evaluationParams;
     end
@@ -28,14 +26,14 @@ methods (Access = public)
     %% numOptimizationRuns
     
     function R = numOptimizationRuns(this, algorithmType)
-        R = length(this.m_parameterTuningRuns{algorithmType});
+        R = length(this.m_parameterTuningRunsJobNames{algorithmType});
     end
     
-    %% getOptimizationRun
+    %% getOptimizationRunJobName
     
-    function R = getOptimizationRun(this, algorithmType, index)
-        allOptimizationRuns = this.m_parameterTuningRuns{algorithmType};
-        R = allOptimizationRuns(index);
+    function R = getOptimizationRunJobName(this, algorithmType, index)
+        allOptimizationRunsJobNames = this.m_parameterTuningRunsJobNames{algorithmType};
+        R = allOptimizationRunsJobNames{index};
     end
     
     %% setEvaluationRunsJobNames
@@ -47,35 +45,27 @@ methods (Access = public)
     %% numEvaluationRuns
     
     function R = numEvaluationRuns(this)
-        R = length(this.m_evaluationRuns);
+        R = length(this.m_evaluationRunsJobNames);
     end
     
-    %% getEvaluationRun
+    %% getEvaluationRunJobNames
     
-    function R = getEvaluationRun(this)
-        R = this.m_evaluationRuns;
+    function R = getEvaluationRunJobNames(this, index)
+        R = this.m_evaluationRunsJobNames{index};
     end
     
     %% algorithmsRange
     
     function R = algorithmsRange(this)
         R = [];
-        maxAlgorithmID = length(this.m_parameterTuningRuns);
+        maxAlgorithmID = length(this.m_parameterTuningRunsJobNames);
         for algorithm_i=1:SingleRun.numAvailableAlgorithms()
             if algorithm_i <= maxAlgorithmID && ...
-               ~isempty(this.m_parameterTuningRuns{algorithm_i})
+               ~isempty(this.m_parameterTuningRunsJobNames{algorithm_i})
                 R = [R algorithm_i]; %#ok<AGROW>
             end
         end
     end
-    
-    %% optimalParams
-    
-%     function R = optimalParams(this, algorithmType)
-%         R = EvaluationRun.calcOptimalParams...
-%             (   this.m_parameterTuningRuns{algorithmType}, ...
-%                 algorithmType, this.m_evaluationParams.optimizeBy);
-%     end
 
     %% createSingleRunFactory
     

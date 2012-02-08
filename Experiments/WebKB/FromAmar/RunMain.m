@@ -33,10 +33,16 @@ methods (Static)
         outputProperties.showAccumulativeLoss = 0;
 
         %%
-        RunMain.plotAllSingleResults(experimentRuns, outputProperties);
-        
-        %%
-        RunMain.plotEvaluationSummary(experimentRuns, outputProperties);
+        if ParamsManager.ASYNC_RUNS == 0     
+           RunMain.plotResults(experimentRuns, outputProperties);
+        else
+           experimentRuns = RunMain.clearGraphs( experimentRuns ); %#ok<NASGU>
+           fileFullPath = [outputProperties.resultsDir outputProperties.folderName ...
+                           '/PlotResultsJobInput.mat'];
+           save(fileFullPath, 'experimentRuns', 'outputProperties');
+           JobManager.scheduleJob(fileFullPath, 'asyncPlotResults', outputProperties)
+           JobManager.waitForJobs( {fileFullPath} );
+        end
 
         save( [ outputProperties.resultsDir outputProperties.folderName ...
                 '/experimentRuns'],'experimentRuns');
@@ -128,6 +134,31 @@ methods (Static)
         %  num mistakes / 100 vs num mistakes / 500
     end
     
+    %% clearGraphs
+    
+    function experimentRuns = clearGraphs(experimentRuns)
+        
+        numExperiments = length(experimentRuns);
+        experimentRange = 1:numExperiments;
+
+        for experimentID = experimentRange
+            experimentRun = experimentRuns(experimentID);
+            experimentRun.m_graph = GraphLoader.clearWeights( experimentRun.m_graph );
+            numParameterRuns = experimentRun.numParameterRuns();
+            for parameter_run_i=1:numParameterRuns
+                parameterRun = experimentRun.getParameterRun(parameter_run_i);
+                parameterRun.m_graph = GraphLoader.clearWeights( parameterRun.m_graph );
+            end
+        end
+    end
+    
+    %% plotResults
+    
+    function plotResults(experimentRuns, outputProperties)
+        RunMain.plotAllSingleResults (experimentRuns, outputProperties);
+        RunMain.plotEvaluationSummary(experimentRuns, outputProperties);
+    end
+    
     %% plotAllSingleResults
     
     function plotAllSingleResults(experimentRuns, outputProperties)
@@ -152,17 +183,19 @@ methods (Static)
                     for optimization_run_i=1:numOptimizationRuns
                         disp(['optimization run = ' num2str(optimization_run_i) ...
                               ' of ' num2str(numOptimizationRuns)]);
-                        optimizationRun = parameterRun.getOptimizationRun(algorithm_i, optimization_run_i);
+                        optimizationRunJobName = parameterRun.getOptimizationRunJobName(algorithm_i, optimization_run_i);
+                        optimizationRun = JobManager.loadJobOutput(optimizationRunJobName);
                         outputProperties.description = ...
                             ['Optimization.' num2str(parameter_run_i) '.' num2str(optimization_run_i)];
                         showSingleRunResults.show( optimizationRun, outputProperties );
                     end
                 end
-                allEvaluationRuns = parameterRun.getEvaluationRun();
-                for evaluation_run_i=1:allEvaluationRuns.num_runs()
+                numEvaluationRuns = parameterRun.numEvaluationRuns();
+                for evaluation_run_i=1:numEvaluationRuns
                     disp(['evaluation run = ' num2str(evaluation_run_i) ...
-                           ' of ' num2str(allEvaluationRuns.num_runs())]);
-                    evaluation_run = allEvaluationRuns.getRun(evaluation_run_i);
+                           ' of ' num2str(numEvaluationRuns)]);
+                    evaluationRunJobName = parameterRun.getEvaluationRunJobNames(evaluation_run_i);
+                    evaluation_run = JobManager.loadJobOutput(evaluationRunJobName);
                     outputProperties.description = ...
                         ['Evaluation.' num2str(parameter_run_i) '.' num2str(evaluation_run_i)];
                     showSingleRunResults.show( evaluation_run, outputProperties );
@@ -186,8 +219,15 @@ methods (Static)
             for parameter_run_i=1:numParameterRuns
                 disp(['parameters run index = ' num2str(parameter_run_i) ]);
                 parameterRun = experimentRun.getParameterRun(parameter_run_i);
+
+                allEvaluationRuns = MultipleRuns;
+                numEvaluationRuns = parameterRun.numEvaluationRuns();
+                for evaluation_run_i=1:numEvaluationRuns
+                    evaluationRunJobName = parameterRun.getEvaluationRunJobNames(evaluation_run_i);
+                    evaluation_run = JobManager.loadJobOutput(evaluationRunJobName);
+                    allEvaluationRuns.addRun(evaluation_run);
+                end
                 
-                allEvaluationRuns = parameterRun.getEvaluationRun();
                 showMultipleExperimentsResults.show...
                      (allEvaluationRuns, outputProperties );
             end

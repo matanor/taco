@@ -24,6 +24,14 @@ methods (Static)
         end
         outGraph = graph;
     end
+
+    %% clearWeights
+    
+    function graph = clearWeights(graph)
+        graph.weights = [];
+        graph.w_nn = [];
+        graph.w_nn_symetric = [];
+    end
     
     %% constructGraph
     
