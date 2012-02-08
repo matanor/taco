@@ -26,7 +26,7 @@ methods (Access = public)
         % run qsub command
         outputDir   = outputProperties.resultsDir;
         folderName  = outputProperties.folderName;
-        runName     = 'CSSLMC';
+        runName     = fileName;
         codeRoot    = outputProperties.codeRoot;
         outputFile  = [outputDir folderName '/' fileName '.output.txt'];
         errorFile   = [outputDir folderName '/' fileName '.error.txt'];
@@ -41,6 +41,7 @@ methods (Access = public)
                   ' statuc = ' num2str(status)]);
         end
         disp(result);
+        pause(5);
     end
     
     function singleRun = run(this, algorithmParams, algorithmsToRun)
