@@ -142,7 +142,12 @@ methods (Static)
                JobManager.scheduleJob(fileFullPath, 'asyncEvaluateOptimizations', outputProperties)
                JobManager.waitForJobs( {fileFullPath} );
                optimal = JobManager.loadJobOutput(fileFullPath);
+               % also print optimal value to main script output
+               optimalString = Utilities.StructToStringConverter(optimal);
+               algorithmName = AlgorithmTypeToStringConverter.convert( algorithmType );
+               disp(['algorithm = ' algorithmName ' optimal: ' optimalString]);
             end
+
         end;
     end
     
