@@ -147,12 +147,14 @@ methods (Static)
             clear singleOption;
             singleOption{algorithmType} = optionsCollection(params_i); %#ok<AGROW>
 
+            fileName = ExperimentRunFactory.optimizationSingleRunName...
+                    (progressParams, algorithmType, outputProperties);
+
             if ParamsManager.ASYNC_RUNS == 0
                 singleRun = singleRunFactory.run(singleOption, algorithmsToRun );
-                allRuns = [allRuns singleRun]; %#ok<AGROW>
+                JobManager.saveJobData( singleRun, fileName);
+                %allRuns = [allRuns singleRun]; %#ok<AGROW>
             else
-                fileName = ExperimentRunFactory.optimizationSingleRunName...
-                    (progressParams, algorithmType, outputProperties);
                 singleRunFactory.scheduleAsyncRun...
                     (singleOption, algorithmsToRun, ...
                      fileName, outputProperties );
@@ -164,15 +166,12 @@ methods (Static)
             sleepIntervalInSeconds = 30;
             for param_i=1:numOptions
                 optimizationRunFileName = waitingForRuns{param_i};
-                finishedRunFileName = [optimizationRunFileName '.finished'];
-                outputRunFileName = [optimizationRunFileName '.out.mat'];
                 wait = 1;
-                EXIST_RESURN_STATUS_FILE_EXITS = 2;
                 while wait
-                    if EXIST_RESURN_STATUS_FILE_EXITS == exist(finishedRunFileName, 'file')
+                    if JobManager.isJobFinished(optimizationRunFileName)
                         wait = 0;
-                        data = load(outputRunFileName);
-                        allRuns = [allRuns data.singleRun]; %#ok<AGROW>
+                        singleRun = JobManager.loadJobOutput( optimizationRunFileName );
+                        allRuns = [allRuns singleRun]; %#ok<AGROW>
                     else
                        pause(sleepIntervalInSeconds) 
                     end

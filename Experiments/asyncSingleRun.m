@@ -1,16 +1,16 @@
-function asyncSingleRun(fileName, codeRoot)
+function asyncSingleRun(fileFullPath, codeRoot)
 %RUNONODIN Summary of this function goes here
 %   Detailed explanation goes here
     disp('asyncSingleRun');
     Configurations.clearEverything();
 
-    disp(['fileName = ' fileName]);
+    disp(['fileFullPath = ' fileFullPath]);
     disp(['codeRoot = ' codeRoot]);
     
     codeFolders = genpath(codeRoot);
     addpath(codeFolders);
 
-    runData = load(fileName);
+    runData = load(fileFullPath);
     singleRunFactory = runData.this;
     graph = GraphLoader.constructGraph( singleRunFactory.m_constructionParams );
     singleRunFactory.m_graph.weights        = graph.weights;
@@ -21,9 +21,6 @@ function asyncSingleRun(fileName, codeRoot)
     
     singleRun = singleRunFactory.run( runData.algorithmParams, runData.algorithmsToRun );
     
-    outputFileName      = [fileName '.out.mat'];
-    finishedFileName    = [fileName '.finished'];
-    dummy = 1;
-    save(outputFileName, 'singleRun');
-    save(finishedFileName, 'dummy')
+    JobManager.saveJobOutput( singleRun, fileFullPath);
+    JobManager.signalJobIsFinished( fileFullPath );
 end

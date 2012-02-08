@@ -17,9 +17,7 @@ methods (Access = public)
         this.m_graph.weights = []; % This will be reconstructed
         save(fileFullPath,'this','algorithmParams','algorithmsToRun');
         
-        % delete the finished file flag, id already exits.
-        finishedFileName    = [fileFullPath '.finished'];
-        delete(finishedFileName);
+        JonManager.signalJobIsStarting( fileFullPath );
         
         [~, fileName, ~] = fileparts(fileFullPath);
         
