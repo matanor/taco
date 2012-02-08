@@ -3,7 +3,7 @@ classdef Job < handle
     %   Detailed explanation goes here
     
 properties
-    command;
+    startCommand;
     submitResult ;
     fileFullPath;
     logFile;
@@ -29,7 +29,7 @@ methods (Access = public)
     
     function R = jobID( this )
         % e.g. result = 'Your job 782218 ("Evaluation.1.5") has been submitted';
-        items = textscan(this.result, '%s %s %d %s %s %s %s');
+        items = textscan(this.submitResult, '%s %s %d %s %s %s %s');
         R = items{3};
     end
     
