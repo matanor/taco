@@ -158,7 +158,7 @@ methods (Static)
         
         optimal = EvaluationRun.calcOptimalParams(optimizationRuns, algorithmType, optimizeBy);
         optimalString = Utilities.StructToStringConverter(optimal);
-        algorithmName = showSingleRunResults.AlgorithmTypeToStringConverter( algorithmType );
+        algorithmName = AlgorithmTypeToStringConverter.convert( algorithmType );
         disp(['algorithm = ' algorithmName ' optimal: ' optimalString]);
     end
     
@@ -217,7 +217,7 @@ methods (Static)
     %% evaluteOptimizationJobName
     
     function r = evaluteOptimizationJobName( algorithmType, outputProperties )
-        algorithmName = showSingleRunResults.AlgorithmTypeToStringConverter(algorithmType);
+        algorithmName = AlgorithmTypeToStringConverter.convert(algorithmType);
         r = [outputProperties.resultsDir outputProperties.folderName ...
              '/EvaluateOptimization.' algorithmName '.mat'];
     end
@@ -235,7 +235,7 @@ methods (Static)
     %% optimizationSingleRunName
     
     function r = optimizationSingleRunName(progressParams, algorithmType, outputProperties)
-        algorithmName = showSingleRunResults.AlgorithmTypeToStringConverter(algorithmType);
+        algorithmName = AlgorithmTypeToStringConverter.convert(algorithmType);
         r = [outputProperties.resultsDir outputProperties.folderName ...
             '/Optimization.' num2str(progressParams.evaluation_i) '.' ...
              num2str(progressParams.params_i) '.' algorithmName '.mat'];

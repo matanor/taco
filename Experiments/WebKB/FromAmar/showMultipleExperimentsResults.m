@@ -60,7 +60,7 @@ methods (Static)
     
     function showAveragePrecisionAndRecall( multipleRuns, algorithmType)
         if multipleRuns.isResultsAvailable( algorithmType )
-            algorithmName = showSingleRunResults.AlgorithmTypeToStringConverter( algorithmType );
+            algorithmName = AlgorithmTypeToStringConverter.convert( algorithmType );
             disp(['algorithmName =  ' algorithmName]);
             [averagePrbep estimatedAveragePRBEP] = ...
                 multipleRuns.calcAveragePrecisionAndRecall(algorithmType);

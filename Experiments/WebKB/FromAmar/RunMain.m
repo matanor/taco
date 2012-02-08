@@ -178,7 +178,7 @@ methods (Static)
                       ' of ' num2str(numParameterRuns)]);
                 parameterRun = experimentRun.getParameterRun(parameter_run_i);
                 for algorithm_i = parameterRun.algorithmsRange()
-                    disp(['algorithm = ' showSingleRunResults.AlgorithmTypeToStringConverter(algorithm_i)]);
+                    disp(['algorithm = ' AlgorithmTypeToStringConverter.convert(algorithm_i)]);
                     numOptimizationRuns = parameterRun.numOptimizationRuns(algorithm_i);
                     for optimization_run_i=1:numOptimizationRuns
                         disp(['optimization run = ' num2str(optimization_run_i) ...

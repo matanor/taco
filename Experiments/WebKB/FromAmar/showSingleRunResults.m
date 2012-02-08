@@ -51,7 +51,7 @@ methods (Static)
         
         for algorithm_i = singleRun.availableResultsAlgorithmRange()
             outputProperties.algorithmName = ...
-                showSingleRunResults.AlgorithmTypeToStringConverter( algorithm_i );
+                AlgorithmTypeToStringConverter.convert( algorithm_i );
             showSingleRunResults.plotPrecisionAndRecall_allLabels...
                  (  singleRun, algorithm_i, outputProperties);
         end
@@ -67,22 +67,6 @@ methods (Static)
         end
 
     end
-        
-    %% AlgorithmTypeToStringConverter
-    
-    function R = AlgorithmTypeToStringConverter( algorithmType )
-        table = [   {SingleRun.MAD,     MAD.name() }; ...
-                    {SingleRun.CSSLMC,  CSSLMC.name()};
-                    {SingleRun.CSSLMCF, CSSLMCF.name()} ];
-        R = [];
-        numEntries = size(table, 1);
-        for table_entry_i=1:numEntries
-            entryValue = table(table_entry_i,:);
-            if entryValue{1} == algorithmType
-                R = entryValue{2};
-            end
-        end
-    end
     
     %% plotPrediction
     
@@ -91,7 +75,7 @@ methods (Static)
         algorithmParams = singleRun.getParams( algorithmType );    
         paramsString    = Utilities.StructToStringConverter( algorithmParams );
          
-        algorithmName = showSingleRunResults.AlgorithmTypeToStringConverter( algorithmType );
+        algorithmName = AlgorithmTypeToStringConverter.convert( algorithmType );
         numMistakes = singleRun.unlabeled_num_mistakes(algorithmType);
         prediction  = singleRun.unlabeled_prediction(algorithmType);
 
