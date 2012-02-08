@@ -8,7 +8,7 @@ methods (Static)
     
     function scheduleJob(fileFullPath, functionName, outputProperties)
         
-        JonManager.signalJobIsStarting( fileFullPath );
+        JobManager.signalJobIsStarting( fileFullPath );
         
         [~, fileName, ~] = fileparts(fileFullPath);
         
