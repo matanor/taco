@@ -44,7 +44,7 @@ properties (Constant)
     SAVE_ALL_ITERATIONS_IN_RESULT = 0;
 end
 
-properties
+properties (Constant)
     ASYNC_RUNS = 0;
 end
 
@@ -55,7 +55,6 @@ end
 methods (Access = public)
     function this = ParamsManager(isOnOdin) %constructor        
         
-        this.ASYNC_RUNS = isOnOdin;
         optimize = 0;
         
         isString = 1;
