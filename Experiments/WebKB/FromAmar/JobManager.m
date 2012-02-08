@@ -29,7 +29,7 @@ methods (Static)
                   ' status = ' num2str(status)]);
         end
         disp(submitResult);
-        pause(5);
+        pause(1);
         
         job = Job;
         job.startCommand = command;
