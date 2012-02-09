@@ -61,6 +61,11 @@ methods (Access=private)
     function R = anyProgressDone(this)
         disp(['checking log file ' this.logFile]);
         logFileInfo         = dir(this.logFile);
+        if (isempty(logFileInfo))
+            disp(['Log file '  FileHelper.fileName(this.logFile) 'does not exist yet']);
+            R = Job.JOB_STATUS_IDLE;
+            return;
+        end
         currentLogFileSize  = logFileInfo.bytes;
         if ( currentLogFileSize ~= this.lastLogFileSize) % any progress?
             this.lastLogFileSize = currentLogFileSize;
