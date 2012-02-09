@@ -70,7 +70,7 @@ methods (Static)
     function signalJobIsStarting( jobFileFullPath )
         finishedFileFullPath = JobManager.finishedFileFullPath(jobFileFullPath);
         FileHelper.deleteFile(finishedFileFullPath);
-        logFileFullPath = JobManager.logFileFullPath( fileFullPath );
+        logFileFullPath = JobManager.logFileFullPath( jobFileFullPath );
         FileHelper.deleteFile(logFileFullPath);
     end
     
