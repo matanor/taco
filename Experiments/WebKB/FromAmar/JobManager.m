@@ -107,6 +107,7 @@ methods (Static)
         while ~finished
             numJobs = length(jobsCollection);
             finished_jobs = [];
+            disp('**** Status check ****');
             for job_i=1:numJobs
                 job = jobsCollection(job_i);
                 jobStatus = job.checkJobStatus();
