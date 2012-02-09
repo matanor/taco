@@ -59,6 +59,7 @@ methods (Access=private)
     %% anyProgressDone
     
     function R = anyProgressDone(this)
+        disp(['checking log file ' this.logFile]);
         logFileInfo         = dir(this.logFile);
         currentLogFileSize  = logFileInfo.bytes;
         if ( currentLogFileSize ~= this.lastLogFileSize) % any progress?
