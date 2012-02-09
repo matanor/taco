@@ -6,20 +6,17 @@ methods (Static)
     
     %% scheduleJob
     
-    function job = scheduleJob(fileFullPath, functionName, outputProperties)
+    function job = scheduleJob(fileFullPath, functionName, outputManager)
         
         JobManager.signalJobIsStarting( fileFullPath );
         
         [~, fileName, ~] = fileparts(fileFullPath);
         
-        outputDir   = outputProperties.resultsDir;
-        folderName  = outputProperties.folderName;
         runName     = fileName;
-        codeRoot    = outputProperties.codeRoot;
-        outputFile  = [outputDir folderName '/' fileName '.output.txt'];
-        errorFile   = [outputDir folderName '/' fileName '.error.txt'];
+        codeRoot    = outputManager.m_codeRoot;
+        outputFile  = outputManager.createFileNameAtCurrentFolder([fileName '.output.txt']);
+        errorFile   = outputManager.createFileNameAtCurrentFolder([fileName '.error.txt']);
         logFile     = JobManager.logFileFullPath( fileFullPath );
-%         logFile     = [outputDir folderName '/' fileName '.matlab.log'];
         command = ['qsub -N ' runName ' -wd ' codeRoot '/Experiments -q all.q -b y -o ' ...
                    outputFile ' -e ' errorFile ' "matlab -nodesktop -r "\""' functionName '(''' ...
                    fileFullPath ''',''' codeRoot ''')"\"" -logfile ' logFile '"' ];

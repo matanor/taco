@@ -9,7 +9,7 @@ methods (Access = public)
     %% scheduleAsyncRun
     
     function job = scheduleAsyncRun(this, algorithmParams, algorithmsToRun, ...
-                              fileFullPath, outputProperties )
+                              fileFullPath, outputManager )
         disp('scheduleAsyncRun');
         % save us to a file.
         this.m_graph.w_nn = []; % This will be reconstructed
@@ -17,7 +17,7 @@ methods (Access = public)
         this.m_graph.weights = []; % This will be reconstructed
         save(fileFullPath,'this','algorithmParams','algorithmsToRun');
         
-        job = JobManager.scheduleJob(fileFullPath, 'asyncSingleRun', outputProperties);
+        job = JobManager.scheduleJob(fileFullPath, 'asyncSingleRun', outputManager);
     end
     
     function singleRun = run(this, algorithmParams, algorithmsToRun)

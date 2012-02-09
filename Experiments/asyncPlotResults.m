@@ -3,9 +3,9 @@ function asyncPlotResults(fileFullPath, codeRoot)
 
     runData = load(fileFullPath);
     experimentRuns      = runData.experimentRuns;
-    outputProperties    = runData.outputProperties;
+    outputManager       = runData.outputManager;
     
-    RunMain.plotResults(experimentRuns, outputProperties);
+    RunMain.plotResults(experimentRuns, outputManager);
     
     JobManager.signalJobIsFinished( fileFullPath );
 end

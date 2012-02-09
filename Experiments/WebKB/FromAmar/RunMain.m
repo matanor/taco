@@ -3,7 +3,7 @@ classdef RunMain
 methods (Static)
     %% run
     
-    function run(outputProperties, isOnOdin)
+    function run(outputManager, isOnOdin)
 
         %% global shared parameters
         %graphFileName = 'C:\technion\theses\Experiments\WebKB\data\Rapid_Miner_Result\webkb_constructed.mat';
@@ -19,34 +19,29 @@ methods (Static)
         algorithmsToRun.setRun(SingleRun.CSSLMC);
         algorithmsToRun.setRun(SingleRun.CSSLMCF);
         
-        %% make output folder
-        FileHelper.createDirectory([outputProperties.resultsDir outputProperties.folderName]);
-%         mkdir(outputProperties.resultsDir,outputProperties.folderName);
-
         %% allocate a multiple runs object per each parameter combination
         %  and run all experiments with all the parameter combinations
 
         experimentRuns = ExperimentRunFactory.run...
-            ( paramsManager, algorithmsToRun, outputProperties );
+            ( paramsManager, algorithmsToRun, outputManager );
 
         %% Define which result figures to display
-        outputProperties.showSingleRuns = 1;
-        outputProperties.showAccumulativeLoss = 0;
+        outputManager.m_showSingleRuns = 1;
+        outputManager.m_showAccumulativeLoss = 0;
 
         %%
         if ParamsManager.ASYNC_RUNS == 0     
-           RunMain.plotResults(experimentRuns, outputProperties);
+           RunMain.plotResults(experimentRuns, outputManager);
         else
            experimentRuns = RunMain.clearGraphs( experimentRuns ); %#ok<NASGU>
-           fileFullPath = [outputProperties.resultsDir outputProperties.folderName ...
-                           '/PlotResultsJobInput.mat'];
-           save(fileFullPath, 'experimentRuns', 'outputProperties');
-           job = JobManager.scheduleJob(fileFullPath, 'asyncPlotResults', outputProperties);
+           fileFullPath = outputManager.createFileNameAtCurrentFolder('PlotResultsJobInput.mat');
+           save(fileFullPath, 'experimentRuns', 'outputManager');
+           job = JobManager.scheduleJob(fileFullPath, 'asyncPlotResults', outputManager);
            JobManager.waitForJobs( job );
         end
 
-        save( [ outputProperties.resultsDir outputProperties.folderName ...
-                '/experimentRuns'],'experimentRuns');
+        saveToFileFullPath = outputManager.createFileNameAtCurrentFolder('experimentRuns.mat');
+        save( saveToFileFullPath,'experimentRuns');
         
         return ;
         %% get total number of experiment
@@ -155,14 +150,14 @@ methods (Static)
     
     %% plotResults
     
-    function plotResults(experimentRuns, outputProperties)
-        RunMain.plotAllSingleResults (experimentRuns, outputProperties);
-        RunMain.plotEvaluationSummary(experimentRuns, outputProperties);
+    function plotResults(experimentRuns, outputManager)
+        RunMain.plotAllSingleResults (experimentRuns, outputManager);
+        RunMain.plotEvaluationSummary(experimentRuns, outputManager);
     end
     
     %% plotAllSingleResults
     
-    function plotAllSingleResults(experimentRuns, outputProperties)
+    function plotAllSingleResults(experimentRuns, outputManager)
         
         numExperiments = length(experimentRuns);
         experimentRange = 1:numExperiments;
@@ -175,6 +170,7 @@ methods (Static)
             experimentRun = experimentRuns(experimentID);
             numParameterRuns = experimentRun.numParameterRuns();
             for parameter_run_i=1:numParameterRuns
+                outputManager.startParametersRun(parameter_run_i);
                 disp(['parameters run index = ' num2str(parameter_run_i) ...
                       ' of ' num2str(numParameterRuns)]);
                 parameterRun = experimentRun.getParameterRun(parameter_run_i);
@@ -186,9 +182,9 @@ methods (Static)
                               ' of ' num2str(numOptimizationRuns)]);
                         optimizationRunJobName = parameterRun.getOptimizationRunJobName(algorithm_i, optimization_run_i);
                         optimizationRun = JobManager.loadJobOutput(optimizationRunJobName);
-                        outputProperties.description = ...
+                        outputManager.m_description = ...
                             ['Optimization.' num2str(parameter_run_i) '.' num2str(optimization_run_i)];
-                        showSingleRunResults.show( optimizationRun, outputProperties );
+                        showSingleRunResults.show( optimizationRun, outputManager );
                     end
                 end
                 numEvaluationRuns = parameterRun.numEvaluationRuns();
@@ -197,17 +193,18 @@ methods (Static)
                            ' of ' num2str(numEvaluationRuns)]);
                     evaluationRunJobName = parameterRun.getEvaluationRunJobNames(evaluation_run_i);
                     evaluation_run = JobManager.loadJobOutput(evaluationRunJobName);
-                    outputProperties.description = ...
+                    outputManager.m_description = ...
                         ['Evaluation.' num2str(parameter_run_i) '.' num2str(evaluation_run_i)];
-                    showSingleRunResults.show( evaluation_run, outputProperties );
+                    showSingleRunResults.show( evaluation_run, outputManager );
                 end
+                outputManager.moveUpOneDirectory();
             end
         end
     end
     
     %% plotEvaluationSummary
     
-    function plotEvaluationSummary(experimentRuns, outputProperties)
+    function plotEvaluationSummary(experimentRuns, outputManager)
         
         numExperiments = length(experimentRuns);
         experimentRange = 1:numExperiments;
@@ -229,8 +226,7 @@ methods (Static)
                     allEvaluationRuns.addRun(evaluation_run);
                 end
                 
-                showMultipleExperimentsResults.show...
-                     (allEvaluationRuns, outputProperties );
+                showMultipleExperimentsResults.show(allEvaluationRuns, outputManager );
             end
         end
     end

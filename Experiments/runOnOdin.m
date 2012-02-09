@@ -10,10 +10,10 @@ function runOnOdin(folderName, codeRoot)
 
     resultsDir = '/u/matanorb/experiments/webkb/results/';
     isOnOdin = 1;
-    outputProperties.resultsDir = resultsDir;
-    outputProperties.folderName = folderName;
-    outputProperties.codeRoot   = codeRoot;
-    RunMain.run(outputProperties, isOnOdin);
+    outputManager = OutputManager;
+    outputManager.set_currentFolder( [resultsDir folderName]);
+    outputManager.m_codeRoot        = codeRoot;
+    RunMain.run(outputManager, isOnOdin);
 
 end
 

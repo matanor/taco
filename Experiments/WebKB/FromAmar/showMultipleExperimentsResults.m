@@ -1,7 +1,7 @@
 classdef showMultipleExperimentsResults < handle
 
 methods (Static)
-    function show( multipleRuns, outputProperties )
+    function show( multipleRuns, outputManager )
     %SHOWRESULTS Summary of this function goes here
     %   Detailed explanation goes here
 
@@ -35,7 +35,7 @@ methods (Static)
          
         %% Show accumulative loss sorted by confidence
 
-        if (outputProperties.showAccumulativeLoss)
+        if (outputManager.m_showAccumulativeLoss)
             sorted.by_confidence = multipleRuns.sorted_by_confidence(SingleRun.CSSLMC);
 
             t = [ 'Results (sorted by confidence) CSSLMC.' paramsString ];

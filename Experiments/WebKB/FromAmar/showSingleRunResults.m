@@ -1,7 +1,7 @@
 classdef showSingleRunResults < handle
 
 methods (Static)
-    function show( singleRun, outputProperties)
+    function show( singleRun, outputManager)
     %SHOWSINGLERUNRESULTS Summary of this function goes here
     %   Detailed explanation goes here
 
@@ -9,7 +9,7 @@ methods (Static)
         constructionParams  = singleRun.constructionParams();
 
         %% Show final prediction & confidence
-        if (outputProperties.showSingleRuns == 0) 
+        if (outputManager.m_showSingleRuns == 0) 
             return;
         end
 
@@ -21,7 +21,7 @@ methods (Static)
              
         % algorithm comparison
 
-        t = [ 'Algorithms Compare.' outputProperties.description ' ' generalParams];
+        t = [ 'Algorithms Compare.' outputManager.m_description ' ' generalParams];
 
         numRows = singleRun.isResultsAvailable( SingleRun.CSSLMC ) + ...
                   singleRun.isResultsAvailable( SingleRun.CSSLMCF ) + ...
@@ -40,27 +40,23 @@ methods (Static)
                 (singleRun, numRows, numCols, current, correctLabels, algorithm_i );
         end
         
-        outputFolder = outputProperties.resultsDir;
-        folderName   = outputProperties.folderName;
-        filename = [ outputFolder folderName '/singleResults.' ...
-                      outputProperties.description '.AlgorithmCompare.fig'];
+        filename = outputManager.createFileNameAtCurrentFolder...
+            (['singleResults.' outputManager.m_description '.AlgorithmCompare.fig']);
         saveas(gcf, filename);
         close(gcf);
         
         % plot precision and recall
         
         for algorithm_i = singleRun.availableResultsAlgorithmRange()
-            outputProperties.algorithmName = ...
-                AlgorithmTypeToStringConverter.convert( algorithm_i );
             showSingleRunResults.plotPrecisionAndRecall_allLabels...
-                 (  singleRun, algorithm_i, outputProperties);
+                 (  singleRun, algorithm_i, outputManager);
         end
         
         % plot MAD probabilities figures
         
         if ( singleRun.isResultsAvailable( SingleRun.MAD ) )
-            filePrefix = [ outputFolder folderName '/singleResults.' ...
-                          outputProperties.description];
+            filePrefix = outputManager.createFileNameAtCurrentFolder...
+                (['singleResults.' outputManager.m_description]);
         
             MAD_result = singleRun.getAlgorithmResults(SingleRun.MAD);
             showSingleRunResults.plotProbabilities( MAD_result.probabilities(), filePrefix );
@@ -96,23 +92,22 @@ methods (Static)
     %% plotPrecisionAndRecall_allLabels
     
     function plotPrecisionAndRecall_allLabels...
-            (singleRun, algorithmType, outputProperties)
+            (singleRun, algorithmType, outputManager)
         numLabels       = singleRun.numLabels();
         
-        paramsString = ...
-            Utilities.StructToStringConverter(singleRun.getParams(algorithmType));
-%         useGraphHeuristics  = singleRun.getParams(algorithmType).useGraphHeuristics;
+        paramsString = Utilities.StructToStringConverter(singleRun.getParams(algorithmType));
         testSetSize         = singleRun.testSetSize();
         
-        disp([  'Algorithm = '              outputProperties.algorithmName...
+        algorithmName = AlgorithmTypeToStringConverter.convert(algorithmType);
+        disp([  'Algorithm = ' algorithmName...
                 ' ' paramsString ...
                 ' test set size = '         num2str(testSetSize)]);
             
         for labelIndex = 1:numLabels
-            outputProperties.class_i = labelIndex;
             [prbep precision recall] = singleRun.calcPRBEP_testSet    (algorithmType, labelIndex);
             estimated_prbep          = singleRun.estimatePRBEP_testSet(algorithmType, labelIndex);
-            showSingleRunResults.plotAndSave_PrecisionAndRecall(precision, recall, outputProperties);
+            showSingleRunResults.plotAndSave_PrecisionAndRecall...
+                (precision, recall, labelIndex, algorithmName, outputManager);
             disp(['prbep (estimated) for class ' num2str(labelIndex) ' = ' num2str(prbep)...
                   ' (' num2str(estimated_prbep) ')']);
         end
@@ -120,11 +115,8 @@ methods (Static)
     
     %% plotAndSave_PrecisionAndRecall
     
-    function plotAndSave_PrecisionAndRecall( precision, recall, outputProperties )
-        outputDirectory = outputProperties.resultsDir;
-        folderName      = outputProperties.folderName;
-        algorithmName   = outputProperties.algorithmName;
-        class_i         = outputProperties.class_i;
+    function plotAndSave_PrecisionAndRecall...
+            ( precision, recall, class_i, algorithmName, outputManager )
 
         t = ['precision and recall ' ...
              ' class index  = ' num2str(class_i) ... 
@@ -132,10 +124,9 @@ methods (Static)
          
         h = showSingleRunResults.plotPrecisionAndRecall(precision, recall, t);
 
-        filename = [ outputDirectory folderName '/SingleResults.' ...
-                     outputProperties.description '.' ...
-                     num2str(class_i) '.' algorithmName ...
-                     '.PrecisionRecall.fig'];
+        filename = outputManager.createFileNameAtCurrentFolder...
+            ( [ 'SingleResults.' outputManager.m_description '.' ...
+                num2str(class_i) '.' algorithmName '.PrecisionRecall.fig']);
         saveas(h, filename); close(h);
     end
     
@@ -175,7 +166,7 @@ methods (Static)
     %% plotBinaryCSSLResults
     
     function plotBinaryCSSLResults(CSSL_prediction, CSSL_confidence, ...
-                                   CSSL_margin, correctLabels, sorted, outputProperties, ...
+                                   CSSL_margin, correctLabels, sorted, outputManager, ...
                                    paramsString, algorithmName, experimentID, run_i)
 
         t = [ 'unlabeled (prediction & confidence & margin). ' algorithmName '. '  paramsString ];
@@ -233,11 +224,9 @@ methods (Static)
         xlabel('vertex #i');
         ylabel('margin (mu*y)');
 
-        outputFolder = outputProperties.resultsDir;
-        folderName    = outputProperties.folderName;
-        filename = [ outputFolder folderName '/singleResults.' ...
-                     algorithmName '.' num2str(experimentID) '.' ...
-                     num2str(run_i) '.fig'];
+        filename = outputManager.createFileNameAtCurrentFolder...
+            (['singleResults.' algorithmName '.' num2str(experimentID) '.' ...
+              num2str(run_i) '.fig']);
         saveas(gcf, filename);
         close(gcf);
     end

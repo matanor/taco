@@ -27,12 +27,12 @@ methods (Static)
     function runOnDesktop()
         Configurations.clearEverything();
         
-        folderName = '2012_02_07_2 testing new options - unbalanced';
+        folderName = '2012_02_09_1 multiple_parameter_evaluations_per_experiment';
         resultsDir = 'C:/technion/theses/Experiments/WebKB/results/';
         isOnOdin = 0;
-        outputProperties.resultsDir = resultsDir;
-        outputProperties.folderName = folderName;
-        RunMain.run(outputProperties, isOnOdin);
+        outputManager = OutputManager;
+        outputManager.set_currentFolder( [resultsDir folderName]);
+        RunMain.run(outputManager, isOnOdin);
     end
     
 end
