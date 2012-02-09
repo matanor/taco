@@ -50,6 +50,7 @@ end
 
 properties (Constant)
     OPTIMIZE_BY_ACCURACY = 0;
+    OPTIMIZE_BY_PRBEP = 1;
 end
 
 methods (Access = public)
