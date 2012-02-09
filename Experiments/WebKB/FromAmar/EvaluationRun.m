@@ -139,6 +139,7 @@ methods (Static)
             disp(['Accuracy = ' num2str(R)]);
         else
             R = singleRun.calcAveragePRBEP_testSet(algorithmType);
+            disp(['Average PRBEP = ' num2str(R)]);
         end
     end
 end
