@@ -18,7 +18,8 @@ methods (Static)
         codeRoot    = outputProperties.codeRoot;
         outputFile  = [outputDir folderName '/' fileName '.output.txt'];
         errorFile   = [outputDir folderName '/' fileName '.error.txt'];
-        logFile     = [outputDir folderName '/' fileName '.matlab.log'];
+        logFile     = JobManager.logFileFullPath( fileFullPath );
+%         logFile     = [outputDir folderName '/' fileName '.matlab.log'];
         command = ['qsub -N ' runName ' -wd ' codeRoot '/Experiments -q all.q -b y -o ' ...
                    outputFile ' -e ' errorFile ' "matlab -nodesktop -r "\""' functionName '(''' ...
                    fileFullPath ''',''' codeRoot ''')"\"" -logfile ' logFile '"' ];
@@ -36,6 +37,12 @@ methods (Static)
         job.submitResult = submitResult;
         job.fileFullPath = fileFullPath;
         job.logFile = logFile;
+    end
+    
+    %% logFileFullPath
+    
+    function r = logFileFullPath( jobFileFullPath )
+        r = [jobFileFullPath '.matlab.log'];
     end
     
     %% finishedFileFullPath
@@ -63,6 +70,8 @@ methods (Static)
     function signalJobIsStarting( jobFileFullPath )
         finishedFileFullPath = JobManager.finishedFileFullPath(jobFileFullPath);
         FileHelper.deleteFile(finishedFileFullPath);
+        logFileFullPath = JobManager.logFileFullPath( fileFullPath );
+        FileHelper.deleteFile(logFileFullPath);
     end
     
     %% signalJobIsFinished
