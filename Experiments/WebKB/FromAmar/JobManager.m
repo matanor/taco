@@ -36,8 +36,6 @@ methods (Static)
         job.submitResult = submitResult;
         job.fileFullPath = fileFullPath;
         job.logFile = logFile;
-        job.lastLogFileSize = 0;
-        job.idleCount = 0;
     end
     
     %% finishedFileFullPath
@@ -121,6 +119,7 @@ methods (Static)
     %% restartJob
     
     function restartJob(job)
+        disp(['restarting job "' job.name() '"']);
         JobManager.deleteCommand(job);
         disp(['restart command = "' job.startCommand '"']);
         [status, result] = system(job.startCommand);

@@ -216,6 +216,8 @@ methods (Static)
             singleRun = singleRunFactory.run(singleOption, algorithmsToRun );
             JobManager.saveJobOutput( singleRun, fileName);
             JobManager.signalJobIsFinished( fileName );
+            job = Job;
+            job.fileFullPath = fileName;
         else
             job = singleRunFactory.scheduleAsyncRun...
                 (singleOption, algorithmsToRun, ...

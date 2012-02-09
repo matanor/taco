@@ -40,7 +40,7 @@ methods (Static)
            fileFullPath = [outputProperties.resultsDir outputProperties.folderName ...
                            '/PlotResultsJobInput.mat'];
            save(fileFullPath, 'experimentRuns', 'outputProperties');
-           job = JobManager.scheduleJob(fileFullPath, 'asyncPlotResults', outputProperties)
+           job = JobManager.scheduleJob(fileFullPath, 'asyncPlotResults', outputProperties);
            JobManager.waitForJobs( job );
         end
 

@@ -19,6 +19,13 @@ end
     
 methods (Access = public)
     
+    %% constructor
+    
+    function this = Job()
+        this.lastLogFileSize = 0;
+        this.idleCount = 0;
+    end
+    
     %% name
     
     function R = name(this)
