@@ -120,7 +120,7 @@ methods (Static)
     
     function restartJob(job)
         disp(['restarting job "' job.name() '"']);
-        JobManager.deleteCommand(job);
+        JobManager.deleteJob(job);
         disp(['restart command = "' job.startCommand '"']);
         [status, result] = system(job.startCommand);
         if status ~= 0

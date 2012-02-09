@@ -70,9 +70,11 @@ methods (Access=private)
         if ( currentLogFileSize ~= this.lastLogFileSize) % any progress?
             this.lastLogFileSize = currentLogFileSize;
             this.idleCount = 0;
+            disp(['WORKING. idleCount = ' num2str(this.idleCount)]);
             R = Job.JOB_STATUS_WORKING;
         else
             this.idleCount = this.idleCount + 1;
+            disp(['IDLE. idleCount = ' num2str(this.idleCount)]);
             R = Job.JOB_STATUS_IDLE;
         end
     end
