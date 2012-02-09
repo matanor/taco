@@ -59,7 +59,7 @@ methods (Access=private)
     %% anyProgressDone
     
     function R = anyProgressDone(this)
-        disp(['checking log file ' this.logFile]);
+        disp(['checking log file ' FileHelper.fileName(this.logFile)]);
         logFileInfo         = dir(this.logFile);
         if (isempty(logFileInfo))
             disp(['Log file '  FileHelper.fileName(this.logFile) 'does not exist yet']);
