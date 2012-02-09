@@ -20,7 +20,8 @@ methods (Static)
         algorithmsToRun.setRun(SingleRun.CSSLMCF);
         
         %% make output folder
-        mkdir(outputProperties.resultsDir,outputProperties.folderName);
+        FileHelper.createDirectory([outputProperties.resultsDir outputProperties.folderName]);
+%         mkdir(outputProperties.resultsDir,outputProperties.folderName);
 
         %% allocate a multiple runs object per each parameter combination
         %  and run all experiments with all the parameter combinations

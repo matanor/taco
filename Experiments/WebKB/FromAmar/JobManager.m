@@ -62,7 +62,7 @@ methods (Static)
     
     function signalJobIsStarting( jobFileFullPath )
         finishedFileFullPath = JobManager.finishedFileFullPath(jobFileFullPath);
-        delete(finishedFileFullPath);
+        FileHelper.deleteFile(finishedFileFullPath);
     end
     
     %% signalJobIsFinished
@@ -92,7 +92,7 @@ methods (Static)
     
     function waitForJobs( jobsCollection )
         sleepIntervalInSeconds = 30;
-        idleTimeoutInSeconds = 150; % 5 minutes 
+        idleTimeoutInSeconds = 300; % 5 minutes 
         idleTimeout = idleTimeoutInSeconds / sleepIntervalInSeconds;
         finished = 0;
         while ~finished
