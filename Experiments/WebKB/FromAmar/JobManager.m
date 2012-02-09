@@ -101,7 +101,7 @@ methods (Static)
     
     function waitForJobs( jobsCollection )
         sleepIntervalInSeconds = 30;
-        idleTimeoutInSeconds = 300; % 5 minutes 
+        idleTimeoutInSeconds = 600; % 5 minutes 
         idleTimeout = idleTimeoutInSeconds / sleepIntervalInSeconds;
         finished = 0;
         while ~finished
