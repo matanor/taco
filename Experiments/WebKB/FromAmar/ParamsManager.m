@@ -21,7 +21,7 @@ properties (GetAccess = public, SetAccess = private)
     m_labeledInitMode;
     m_balancedFolds;
     m_balancedLabeled;
-    m_optimizeBy;
+    m_optimizeByCollection;
 end
 
 properties( Constant)
@@ -49,14 +49,15 @@ properties (Constant)
 end
 
 properties (Constant)
-    OPTIMIZE_BY_ACCURACY = 0;
-    OPTIMIZE_BY_PRBEP = 1;
+    OPTIMIZE_BY_ACCURACY = 1;
+    OPTIMIZE_BY_PRBEP = 2;
 end
 
 methods (Access = public)
     function this = ParamsManager(isOnOdin) %constructor        
         
-        optimize = 0;
+        isTesting = 1;
+        optimize = ~isTesting;
         
         isString = 1;
         if isOnOdin
@@ -97,15 +98,20 @@ methods (Access = public)
             this = this.createParameter( 'mu2', paperOprimizationRange, isString, [] );  
             this = this.createParameter( 'mu3', paperOprimizationRange, isString, [] );
         else
-            this = this.createParameter( 'mu2', [1], isString, [] );     
+            this = this.createParameter( 'mu2', [1 10 ], isString, [] );     
             this = this.createParameter( 'mu3', [1], isString, [] );
         end
         
         this = this.createParameter( 'makeSymetric', [1], isString, [] );     
         
         %numIterations.range = [5 10 25 50 100];
-        this = this.createParameter( 'maxIterations', [10], isString, [] );    
-        this = this.createParameter( 'numEvaluationRuns', [10], isString, [] );
+        if isTesting
+            this = this.createParameter( 'maxIterations', [3], isString, [] );    
+            this = this.createParameter( 'numEvaluationRuns', [1], isString, [] );
+        else
+            this = this.createParameter( 'maxIterations', [10], isString, [] );    
+            this = this.createParameter( 'numEvaluationRuns', [10], isString, [] );
+        end
         
         this = this.createParameter( 'numLabeled', [48], isString, [] );    
         
@@ -113,11 +119,13 @@ methods (Access = public)
         
         % 0 means all instances
         this = this.createParameter( 'numInstancesPerClass', [0], isString, [] );    
-        
-        this = this.createParameter( 'useGraphHeuristics', [0], isString, [] );
-        
-        
-this = this.createParameter( 'labeledInitMode', ...
+        if isTesting
+            this = this.createParameter( 'useGraphHeuristics', [1], isString, [] );
+        else 
+            this = this.createParameter( 'useGraphHeuristics', [0 1], isString, [] );
+        end
+           
+        this = this.createParameter( 'labeledInitMode', ...
             [ParamsManager.LABELED_INIT_ZERO_ONE], isString, [] );
 %        this = this.createParameter( 'labeledInitMode', ...
 %            [ParamsManager.LABELED_INIT_MINUS_PLUS_ONE...
@@ -126,8 +134,8 @@ this = this.createParameter( 'labeledInitMode', ...
         this = this.createParameter( 'balancedFolds',   [1], isString, [] );
         this = this.createParameter( 'balancedLabeled', [1], isString, [] );
         
-        this = this.createParameter( 'optimizeBy', [ParamsManager.OPTIMIZE_BY_ACCURACY], isString, [] );
-        
+        this = this.createParameter( 'optimizeByCollection', ...
+            [ParamsManager.OPTIMIZE_BY_ACCURACY ParamsManager.OPTIMIZE_BY_PRBEP], isString, [] );
     end
     
     %% createParameter
@@ -140,12 +148,17 @@ this = this.createParameter( 'labeledInitMode', ...
         this.(memebrName).values = strValues;
     end
     
+    %% commonEvaluationParamsProperties
+    function R = commonEvaluationParamsProperties(this)
+        R = [this.m_optimizeByCollection];
+    end
+    
     %% evaluationParamsProperties
     function R = evaluationParamsProperties(this)
         R = [ this.m_makeSymetric,       this.m_maxIterations, ...
               this.m_useGraphHeuristics, this.m_labeledInitMode, ...
               this.m_numEvaluationRuns,  this.m_balancedLabeled, ...
-              this.m_balancedFolds,      this.m_optimizeBy];
+              this.m_balancedFolds];
     end   
     
     %% constructionParamsProperties
@@ -179,6 +192,13 @@ this = this.createParameter( 'labeledInitMode', ...
         R = this.createParameterStructures( optimizationParamProperties );
     end
     
+    %% shouldOptimize
+    
+    function R = shouldOptimize(this, algorithmType)
+        numOptimizationOptions = length(this.optimizationParams_allOptions(algorithmType) );
+        R = (numOptimizationOptions > 1);
+    end
+    
     %% constructionParams_allOptions
     
     function R = constructionParams_allOptions( this )
@@ -190,7 +210,21 @@ this = this.createParameter( 'labeledInitMode', ...
     
 	function R = evaluationParams_allOptions( this )
         paramProperties = this.evaluationParamsProperties();
-        R = this.createParameterStructures( paramProperties);
+        evaluationParams = this.createParameterStructures( paramProperties);
+        commonParamProperties = this.commonEvaluationParamsProperties();
+        for option_i=1:length(evaluationParams)
+            for common_param_i=1:length(commonParamProperties)
+                isString   = commonParamProperties(common_param_i).isString;
+                paramName  = commonParamProperties(common_param_i).name;
+                if isString
+                    paramValue = commonParamProperties(common_param_i).values;
+                else
+                    paramValue = commonParamProperties(common_param_i).range;
+                end
+                evaluationParams(option_i).(paramName) = paramValue;
+            end
+        end
+        R = evaluationParams;
     end
     
 end % methods (Access = public)

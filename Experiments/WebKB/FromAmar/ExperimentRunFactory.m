@@ -43,36 +43,30 @@ methods (Static)
                 progressParams.evaluation_i = parameters_run_i;
                 outputManager.stepIntoFolder(['Parameters_run_' num2str(parameters_run_i)]);
                 
-                singleEvaluation    = experimentRun.createEvaluationRun();
+                parametersRun    = experimentRun.createEvaluationRun();
                 
                 evaluationParams = evaluationParams_allOptions(parameters_run_i);
                 evaluationParamsString = Utilities.StructToStringConverter(evaluationParams);
                 disp(['Evaluation Params. ' evaluationParamsString]);
-                singleEvaluation.set_evaluationParams( evaluationParams );
+                parametersRun.set_evaluationParams( evaluationParams );
                 
                 % this will create the training split
-                singleEvaluation.createTrunsductionSplit();
+                parametersRun.createTrunsductionSplit();
 
-                disp('******** Optimizing ********');
-                
-                clear optimalParams;
-                for algorithm_i=algorithmsToRun.algorithmsRange()
-                    algorithmType = algorithm_i;
-                    optimalParams{algorithmType} = ...
-                        ExperimentRunFactory.optimizeParameters....
-                            ( singleEvaluation,    paramsManager,      progressParams, ...
-                              algorithmsToRun,     evaluationParams,   algorithmType,...
-                              outputManager); %#ok<AGROW>
-                end
+                ExperimentRunFactory.runOptimizationJobs_allAlgorithms...
+                    ( parametersRun, paramsManager, progressParams, ...
+                      algorithmsToRun, outputManager);
+                  
+                optimalParams = ExperimentRunFactory.searchForOptimalParams...
+                    ( parametersRun, paramsManager, algorithmsToRun, outputManager );
 
                 % run evaluations
 
-                evaluationJobNames = ExperimentRunFactory.runEvaluations...
-                    ( singleEvaluation, progressParams, optimalParams, ...
-                      evaluationParams.numEvaluationRuns, algorithmsToRun, outputManager);
+                ExperimentRunFactory.runEvaluations...
+                    ( parametersRun, progressParams, optimalParams, ...
+                      algorithmsToRun, outputManager);
 
-                singleEvaluation.setEvaluationRunsJobNames( evaluationJobNames );
-                experimentRun.addParameterRun( singleEvaluation );
+                experimentRun.addParameterRun( parametersRun );
                 outputManager.moveUpOneDirectory();
             end
             experimentCollection = [experimentCollection; experimentRun ]; %#ok<AGROW>
@@ -81,82 +75,83 @@ methods (Static)
     R = experimentCollection;
     end
     
-    %% runEvaluations
+    %% searchForOptimalParams
     
-    function R = runEvaluations(singleEvaluation, progressParams, optimalParams, ...
-                                numEvaluationRuns, algorithmsToRun, outputManager)
-        disp('******** Running Evaluations ********');
-        progressParams.numEvaluationRuns = numEvaluationRuns;
-        evaluationJobNames = [];
-        evaluationJobs = [];
-        for evaluation_run_i=1:numEvaluationRuns
-            progressParams.evaluation_run_i = evaluation_run_i;
-            ExperimentRunFactory.displayEvaluationProgress(progressParams);
-            % this will create a test split
-            singleEvaluation.createTrunsductionSplit();
-            
-            singleRunFactory = singleEvaluation.createSingleRunFactory();
-            fileName = outputManager.evaluationSingleRunName(progressParams);
-            job = ExperimentRunFactory.runAndSaveSingleRun...
-                ( singleRunFactory, optimalParams, algorithmsToRun, fileName, outputManager );
-            evaluationJobNames = [evaluationJobNames; {fileName}]; %#ok<AGROW>
-            evaluationJobs = [evaluationJobs; job]; %#ok<AGROW>
+    function R = searchForOptimalParams(parametersRun, paramsManager, algorithmsToRun, outputManager)
+        disp('****** Searching for optimal parameter *****')
+        optimizationEvaluationMethods = parametersRun.optimizationMethodsCollection();
+        jobsToWaitFor = [];
+        for algorithm_i=algorithmsToRun.algorithmsRange()
+            if paramsManager.shouldOptimize( algorithm_i )
+                for evaluation_method_i=optimizationEvaluationMethods
+                    optimizationJobNames = parametersRun.get_optimizationJobNames_perAlgorithm(algorithm_i);
+                    job = ExperimentRunFactory.searchAndSaveOptimalParams...
+                        (optimizationJobNames, algorithm_i, evaluation_method_i, outputManager);
+                    optimalJobs{evaluation_method_i,algorithm_i} = job; %#ok<AGROW>
+                    jobsToWaitFor = [jobsToWaitFor; job]; %#ok<AGROW>
+                end
+            else
+                optimal = paramsManager.optimizationParams_allOptions(algorithm_i);
+                optimal = ExperimentRunFactory.combineOptimizationAndNonOptimizationParams...
+                            (optimal, parametersRun);
+                for evaluation_method_i=optimizationEvaluationMethods
+                    ExperimentRunFactory.printOptimal...
+                        (optimal, algorithm_i, evaluation_method_i );
+                    optimalParams{evaluation_method_i,algorithm_i} = optimal; %#ok<AGROW>
+                end
+            end
         end
-        JobManager.waitForJobs(evaluationJobs);
-        disp('all evaluation runs are finished');
-        singleEvaluation.setEvaluationRunsJobNames(evaluationJobNames);
-        R = evaluationJobNames;
+        
+        JobManager.waitForJobs( jobsToWaitFor );
+        
+        for algorithm_i=algorithmsToRun.algorithmsRange()
+            if paramsManager.shouldOptimize( algorithm_i )
+                for evaluation_method_i=optimizationEvaluationMethods
+                    job = optimalJobs{evaluation_method_i,algorithm_i};
+                    optimal = JobManager.loadJobOutput(job.fileFullPath);
+                    ExperimentRunFactory.printOptimal...
+                        (optimal, algorithm_i, evaluation_method_i );
+                    optimalParams{evaluation_method_i,algorithm_i} = optimal; %#ok<AGROW>
+                end
+            end
+        end
+        R = optimalParams;
     end
     
-    %% optimizeParameters
+    %% printOptimal
     
-    function optimal = optimizeParameters...
-                ( singleEvaluation, paramsManager,    progressParams, ...
-                  algorithmsToRun , evaluationParams, algorithmType, outputManager )
-        optimal = [];
-        if algorithmsToRun.shouldRun( algorithmType )
-            algorithmName = AlgorithmTypeToStringConverter.convert( algorithmType );
-            singleRunFactory = singleEvaluation.createSingleRunFactory();
-            
-            optimizationParams_allOptions = ...
-                paramsManager.optimizationParams_allOptions( algorithmType );
-            
-            optimizationParams_allOptions = ...
-                paramsManager.addParamsToCollection...
-                (optimizationParams_allOptions, evaluationParams);
-            
-            if length(optimizationParams_allOptions) == 1
-                % only one option in optimization options
-                disp([algorithmName ': Only 1 optimization option. Skipping optimization runs.']);
-                optimal = optimizationParams_allOptions;
-                return;
-            end
-            
-            optimizationJobNames = ExperimentRunFactory.runOptionsCollection...
-                    (singleRunFactory, optimizationParams_allOptions, ...
-                     progressParams  , algorithmType, outputManager);
-            singleEvaluation.setParameterTuningRunsJobNames(algorithmType, optimizationJobNames);     
-            if ParamsManager.ASYNC_RUNS == 0     
-               optimal = ExperimentRunFactory.evaluateAndFindOptimalParams...
-                   (optimizationJobNames, algorithmType, evaluationParams.optimizeBy);
-            else
-               fileFullPath = outputManager.evaluteOptimizationJobName( algorithmType );
-               optimizeBy = evaluationParams.optimizeBy; %#ok<NASGU>
-               save(fileFullPath, 'optimizationJobNames', 'algorithmType', 'optimizeBy');
-               job = JobManager.scheduleJob(fileFullPath, 'asyncEvaluateOptimizations', outputManager);
-               JobManager.waitForJobs( job );
-               optimal = JobManager.loadJobOutput(fileFullPath);
-               % also print optimal value to main script output
-               optimalString = Utilities.StructToStringConverter(optimal);
-               disp(['algorithm = ' algorithmName ' optimal: ' optimalString]);
-            end
-
-        end;
+    function printOptimal(optimal, algorithm_i, evaluation_method_i) 
+        optimalString = Utilities.StructToStringConverter(optimal);
+        algorithmName = AlgorithmTypeToStringConverter.convert( algorithm_i );
+        evaluationMethodName = OptimizationMethodToStringConverter.convert(evaluation_method_i);
+        disp(['algorithm = '    algorithmName ...
+              ' evaluation = '  evaluationMethodName ...
+              ' optimal: '      optimalString]);      
+    end
+    
+    %% searchAndSaveOptimalParams
+    
+    function job = searchAndSaveOptimalParams...
+            (optimizationJobNames, algorithmType, optimizeBy, outputManager)
+        fileFullPath = outputManager.evaluteOptimizationJobName( algorithmType, optimizeBy );
+        if ParamsManager.ASYNC_RUNS == 0     
+           optimal = ExperimentRunFactory.evaluateAndFindOptimalParams...
+               (optimizationJobNames, algorithmType, optimizeBy);
+           JobManager.saveJobOutput( optimal, fileFullPath);
+           JobManager.signalJobIsFinished( fileFullPath );
+           job = Job;
+           job.fileFullPath = fileFullPath;
+        else
+           save(fileFullPath, 'optimizationJobNames', 'algorithmType', 'optimizeBy');
+           job = JobManager.scheduleJob(fileFullPath, 'asyncEvaluateOptimizations', outputManager);
+        end
     end
     
     %% evaluateAndFindOptimalParams
     
-    function optimal = evaluateAndFindOptimalParams(optimizationJobNames, algorithmType, optimizeBy)
+    function optimal = evaluateAndFindOptimalParams...
+            (optimizationJobNames, algorithmType, optimizeBy)
+        % load all optimization runs
         numOptimizationRuns = length(optimizationJobNames);
         optimizationRuns = [];
         for optimization_run_i=1:numOptimizationRuns
@@ -164,10 +159,103 @@ methods (Static)
             optimizationRuns = [optimizationRuns; singleRun]; %#ok<AGROW>
         end
         
+        % evaluate arccording to optimization criterion
         optimal = EvaluationRun.calcOptimalParams(optimizationRuns, algorithmType, optimizeBy);
         optimalString = Utilities.StructToStringConverter(optimal);
         algorithmName = AlgorithmTypeToStringConverter.convert( algorithmType );
         disp(['algorithm = ' algorithmName ' optimal: ' optimalString]);
+    end
+    
+    %% runEvaluations
+    
+    function runEvaluations(parametersRun,   progressParams, optimalParamsAllMethods, ...
+                            algorithmsToRun, outputManager)
+        disp('******** Running Evaluations ********');
+        numEvaluationRuns = parametersRun.get_evaluationParams().numEvaluationRuns;
+        progressParams.numEvaluationRuns = numEvaluationRuns;
+        optimizeByMethods = parametersRun.get_evaluationParams().optimizeByCollection;
+        
+        evaluationJobs = [];
+        for optimization_method_i=optimizeByMethods
+            progressParams.optimization_method_i = optimization_method_i;
+            evaluationJobNamesPerMethod = [];
+            outputManager.startEvaluationRun(optimization_method_i);
+            for algorithm_i=algorithmsToRun.algorithmsRange()
+                optimalParams{algorithm_i} = ...
+                    optimalParamsAllMethods{optimization_method_i,algorithm_i}; %#ok<AGROW>
+            end
+            for evaluation_run_i=1:numEvaluationRuns
+                progressParams.evaluation_run_i = evaluation_run_i;
+                ExperimentRunFactory.displayEvaluationProgress(progressParams);
+                % this will create a test split
+                parametersRun.createTrunsductionSplit();
+
+                singleRunFactory = parametersRun.createSingleRunFactory();
+                fileName = outputManager.evaluationSingleRunName(progressParams);
+                job = ExperimentRunFactory.runAndSaveSingleRun...
+                    ( singleRunFactory, optimalParams, algorithmsToRun, fileName, outputManager );
+                evaluationJobNamesPerMethod = [evaluationJobNamesPerMethod; {fileName}]; %#ok<AGROW>
+                evaluationJobs = [evaluationJobs; job]; %#ok<AGROW>
+            end
+            
+            outputManager.moveUpOneDirectory();
+            evaluationJobNames{optimization_method_i} = evaluationJobNamesPerMethod; %#ok<AGROW>
+        end
+        JobManager.waitForJobs(evaluationJobs);
+        disp('all evaluation runs are finished');
+        parametersRun.setEvaluationRunsJobNames(evaluationJobNames);
+    end
+    
+    %% runOptimizationJobs_allAlgorithms
+    
+    function runOptimizationJobs_allAlgorithms...
+            (parametersRun,   paramsManager, progressParams, ...
+             algorithmsToRun, outputManager)
+        disp('******** Optimizing ********');
+                
+        for algorithm_i=algorithmsToRun.algorithmsRange()
+            ExperimentRunFactory.runOptimizationJobs_oneAlgorithm....
+                    ( parametersRun,    paramsManager,  progressParams, ...
+                      algorithm_i,    outputManager);
+        end
+    end
+    
+    %% runOptimizationJobs_oneAlgorithm
+    
+    function runOptimizationJobs_oneAlgorithm...
+                ( parametersRun, paramsManager,    progressParams, ...
+                  algorithmType, outputManager )
+        % get all optimization options for this algorithm
+        optimizationParams_allOptions = ...
+            paramsManager.optimizationParams_allOptions( algorithmType );
+
+        if length(optimizationParams_allOptions) == 1
+            % only one option in optimization options
+            algorithmName           = AlgorithmTypeToStringConverter.convert( algorithmType );
+            disp([algorithmName ': Only 1 optimization option. Skipping optimization jobs.']);
+            return;
+        end
+        
+        optimizationParams_allOptions = ...
+            ExperimentRunFactory.combineOptimizationAndNonOptimizationParams...
+                (optimizationParams_allOptions, parametersRun);
+
+        % run optimization jobs
+        singleRunFactory     = parametersRun.createSingleRunFactory();
+        optimizationJobNames = ExperimentRunFactory.runOptionsCollection...
+                (singleRunFactory, optimizationParams_allOptions, ...
+                 progressParams  , algorithmType, outputManager);
+        parametersRun.setParameterTuningRunsJobNames(algorithmType, optimizationJobNames);
+    end
+
+    %% combineOptimizationAndNonOptimizationParams
+    
+    function R = combineOptimizationAndNonOptimizationParams...
+            (optimizationParams_allOptions, parametersRun)
+        nonOptimizationParams = parametersRun.get_evaluationParams();
+        % combine optimization options with current run parameters
+        R = ParamsManager.addParamsToCollection...
+            (optimizationParams_allOptions, nonOptimizationParams);
     end
     
     %% runOptionsCollection
@@ -211,8 +299,9 @@ methods (Static)
     
     %% runAndSaveSingleRun
     
-    function job = runAndSaveSingleRun( singleRunFactory, singleOption, ...
-                                  algorithmsToRun, fileName, outputManager )
+    function job = runAndSaveSingleRun...
+        ( singleRunFactory, singleOption, algorithmsToRun, ...
+          fileName, outputManager )
         if ParamsManager.ASYNC_RUNS == 0
             singleRun = singleRunFactory.run(singleOption, algorithmsToRun );
             JobManager.saveJobOutput( singleRun, fileName);
@@ -229,12 +318,15 @@ methods (Static)
     %% displayEvaluationProgress
     
     function displayEvaluationProgress(progressParams)
+        optimizationMethodName = ...
+            OptimizationMethodToStringConverter.convert(progressParams.optimization_method_i);
         progressString = ...
         [ 'on experiment '   num2str(progressParams.experiment_i)         ...
          ' out of '          num2str(progressParams.numExperiments)        ...
          '. parameter run  ' num2str(progressParams.evaluation_i)         ...
          ' out of '          num2str(progressParams.numEvaluations)       ...
-         '. evaluation run ' num2str(progressParams.evaluation_run_i)             ...
+         '. ' optimizationMethodName ...
+         '. evaluation run ' num2str(progressParams.evaluation_run_i)     ...
          ' out of '          num2str(progressParams.numEvaluationRuns) ];
 
         disp(progressString);

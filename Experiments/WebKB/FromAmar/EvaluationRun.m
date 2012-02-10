@@ -17,6 +17,12 @@ methods (Access = public)
         this.m_evaluationParams = value;
     end
     
+    %% get_evaluationParams
+    
+    function R = get_evaluationParams(this)
+        R = this.m_evaluationParams;
+    end
+    
     %% setParameterTuningRunsJobNames
     
     function setParameterTuningRunsJobNames(this, algorithmType, value)
@@ -27,6 +33,12 @@ methods (Access = public)
     
     function R = numOptimizationRuns(this, algorithmType)
         R = length(this.m_parameterTuningRunsJobNames{algorithmType});
+    end
+    
+    %% get_optimizationJobNames_perAlgorithm
+    
+    function R = get_optimizationJobNames_perAlgorithm(this, algorithmType)
+        R = this.m_parameterTuningRunsJobNames{algorithmType};
     end
     
     %% getOptimizationRunJobName
@@ -45,13 +57,20 @@ methods (Access = public)
     %% numEvaluationRuns
     
     function R = numEvaluationRuns(this)
-        R = length(this.m_evaluationRunsJobNames);
+        R = this.m_evaluationParams.numEvaluationRuns;
     end
     
-    %% getEvaluationRunJobNames
+    %% optimizationMethodsCollection
     
-    function R = getEvaluationRunJobNames(this, index)
-        R = this.m_evaluationRunsJobNames{index};
+    function R = optimizationMethodsCollection(this)
+        R = this.m_evaluationParams.optimizeByCollection;
+    end
+    
+    %% getEvaluationRunJobName
+    
+    function R = getEvaluationRunJobName(this, optimization_method_i, evaluation_i)
+        evaluationsForOptimizationMethod = this.m_evaluationRunsJobNames{optimization_method_i};
+        R = evaluationsForOptimizationMethod{evaluation_i};
     end
     
     %% algorithmsRange

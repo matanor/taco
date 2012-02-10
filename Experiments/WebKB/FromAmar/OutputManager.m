@@ -15,6 +15,11 @@ properties (Constant)
 end
     
 methods
+    %% Constructor
+    
+    function this = OutputManager()
+        this.m_currentFolder = OutputManager.SEPERATOR;
+    end
     
     %% set_currentFolder
     
@@ -48,6 +53,14 @@ methods
         this.stepIntoFolder(['Parameters_run_' num2str(parameters_run_i)]);
     end
     
+    %% startEvaluationRun
+    
+    function startEvaluationRun(this, optimization_method_i)
+        optimization_method_name = ...
+                OptimizationMethodToStringConverter.convert(optimization_method_i);
+        this.stepIntoFolder(optimization_method_name);
+    end
+    
     %% addSeperatorIfMissing
     
     function addSeperatorIfMissing(this)
@@ -73,9 +86,11 @@ methods
     
     %% evaluteOptimizationJobName
         
-    function r = evaluteOptimizationJobName( this, algorithmType )
+    function r = evaluteOptimizationJobName( this, algorithmType, optimizationMethod )
         algorithmName = AlgorithmTypeToStringConverter.convert(algorithmType);
-        r = this.createFileNameAtCurrentFolder(['EvaluateOptimization.' algorithmName '.mat']);
+        optimizationMethodName = OptimizationMethodToStringConverter.convert(optimizationMethod);
+        r = this.createFileNameAtCurrentFolder...
+            (['EvaluateOptimization.' algorithmName '.' optimizationMethodName '.mat']);
     end
     
     %% evaluationSingleRunName

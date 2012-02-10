@@ -29,7 +29,11 @@ methods (Static)
         outputManager.m_showSingleRuns = 1;
         outputManager.m_showAccumulativeLoss = 0;
 
-        %%
+        %% save results to file.
+        saveToFileFullPath = outputManager.createFileNameAtCurrentFolder('experimentRuns.mat');
+        save( saveToFileFullPath,'experimentRuns');
+
+        %% Plot results.
         if ParamsManager.ASYNC_RUNS == 0     
            RunMain.plotResults(experimentRuns, outputManager);
         else
@@ -39,9 +43,6 @@ methods (Static)
            job = JobManager.scheduleJob(fileFullPath, 'asyncPlotResults', outputManager);
            JobManager.waitForJobs( job );
         end
-
-        saveToFileFullPath = outputManager.createFileNameAtCurrentFolder('experimentRuns.mat');
-        save( saveToFileFullPath,'experimentRuns');
         
         return ;
         %% get total number of experiment
@@ -188,14 +189,20 @@ methods (Static)
                     end
                 end
                 numEvaluationRuns = parameterRun.numEvaluationRuns();
-                for evaluation_run_i=1:numEvaluationRuns
-                    disp(['evaluation run = ' num2str(evaluation_run_i) ...
-                           ' of ' num2str(numEvaluationRuns)]);
-                    evaluationRunJobName = parameterRun.getEvaluationRunJobNames(evaluation_run_i);
-                    evaluation_run = JobManager.loadJobOutput(evaluationRunJobName);
-                    outputManager.m_description = ...
-                        ['Evaluation.' num2str(parameter_run_i) '.' num2str(evaluation_run_i)];
-                    showSingleRunResults.show( evaluation_run, outputManager );
+                optimizationMethods = parameterRun.optimizationMethodsCollection();
+                for optimization_method_i=optimizationMethods
+                    outputManager.startEvaluationRun(optimization_method_i);
+                    for evaluation_run_i=1:numEvaluationRuns
+                        disp(['evaluation run = ' num2str(evaluation_run_i) ...
+                               ' of ' num2str(numEvaluationRuns)]);
+                        evaluationRunJobName = parameterRun.getEvaluationRunJobName...
+                            (optimization_method_i, evaluation_run_i);
+                        evaluation_run = JobManager.loadJobOutput(evaluationRunJobName);
+                        outputManager.m_description = ...
+                            ['Evaluation.' num2str(parameter_run_i) '.' num2str(evaluation_run_i)];
+                        showSingleRunResults.show( evaluation_run, outputManager );
+                    end
+                    outputManager.moveUpOneDirectory();
                 end
                 outputManager.moveUpOneDirectory();
             end
@@ -218,15 +225,19 @@ methods (Static)
                 disp(['parameters run index = ' num2str(parameter_run_i) ]);
                 parameterRun = experimentRun.getParameterRun(parameter_run_i);
 
-                allEvaluationRuns = MultipleRuns;
-                numEvaluationRuns = parameterRun.numEvaluationRuns();
-                for evaluation_run_i=1:numEvaluationRuns
-                    evaluationRunJobName = parameterRun.getEvaluationRunJobNames(evaluation_run_i);
-                    evaluation_run = JobManager.loadJobOutput(evaluationRunJobName);
-                    allEvaluationRuns.addRun(evaluation_run);
+                optimizationMethods = parameterRun.optimizationMethodsCollection();
+                for optimization_method_i=optimizationMethods
+                    allEvaluationRuns = MultipleRuns;
+                    numEvaluationRuns = parameterRun.numEvaluationRuns();
+                    for evaluation_run_i=1:numEvaluationRuns
+                        evaluationRunJobName = ...
+                            parameterRun.getEvaluationRunJobName...
+                                (optimization_method_i, evaluation_run_i);
+                        evaluation_run = JobManager.loadJobOutput(evaluationRunJobName);
+                        allEvaluationRuns.addRun(evaluation_run);
+                    end
+                    showMultipleExperimentsResults.show(allEvaluationRuns, outputManager );
                 end
-                
-                showMultipleExperimentsResults.show(allEvaluationRuns, outputManager );
             end
         end
     end
