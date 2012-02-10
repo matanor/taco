@@ -191,7 +191,8 @@ methods (Static)
                 parametersRun.createTrunsductionSplit();
 
                 singleRunFactory = parametersRun.createSingleRunFactory();
-                fileName = outputManager.evaluationSingleRunName(progressParams);
+                fileName = outputManager.evaluationSingleRunName...
+                    (progressParams, optimization_method_i);
                 job = ExperimentRunFactory.runAndSaveSingleRun...
                     ( singleRunFactory, optimalParams, algorithmsToRun, fileName, outputManager );
                 evaluationJobNamesPerMethod = [evaluationJobNamesPerMethod; {fileName}]; %#ok<AGROW>

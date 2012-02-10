@@ -95,10 +95,12 @@ methods
     
     %% evaluationSingleRunName
     
-    function r = evaluationSingleRunName(this, progressParams)
+    function r = evaluationSingleRunName(this, progressParams, optimization_method_i)
+        optimizationMethodName = OptimizationMethodToStringConverter.convert(optimization_method_i);
         r = this.createFileNameAtCurrentFolder...
             (   ['Evaluation.' num2str(progressParams.evaluation_i) '.' ...
-                num2str(progressParams.evaluation_run_i) '.mat']);
+                num2str(progressParams.evaluation_run_i) '.' ...
+                optimizationMethodName '.mat']);
         disp(['evaluationSingleRunName = ' r]);
     end
     
