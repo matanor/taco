@@ -105,6 +105,7 @@ methods (Access = public)
         
         %numIterations.range = [5 10 25 50 100];
         this = this.createParameter( 'maxIterations', [10], isString, [] );    
+        this = this.createParameter( 'numEvaluationRuns', [10], isString, [] );
         
         this = this.createParameter( 'numLabeled', [48], isString, [] );    
         
@@ -115,10 +116,12 @@ methods (Access = public)
         
         this = this.createParameter( 'useGraphHeuristics', [0], isString, [] );
         
-        this = this.createParameter( 'numEvaluationRuns', [10], isString, [] );
         
-        this = this.createParameter( 'labeledInitMode', ...
+this = this.createParameter( 'labeledInitMode', ...
             [ParamsManager.LABELED_INIT_ZERO_ONE], isString, [] );
+%        this = this.createParameter( 'labeledInitMode', ...
+%            [ParamsManager.LABELED_INIT_MINUS_PLUS_ONE...
+%             ParamsManager.LABELED_INIT_MINUS_PLUS_ONE_UNLABELED], isString, [] );
         
         this = this.createParameter( 'balancedFolds',   [1], isString, [] );
         this = this.createParameter( 'balancedLabeled', [1], isString, [] );
