@@ -61,8 +61,8 @@ methods (Access = public)
         
         isString = 1;
         if isOnOdin
-%           fileNames = [ {'/u/matanorb/experiments/webkb/data/Rapid_Miner_Result/webkb_constructed.mat' } ];
-            fileNames = [ {'/u/matanorb/experiments/webkb/data/from_amar/webkb_amar.mat' } ];
+           fileNames = [ {'/u/matanorb/experiments/webkb/data/Rapid_Miner_Result/webkb_constructed.mat' } ];
+%             fileNames = [ {'/u/matanorb/experiments/webkb/data/from_amar/webkb_amar.mat' } ];
         else
             fileNames = [ {'C:\technion\theses\Experiments\WebKB\data\Rapid_Miner_Result\webkb_constructed.mat'}];
         end
@@ -87,7 +87,7 @@ methods (Access = public)
             this = this.createParameter( 'beta',  betaOptimizationRange, isString, [] );
             this = this.createParameter( 'labeledConfidence', gammaOptimizationRange, isString, [] );
         else
-            this = this.createParameter( 'alpha', [1], isString, [] );
+            this = this.createParameter( 'alpha', [1 2], isString, [] );
             this = this.createParameter( 'beta' , [1], isString, [] );        
             this = this.createParameter( 'labeledConfidence', [1], isString, [] );     
         end
@@ -98,7 +98,7 @@ methods (Access = public)
             this = this.createParameter( 'mu2', paperOprimizationRange, isString, [] );  
             this = this.createParameter( 'mu3', paperOprimizationRange, isString, [] );
         else
-            this = this.createParameter( 'mu2', [1 10 ], isString, [] );     
+            this = this.createParameter( 'mu2', [1 ], isString, [] );     
             this = this.createParameter( 'mu3', [1], isString, [] );
         end
         
@@ -106,10 +106,10 @@ methods (Access = public)
         
         %numIterations.range = [5 10 25 50 100];
         if isTesting
-            this = this.createParameter( 'maxIterations', [3], isString, [] );    
+            this = this.createParameter( 'maxIterations', [1], isString, [] );    
             this = this.createParameter( 'numEvaluationRuns', [1], isString, [] );
         else
-            this = this.createParameter( 'maxIterations', [10], isString, [] );    
+            this = this.createParameter( 'maxIterations',     [10], isString, [] );    
             this = this.createParameter( 'numEvaluationRuns', [10], isString, [] );
         end
         
@@ -120,19 +120,23 @@ methods (Access = public)
         % 0 means all instances
         this = this.createParameter( 'numInstancesPerClass', [0], isString, [] );    
         if isTesting
-            this = this.createParameter( 'useGraphHeuristics', [1], isString, [] );
+            this = this.createParameter( 'useGraphHeuristics', [0 1], isString, [] );
         else 
             this = this.createParameter( 'useGraphHeuristics', [0 1], isString, [] );
         end
-           
-        this = this.createParameter( 'labeledInitMode', ...
-            [ParamsManager.LABELED_INIT_ZERO_ONE], isString, [] );
-%        this = this.createParameter( 'labeledInitMode', ...
-%            [ParamsManager.LABELED_INIT_MINUS_PLUS_ONE...
-%             ParamsManager.LABELED_INIT_MINUS_PLUS_ONE_UNLABELED], isString, [] );
         
-        this = this.createParameter( 'balancedFolds',   [1], isString, [] );
-        this = this.createParameter( 'balancedLabeled', [1], isString, [] );
+        if isTesting
+            this = this.createParameter( 'labeledInitMode', ...
+                [ParamsManager.LABELED_INIT_ZERO_ONE], isString, [] );
+        else
+            this = this.createParameter( 'labeledInitMode', ...
+                [ParamsManager.LABELED_INIT_ZERO_ONE...
+                 ParamsManager.LABELED_INIT_MINUS_PLUS_ONE...
+                 ParamsManager.LABELED_INIT_MINUS_PLUS_ONE_UNLABELED], isString, [] );
+        end
+        
+        this = this.createParameter( 'balancedFolds',   [0], isString, [] );
+        this = this.createParameter( 'balancedLabeled', [0], isString, [] );
         
         this = this.createParameter( 'optimizeByCollection', ...
             [ParamsManager.OPTIMIZE_BY_ACCURACY ParamsManager.OPTIMIZE_BY_PRBEP], isString, [] );
