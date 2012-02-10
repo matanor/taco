@@ -30,6 +30,9 @@ methods (Static)
         outputManager.m_showAccumulativeLoss = 0;
 
         %% save results to file.
+        if isOnOdin == 1   
+             experimentRuns = RunMain.clearGraphs(experimentRuns);
+        end
         saveToFileFullPath = outputManager.createFileNameAtCurrentFolder('experimentRuns.mat');
         save( saveToFileFullPath,'experimentRuns');
 
