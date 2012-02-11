@@ -66,6 +66,12 @@ methods (Access = public)
         R = this.m_evaluationParams.optimizeByCollection;
     end
     
+    %% getEvaluationJobNames_perOptimizationMethod
+    
+    function R = evaluationJobNames_perOptimizationMethod(this, optimization_method_i)
+        R = this.m_evaluationRunsJobNames{optimization_method_i};
+    end
+    
     %% getEvaluationRunJobName
     
     function R = getEvaluationRunJobName(this, optimization_method_i, evaluation_i)
