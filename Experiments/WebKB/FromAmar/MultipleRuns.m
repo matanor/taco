@@ -51,10 +51,6 @@ methods
     
     function r = sorted_by_confidence( this, algorithmType )
         r = this.calsSortedByConfidence(algorithmType);
-        %if isempty(this.m_sorted.by_confidence)
-        %    this.calsSortedByConfidence();
-        %end
-        %r = this.m_sorted.by_confidence;
     end
     
     %% num_runs
@@ -91,6 +87,20 @@ methods
         end
         prebpAverage          = prebpAverage / this.num_runs();
         estimatedPrebpAverage = estimatedPrebpAverage / this.num_runs();
+    end
+    
+    %% calcAverageAccuracy_testSet
+    
+    function R = calcAverageAccuracy_testSet(this, algorithmType)
+        averageAccuracy = 0;
+        for run_i=1:this.num_runs()
+            singleRun = this.getRun(run_i);
+            singleRunAccuracy = singleRun.accuracy_testSet(algorithmType);
+            disp(['run ' num2str(run_i) ' accuracy = ' num2str(singleRunAccuracy)]);
+            averageAccuracy = averageAccuracy + singleRunAccuracy;
+        end
+        averageAccuracy = averageAccuracy / this.num_runs();
+        R = averageAccuracy;
     end
     
 end

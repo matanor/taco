@@ -62,9 +62,13 @@ classdef SingleRun < handle
             this.m_W_nn = value;
         end      
         
+        %% constructionParams
+        
         function R = constructionParams(this)
             R = this.m_constructionParams;
         end
+        
+        %% set_constructionParams
         
         function set_constructionParams(this, value)
             this.m_constructionParams = value;
@@ -93,12 +97,8 @@ classdef SingleRun < handle
         %% numIterations
         
         function R = numIterations(this, algorithmType)
-%             if (algorithmType == this.CSSLMC)
             R = this.getParams(algorithmType);
             R = R.maxIterations;
-%             else 
-%                 R = this.algorithmParams().numIterations;
-%             end
         end
         
         %% set_results
