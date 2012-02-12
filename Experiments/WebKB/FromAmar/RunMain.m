@@ -135,7 +135,7 @@ methods (Static)
                     algorithmName = AlgorithmTypeToStringConverter.convert(algorithm_i);
                     disp(['algorithm = ' algorithmName]);
                     jobNames = parameterRun.get_optimizationJobNames_perAlgorithm(algorithm_i);
-                    descriptionFormat = ['Optimization.' num2str(parameter_run_i) '.%d' ];
+                    descriptionFormat = ['Optimization.' num2str(parameter_run_i) '.%d.' algorithmName];
                     jobFileFullPath = outputManager.createFileNameAtCurrentFolder...
                         (['PlotOptimization.' num2str(parameter_run_i) '.' algorithmName '.mat']);
                     job = RunMain.runAsync_plotSingleResults...
