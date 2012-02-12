@@ -105,15 +105,17 @@ methods (Access = public)
     function createTrunsductionSplit(this)
         graph = this.m_graph;
         constructionParams = this.m_constructionParams;
+        balancedFolds = this.m_evaluationParams.balanced;
+        balancedLabeled = this.m_evaluationParams.balanced;
                
-        if (this.m_evaluationParams.balancedFolds)
+        if (balancedFolds)
             graph.folds = GraphLoader.splitBalanced(graph, constructionParams.numFolds );
         else
             graph.folds = GraphLoader.split(graph, constructionParams.numFolds );
         end
             
         trainingSet = graph.folds(1,:);
-        if (this.m_evaluationParams.balancedLabeled)
+        if (balancedLabeled)
             graph.labeledVertices  = GraphLoader.selectLabelsUniformly...
                             (   trainingSet, ...
                                 graph.labels, ...

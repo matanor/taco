@@ -19,8 +19,7 @@ properties (GetAccess = public, SetAccess = private)
     m_fileName;
     m_numEvaluationRuns;
     m_labeledInitMode;
-    m_balancedFolds;
-    m_balancedLabeled;
+    m_balanced;
     m_optimizeByCollection;
 end
 
@@ -98,7 +97,7 @@ methods (Access = public)
             this = this.createParameter( 'mu2', paperOprimizationRange, isString, [] );  
             this = this.createParameter( 'mu3', paperOprimizationRange, isString, [] );
         else
-            this = this.createParameter( 'mu2', [1 ], isString, [] );     
+            this = this.createParameter( 'mu2', [1], isString, [] );     
             this = this.createParameter( 'mu3', [1], isString, [] );
         end
         
@@ -120,7 +119,7 @@ methods (Access = public)
         % 0 means all instances
         this = this.createParameter( 'numInstancesPerClass', [0], isString, [] );    
         if isTesting
-            this = this.createParameter( 'useGraphHeuristics', [0 1], isString, [] );
+            this = this.createParameter( 'useGraphHeuristics', [1], isString, [] );
         else 
             this = this.createParameter( 'useGraphHeuristics', [0 1], isString, [] );
         end
@@ -135,11 +134,15 @@ methods (Access = public)
                  ParamsManager.LABELED_INIT_MINUS_PLUS_ONE_UNLABELED], isString, [] );
         end
         
-        this = this.createParameter( 'balancedFolds',   [0], isString, [] );
-        this = this.createParameter( 'balancedLabeled', [0], isString, [] );
+        this = this.createParameter( 'balanced', [0 1], isString, [] );
         
-        this = this.createParameter( 'optimizeByCollection', ...
-            [ParamsManager.OPTIMIZE_BY_ACCURACY ParamsManager.OPTIMIZE_BY_PRBEP], isString, [] );
+        if isTesting
+            this = this.createParameter( 'optimizeByCollection', ...
+                [ParamsManager.OPTIMIZE_BY_ACCURACY], isString, [] );
+        else
+            this = this.createParameter( 'optimizeByCollection', ...
+                [ParamsManager.OPTIMIZE_BY_ACCURACY ParamsManager.OPTIMIZE_BY_PRBEP], isString, [] );
+        end
     end
     
     %% createParameter
@@ -161,8 +164,7 @@ methods (Access = public)
     function R = evaluationParamsProperties(this)
         R = [ this.m_makeSymetric,       this.m_maxIterations, ...
               this.m_useGraphHeuristics, this.m_labeledInitMode, ...
-              this.m_numEvaluationRuns,  this.m_balancedLabeled, ...
-              this.m_balancedFolds];
+              this.m_numEvaluationRuns,  this.m_balanced];
     end   
     
     %% constructionParamsProperties
