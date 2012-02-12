@@ -142,14 +142,16 @@ end
 methods (Static)
     %% calcOptimalParams
     
-    function [R, bestValue] = calcOptimalParams(tuneRuns, algorithmType, optimizeBy)
+    function R = calcOptimalParams(tuneRuns, algorithmType, optimizeBy)
         numTuningRuns = length(tuneRuns);
         scores = zeros(numTuningRuns ,1);
         for tuning_run_i=1:numTuningRuns 
+            disp(['Optimization run ' num2str(tuning_run_i) ' out of ' num2str(numTuningRuns)]);
             scores(tuning_run_i) = EvaluationRun.doEvaluateRun...
                 ( tuneRuns( tuning_run_i ), algorithmType, optimizeBy );
         end
         [bestValue,bestRunIndex] = max(scores);
+        disp(['Optimal on run ' num2str(bestRunIndex) ' with value ' num2str(bestValue)]);
         R = tuneRuns(bestRunIndex).getParams( algorithmType );
     end
     

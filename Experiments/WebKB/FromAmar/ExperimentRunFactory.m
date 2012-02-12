@@ -160,11 +160,10 @@ methods (Static)
         end
         
         % evaluate arccording to optimization criterion
-        [optimal, optimalValue ]= EvaluationRun.calcOptimalParams(optimizationRuns, algorithmType, optimizeBy);
+        optimal = EvaluationRun.calcOptimalParams(optimizationRuns, algorithmType, optimizeBy);
         optimalString = Utilities.StructToStringConverter(optimal);
         algorithmName = AlgorithmTypeToStringConverter.convert( algorithmType );
         disp(['algorithm = ' algorithmName ...
-              '. optimal value = ' num2str(optimalValue) ...
               '. optimal params: ' optimalString]);
     end
     
