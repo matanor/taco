@@ -97,51 +97,7 @@ methods (Static)
         groupsOrder = randperm(numGroups);
         folds       = folds(groupsOrder,:);
     end    
-    
-    %% load
-    
-    function [ outGraph, labeled ] = load...
-            (   graphFileName       , classToLabelMap, ...
-                numLabeledPerClass  , numInstancesPerClass )
-        %LOADGRAPH Load a graph from disk.
 
-        graph = load( graphFileName, 'graph' );
-        graph = graph.graph;
-
-        % select only required classes
-        requiredClasses     = classToLabelMap(:, GraphLoader.CLASS_VALUE);
-        [selected]          = GraphLoader.selectClasses(graph, requiredClasses);
-        
-        % Translate class values to label values (e.g. class 1 -> 1, class 2 -> -1)
-        numRequiredClasses  = length( requiredClasses );
-        for class_i = 1:numRequiredClasses
-            classValue = classToLabelMap(class_i, GraphLoader.CLASS_VALUE);
-            labelValue = classToLabelMap(class_i, GraphLoader.LABEL_VALUE);
-            selected.labels(selected.labels == classValue) = labelValue;
-        end
-
-        % Balance the classes
-        if numInstancesPerClass ~= 0
-            balanced = balanceClasses(selected, numInstancesPerClass);
-        else
-            balanced = selected;
-        end;
-
-        % Randomly select labeled vertices - the same amount
-        %  of labeled vertices from each class.
-
-        labeled = GraphLoader.selectLabelsUniformly...
-            (  balanced.labels,     classToLabelMap, ...
-               numLabeledPerClass);
-        % return the labeled vertices in a single column vector.
-        labeled = labeled(:);
-
-        % save results in output.
-
-        outGraph = balanced;
-
-    end
-    
     %% selectLabeled_atLeastOnePerLabel
     
     function lebeledVertices = selectLabeled_atLeastOnePerLabel...
