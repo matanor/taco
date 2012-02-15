@@ -27,7 +27,7 @@ methods (Static)
     function runOnDesktop()
         Configurations.clearEverything();
         
-        folderName = '2012_02_09_1 multiple_parameter_evaluations_per_experiment';
+        folderName = '2012_02_15_1_fixed_trunsduction_sets';
         resultsDir = 'C:/technion/theses/Experiments/WebKB/results/';
         isOnOdin = 0;
         outputManager = OutputManager;
