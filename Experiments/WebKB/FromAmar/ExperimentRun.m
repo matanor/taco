@@ -9,13 +9,16 @@ classdef ExperimentRun < handle
     properties (SetAccess = public, GetAccess=public)
         m_graph;
         m_parameterRuns;
+        m_trunsductionSets;
     end
     
 methods (Access = public)
-    %% set_constructionParams
     
-    function set_constructionParams(this, value)
-        this.m_constructionParams = value;
+    %% constructor
+    
+    function this = ExperimentRun(constructionParams)
+        this.m_graph = ExperimentGraph;
+        this.m_constructionParams = constructionParams;
     end
     
     %% getGraph
@@ -27,22 +30,19 @@ methods (Access = public)
     %% constructGraph
     
     function constructGraph(this)
-        this.m_graph = GraphLoader.constructGraph(this.m_constructionParams);
+        this.m_graph.load                    ( this.m_constructionParams.fileName );
+        this.m_graph.removeExtraSplitVertices( this.m_constructionParams.numFolds);
+        
+        trunsductionSetsFactory = ...
+            ExperimentTrunsductionSetsFactory( this.m_constructionParams, this.m_graph );
+        this.m_trunsductionSets = trunsductionSetsFactory.create();
     end
     
-    %% removeExtraSplitVertices
+    %% createParameterRun
     
-    function removeExtraSplitVertices(this)
-        this.m_graph = GraphLoader.removeExtraSplitVertices...
-            (this.m_graph,  this.m_constructionParams.numFolds);
-    end
-    
-    %% createEvaluationRun
-    
-    function R = createEvaluationRun(this)
-        R = EvaluationRun;
-        R.m_constructionParams = this.m_constructionParams;
-        R.m_graph = this.m_graph;
+    function R = createParameterRun(this, parameterValues)
+        R = ParameterRun(this.m_constructionParams, this.m_graph, ...
+                         this.m_trunsductionSets,   parameterValues);
     end
     
     %% addParameterRun

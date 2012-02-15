@@ -17,7 +17,6 @@ classdef SingleRun < handle
     properties (Access=public)
         m_constructionParams;
 
-        m_labeled;
         m_unlabeled_num_mistakes;
         
         m_LP_result;
@@ -26,14 +25,17 @@ classdef SingleRun < handle
         m_CSSLMC_result;
         m_CSSLMCF_result;
         
-        m_folds;
-        m_W_nn;
         m_algorithmsCollection;
+        m_trunsductionSet;
     end
     
     methods (Access=public)
-        function this = SingleRun() % Constructor
-            this.m_labeled = [];
+        function this = SingleRun...
+                (correctLabels, constructionParams, trunsductionSet) % Constructor
+            this.correctLabels          = correctLabels;
+            this.m_constructionParams   = constructionParams;
+            this.m_trunsductionSet      = trunsductionSet;
+            
             this.m_unlabeled_num_mistakes = zeros( SingleRun.numAvailableAlgorithms(),1 );
             this.m_algorithmsCollection = AlgorithmsCollection;
         end
@@ -49,18 +51,12 @@ classdef SingleRun < handle
         function r = isResultsAvailable( this, algorithmType )
             r = this.m_algorithmsCollection.shouldRun(algorithmType);
         end
+
+        %% set_trunsductionSet
         
-        %% set_folds
-        
-        function set_folds(this, value)
-            this.m_folds = value;
+        function set_trunsductionSet(this, value)
+            this.m_trunsductionSet = value;
         end
-        
-        %% set_graph
-        
-        function set_graph(this, value)
-            this.m_W_nn = value;
-        end      
         
         %% constructionParams
         
@@ -92,7 +88,6 @@ classdef SingleRun < handle
         function R = testSetSize(this)
             R = length(this.testSet());
         end
-
         
         %% numIterations
         
@@ -303,22 +298,19 @@ classdef SingleRun < handle
         %% Return indices for labeled vertices
         
         function r = labeled(this)
-            r = this.m_labeled;
+            r = this.m_trunsductionSet.labeled();
         end
         
         %% trainSet
         
-        function r = trainSet(this)
-            folds = this.m_folds;
-            r = folds(1,:).';
+        function R = trainSet(this)
+            R = this.m_trunsductionSet.trainingSet();
         end
         
         %% testSet
         
-        function r = testSet(this)
-            folds = this.m_folds;
-            folds(1, :) = []; % remove training group
-            r = folds(:);
+        function R = testSet(this)
+            R = this.m_trunsductionSet.testSet();
         end
         
         %% calcNumMistakes

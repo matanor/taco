@@ -3,42 +3,43 @@ classdef SingleRunFactory < handle
 properties (Access = public)
     m_constructionParams;
     m_graph;
+    m_trunsductionSet;
 end
     
-methods (Access = public)   
+methods (Access = public)
+    %% constructor 
+    
+    function this = SingleRunFactory( constructionParams, graph, trunsductionSet )
+        this.m_constructionParams   = constructionParams;
+        this.m_graph                = graph;
+        this.m_trunsductionSet      = trunsductionSet;
+    end
+    
+    %% set_graph
+    
+    function set_graph( this, value )
+        this.m_graph = value;
+    end
+    
     %% scheduleAsyncRun
     
     function job = scheduleAsyncRun(this, algorithmParams, algorithmsToRun, ...
                               fileFullPath, outputManager )
         disp('scheduleAsyncRun');
         % save us to a file.
-        this.m_graph.w_nn = []; % This will be reconstructed
-        this.m_graph.w_nn_symetric  = []; % This will be reconstructed
-        this.m_graph.weights = []; % This will be reconstructed
+        this.m_graph.clearWeights(); % This will be reconstructed when loading task from disk
         save(fileFullPath,'this','algorithmParams','algorithmsToRun');
         
         job = JobManager.scheduleJob(fileFullPath, 'asyncSingleRun', outputManager);
     end
     
+    %% run
+    
     function singleRun = run(this, algorithmParams, algorithmsToRun)
-        %% get graph
-%         if ( algorithmParams{SingleRun.CSSLMC}.makeSymetric ~= 0)
-%             w_nn = this.m_graph.w_nn_symetric;
-%         else
-%             w_nn = this.m_graph.w_nn;
-%         end
-        
-        %% display parameters
-%         paramsString = [' makeSymetric = ' num2str(algorithmParams{SingleRun.CSSLMC}.makeSymetric) ];
-%         disp(paramsString);
-        
         %% create singleRun results object
-        singleRun = SingleRun;
-        singleRun.m_labeled         = this.m_graph.labeledVertices;
-        singleRun.correctLabels     = this.m_graph.labels;
-%         singleRun.set_graph( w_nn );
-        singleRun.set_constructionParams( this.m_constructionParams );
-        singleRun.set_folds( this.m_graph.folds );
+        singleRun = SingleRun(this.m_graph.correctLabels(), ...
+                              this.m_constructionParams, ...
+                              this.m_trunsductionSet);
 
         %% Run algorithm - confidence SSL
         
@@ -62,16 +63,13 @@ methods (Access = public)
 
         if ( algorithmsToRun.shouldRun(SingleRun.MAD) ~= 0)
             mad = MAD;
-            if (  algorithmParams{SingleRun.MAD}.makeSymetric ~= 0)
-                w_nn = this.m_graph.w_nn_symetric;
-            else
-                w_nn = this.m_graph.w_nn;
-            end
+            w_nn = this.get_wnnGraph( algorithmParams{SingleRun.MAD}.makeSymetric, ...
+                                      algorithmParams{SingleRun.MAD}.K);
 
             madParams = algorithmParams{SingleRun.MAD};
             Ylabeled = this.createInitialLabeledY(madParams.labeledInitMode);
 
-            labeledVertices = this.m_graph.labeledVertices;
+            labeledVertices = this.m_trunsductionSet.labeled();
             madResultsSource = mad.run( w_nn, Ylabeled, madParams, labeledVertices );
 
             mad_results = MAD_Results;
@@ -82,20 +80,27 @@ methods (Access = public)
                 
     end
     
+    %% get_wnnGraph
+    
+    function R = get_wnnGraph(this, makeSymetric, K)
+        this.m_graph.createKnn ( K );
+        if ( makeSymetric ~= 0)
+            R = this.m_graph.get_symetricNN();
+        else
+            R = this.m_graph.get_NN();
+        end
+    end
+    
     %% runCSSL
 
     function runCSSL( this, algorithm, algorithm_results, params )
-        if ( params.makeSymetric ~= 0)
-            algorithm.m_W = this.m_graph.w_nn_symetric;
-        else
-            algorithm.m_W = this.m_graph.w_nn;
-        end
+        algorithm.m_W = this.get_wnnGraph( params.makeSymetric, params.K );
         algorithm.m_num_iterations      = params.maxIterations;
         algorithm.m_alpha               = params.alpha;
         algorithm.m_beta                = params.beta;
         algorithm.m_labeledConfidence   = params.labeledConfidence;
         algorithm.m_useGraphHeuristics  = params.useGraphHeuristics;
-
+        
         Ylabeled = this.createInitialLabeledY(params.labeledInitMode);
         
         algorithmResultsSource = algorithm.run( Ylabeled );
@@ -107,10 +112,11 @@ methods (Access = public)
     %% createInitialLabeledY
 
     function R = createInitialLabeledY(this, labeledInitMode)
-        numVertices= size( this.m_graph.weights, 1);
-        numLabels = length( unique( this.m_graph.labels ) );
-        labeledVertices_indices         = this.m_graph.labeledVertices;
-        labeledVertices_correctLabels   = this.m_graph.labels(labeledVertices_indices);
+        numVertices = this.m_graph.numVertices();
+        numLabels = length( this.m_graph.availabelLabels() );
+        labeledVertices_indices         = this.m_trunsductionSet.labeled();
+        labeledVertices_correctLabels   = ...
+            this.m_graph.correctLabelsForVertices(labeledVertices_indices);
         R = zeros( numVertices, numLabels);
         availableLabels = 1:numLabels;
         

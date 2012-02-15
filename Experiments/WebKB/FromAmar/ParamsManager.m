@@ -129,9 +129,9 @@ methods (Access = public)
                 [ParamsManager.LABELED_INIT_ZERO_ONE], isString, [] );
         else
             this = this.createParameter( 'labeledInitMode', ...
-                [ParamsManager.LABELED_INIT_ZERO_ONE...
-                 ParamsManager.LABELED_INIT_MINUS_PLUS_ONE...
-                 ParamsManager.LABELED_INIT_MINUS_PLUS_ONE_UNLABELED], isString, [] );
+                 [ ParamsManager.LABELED_INIT_ZERO_ONE...
+                   ParamsManager.LABELED_INIT_MINUS_PLUS_ONE...
+                   ParamsManager.LABELED_INIT_MINUS_PLUS_ONE_UNLABELED], isString, [] );
         end
         
         this = this.createParameter( 'balanced', [0 1], isString, [] );
@@ -164,25 +164,26 @@ methods (Access = public)
     function R = evaluationParamsProperties(this)
         R = [ this.m_makeSymetric,       this.m_maxIterations, ...
               this.m_useGraphHeuristics, this.m_labeledInitMode, ...
-              this.m_numEvaluationRuns,  this.m_balanced];
+              this.m_numEvaluationRuns];
     end   
     
     %% constructionParamsProperties
     
     function R = constructionParamsProperties(this)
-        %this.m_numInstancesPerClass,
-        R = [  this.m_fileName, this.m_K, this.m_numLabeled, this.m_numFolds];
+        R = [  this.m_fileName,         this.m_numLabeled, ...
+               this.m_numFolds,         this.m_balanced, ...
+               this.m_numEvaluationRuns];
     end
     
     %% optimizationParamsCSSL
     
     function R = optimizationParamsCSSL(this)
-        R = [ this.m_alpha, this.m_beta, this.m_labeledConfidence];
+        R = [ this.m_K, this.m_alpha, this.m_beta, this.m_labeledConfidence];
     end
     
     %% optimizationParamsMAD
     function R = optimizationParamsMAD(this)
-        R = [ this.m_mu1, this.m_mu2, this.m_mu3 ];
+        R = [ this.m_K, this.m_mu1, this.m_mu2, this.m_mu3 ];
     end         
     
     %% optimizationParams_allOptions
@@ -212,9 +213,9 @@ methods (Access = public)
         R = this.createParameterStructures( paramProperties);
     end
     
-    %% evaluationParams_allOptions
+    %% parameterValues_allOptions
     
-	function R = evaluationParams_allOptions( this )
+	function R = parameterValues_allOptions( this )
         paramProperties = this.evaluationParamsProperties();
         evaluationParams = this.createParameterStructures( paramProperties);
         commonParamProperties = this.commonEvaluationParamsProperties();

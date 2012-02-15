@@ -1,4 +1,4 @@
-classdef EvaluationRun < handle
+classdef ParameterRun < handle
     %EVALUATIONRUN Summary of this class goes here
     %   Detailed explanation goes here
     
@@ -8,13 +8,18 @@ classdef EvaluationRun < handle
         m_parameterTuningRunsJobNames;
         m_evaluationRunsJobNames;
         m_evaluationParams;
+        m_trunsductionSets;
     end
     
 methods (Access = public)
-    %% set_evaluationParams
+    %% Constructor
     
-    function set_evaluationParams( this, value)
-        this.m_evaluationParams = value;
+    function this = ParameterRun...
+            ( constrcutionParams, graph, trunsductionSets, parameterValues)
+        this.m_constructionParams   = constrcutionParams;
+        this.m_graph                = graph;
+        this.m_trunsductionSets   = trunsductionSets;
+        this.m_evaluationParams     = parameterValues;
     end
     
     %% get_evaluationParams
@@ -92,53 +97,24 @@ methods (Access = public)
         end
     end
 
-    %% createSingleRunFactory
+    %% createOptimizationRunFactory
     
-    function singleRunFactory = createSingleRunFactory(this)
-        singleRunFactory = SingleRunFactory;
-        singleRunFactory.m_constructionParams   = this.m_constructionParams;
-        singleRunFactory.m_graph                = this.m_graph;
+    function R = createOptimizationRunFactory(this, optimization_run_i)
+        trunsductionSet = ...
+            this.m_trunsductionSets.optimizationSet( optimization_run_i );
+        R = SingleRunFactory...
+            ( this.m_constructionParams, this.m_graph, trunsductionSet );
     end
     
-    %% createTrunsductionSplit
+    %% createEvaluationRunFactory
     
-    function createTrunsductionSplit(this)
-        graph = this.m_graph;
-        constructionParams = this.m_constructionParams;
-        balancedFolds = this.m_evaluationParams.balanced;
-        balancedLabeled = this.m_evaluationParams.balanced;
-               
-        if (balancedFolds)
-            graph.folds = GraphLoader.splitBalanced(graph, constructionParams.numFolds );
-        else
-            graph.folds = GraphLoader.split(graph, constructionParams.numFolds );
-        end
-            
-        trainingSet = graph.folds(1,:);
-        if (balancedLabeled)
-            graph.labeledVertices  = GraphLoader.selectLabelsUniformly...
-                            (   trainingSet, ...
-                                graph.labels, ...
-                                constructionParams.classToLabelMap, ...
-                                ConstructionParams.numLabeledPerClass(constructionParams) );
-        else
-            graph.labeledVertices = GraphLoader.selectLabeled_atLeastOnePerLabel...
-                (   trainingSet, ...
-                    graph.labels,...
-                    constructionParams.classToLabelMap, ...
-                    constructionParams.numLabeled); 
-        end
-                            
-        this.m_graph = graph;
-                            
-
-        % unlabeled instances from train set
-        % trainSetUnlabeled = setdiff(folds(1,:), labeledVertices);
-
-        %[graph labeledVertices] = ...
-        %    ExperimentRun.removeVertices...
-        %        ( graph, labeledVertices, trainSetUnlabeled );
+    function R = createEvaluationRunFactory(this, evaluation_run_i)
+        trunsductionSet = ...
+            this.m_trunsductionSets.evaluationSet( evaluation_run_i );
+        R = SingleRunFactory...
+            ( this.m_constructionParams, this.m_graph, trunsductionSet );
     end
+    
 end
 
 methods (Static)
@@ -149,7 +125,7 @@ methods (Static)
         scores = zeros(numTuningRuns ,1);
         for tuning_run_i=1:numTuningRuns 
             disp(['Optimization run ' num2str(tuning_run_i) ' out of ' num2str(numTuningRuns)]);
-            scores(tuning_run_i) = EvaluationRun.doEvaluateRun...
+            scores(tuning_run_i) = ParameterRun.doEvaluateRun...
                 ( tuneRuns( tuning_run_i ), algorithmType, optimizeBy );
         end
         [bestValue,bestRunIndex] = max(scores);

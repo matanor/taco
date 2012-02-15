@@ -18,7 +18,7 @@ methods (Static)
               
         %
         constructionParams_allOptions = paramsManager.constructionParams_allOptions();
-        evaluationParams_allOptions   = paramsManager.evaluationParams_allOptions();
+        parameterValues_allOptions     = paramsManager.parameterValues_allOptions();
 
         experimentCollection = [];
         
@@ -30,11 +30,10 @@ methods (Static)
             constructionParams.classToLabelMap = classToLabelMap;
 
             disp(['File Name = ' constructionParams.fileName]);
-            experimentRun = ExperimentRun;
-            experimentRun.set_constructionParams( constructionParams );
+            experimentRun = ExperimentRun(constructionParams);
             experimentRun.constructGraph();
 
-            numEvaluationOptions = length(evaluationParams_allOptions);
+            numEvaluationOptions = length(parameterValues_allOptions);
             
             progressParams.experiment_i  = construction_i;
             progressParams.numEvaluations = numEvaluationOptions;
@@ -43,15 +42,10 @@ methods (Static)
                 progressParams.evaluation_i = parameters_run_i;
                 outputManager.stepIntoFolder(['Parameters_run_' num2str(parameters_run_i)]);
                 
-                parametersRun    = experimentRun.createEvaluationRun();
-                
-                evaluationParams = evaluationParams_allOptions(parameters_run_i);
-                evaluationParamsString = Utilities.StructToStringConverter(evaluationParams);
-                disp(['Evaluation Params. ' evaluationParamsString]);
-                parametersRun.set_evaluationParams( evaluationParams );
-                
-                % this will create the training split
-                parametersRun.createTrunsductionSplit();
+                parameterValues = parameterValues_allOptions(parameters_run_i);
+                evaluationParamsString = Utilities.StructToStringConverter(parameterValues);
+                disp(['Parameter run values. ' evaluationParamsString]);
+                parametersRun = experimentRun.createParameterRun(parameterValues);
 
                 ExperimentRunFactory.runOptimizationJobs_allAlgorithms...
                     ( parametersRun, paramsManager, progressParams, ...
@@ -160,7 +154,7 @@ methods (Static)
         end
         
         % evaluate arccording to optimization criterion
-        optimal = EvaluationRun.calcOptimalParams(optimizationRuns, algorithmType, optimizeBy);
+        optimal = ParameterRun.calcOptimalParams(optimizationRuns, algorithmType, optimizeBy);
         optimalString = Utilities.StructToStringConverter(optimal);
         algorithmName = AlgorithmTypeToStringConverter.convert( algorithmType );
         disp(['algorithm = ' algorithmName ...
@@ -188,10 +182,8 @@ methods (Static)
             for evaluation_run_i=1:numEvaluationRuns
                 progressParams.evaluation_run_i = evaluation_run_i;
                 ExperimentRunFactory.displayEvaluationProgress(progressParams);
-                % this will create a test split
-                parametersRun.createTrunsductionSplit();
 
-                singleRunFactory = parametersRun.createSingleRunFactory();
+                singleRunFactory = parametersRun.createEvaluationRunFactory(evaluation_run_i);
                 fileName = outputManager.evaluationSingleRunName...
                     (progressParams, optimization_method_i);
                 job = ExperimentRunFactory.runAndSaveSingleRun...
@@ -243,7 +235,8 @@ methods (Static)
                 (optimizationParams_allOptions, parametersRun);
 
         % run optimization jobs
-        singleRunFactory     = parametersRun.createSingleRunFactory();
+        optimization_set_i = 1; % currently optimizing on only 1 trunsduction set.
+        singleRunFactory     = parametersRun.createOptimizationRunFactory( optimization_set_i );
         optimizationJobNames = ExperimentRunFactory.runOptionsCollection...
                 (singleRunFactory, optimizationParams_allOptions, ...
                  progressParams  , algorithmType, outputManager);
