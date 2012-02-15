@@ -68,7 +68,12 @@ methods (Access = public)
         this = this.createParameter( 'fileName', [1] , isString, fileNames );
         
         isString = 0;
-        this = this.createParameter(  'K', [1000], isString, [] );
+        if (optimize)
+            kOptimizationRange = [10 50 100 500 1000 2000 4204];
+            this = this.createParameter(  'K', kOptimizationRange, isString, [] );
+        else
+            this = this.createParameter(  'K', [500 1000], isString, [] );
+        end
         %K.range = [1,2,5,10,20,50,100,500];
         
         %alpha.range = [0.0001, 0.001, 0.01,0.1,1];

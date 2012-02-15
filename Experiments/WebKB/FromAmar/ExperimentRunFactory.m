@@ -43,8 +43,7 @@ methods (Static)
                 outputManager.stepIntoFolder(['Parameters_run_' num2str(parameters_run_i)]);
                 
                 parameterValues = parameterValues_allOptions(parameters_run_i);
-                evaluationParamsString = Utilities.StructToStringConverter(parameterValues);
-                disp(['Parameter run values. ' evaluationParamsString]);
+                ExperimentRunFactory.displayParameterValues( parameterValues, constructionParams);
                 parametersRun = experimentRun.createParameterRun(parameterValues);
 
                 ExperimentRunFactory.runOptimizationJobs_allAlgorithms...
@@ -67,6 +66,14 @@ methods (Static)
         end
     
     R = experimentCollection;
+    end
+    
+    %% displayParameterValues
+    
+    function displayParameterValues(parameterValues, constructionParams)
+        parameterValuesString    = Utilities.StructToStringConverter(parameterValues);
+        constructionParamsString = Utilities.StructToStringConverter(constructionParams);
+        disp(['Parameter run values. ' constructionParamsString ' ' parameterValuesString]);
     end
     
     %% searchForOptimalParams

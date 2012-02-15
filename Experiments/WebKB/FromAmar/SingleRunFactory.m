@@ -83,6 +83,8 @@ methods (Access = public)
     %% get_wnnGraph
     
     function R = get_wnnGraph(this, makeSymetric, K)
+        disp(['get_wnnGraph. K = ' num2str(K) ...
+              ' makeSymetric = ' num2str(makeSymetric)]);
         this.m_graph.createKnn ( K );
         if ( makeSymetric ~= 0)
             R = this.m_graph.get_symetricNN();
