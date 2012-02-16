@@ -1,5 +1,5 @@
 classdef ParameterRun < handle
-    %EVALUATIONRUN Summary of this class goes here
+    %PARAMETERRUN Summary of this class goes here
     %   Detailed explanation goes here
     
     properties (Access = public)
@@ -7,7 +7,7 @@ classdef ParameterRun < handle
         m_graph;
         m_parameterTuningRunsJobNames;
         m_evaluationRunsJobNames;
-        m_evaluationParams;
+        m_parameterValues;
         m_trunsductionSets;
     end
     
@@ -16,16 +16,16 @@ methods (Access = public)
     
     function this = ParameterRun...
             ( constrcutionParams, graph, trunsductionSets, parameterValues)
-        this.m_constructionParams   = constrcutionParams;
-        this.m_graph                = graph;
+        this.m_constructionParams = constrcutionParams;
+        this.m_graph              = graph;
         this.m_trunsductionSets   = trunsductionSets;
-        this.m_evaluationParams     = parameterValues;
+        this.m_parameterValues    = parameterValues;
     end
     
-    %% get_evaluationParams
+    %% get_paramValues
     
-    function R = get_evaluationParams(this)
-        R = this.m_evaluationParams;
+    function R = get_paramValues(this)
+        R = this.m_parameterValues;
     end
     
     %% setParameterTuningRunsJobNames
@@ -62,13 +62,13 @@ methods (Access = public)
     %% numEvaluationRuns
     
     function R = numEvaluationRuns(this)
-        R = this.m_evaluationParams.numEvaluationRuns;
+        R = this.m_parameterValues.numEvaluationRuns;
     end
     
     %% optimizationMethodsCollection
     
     function R = optimizationMethodsCollection(this)
-        R = this.m_evaluationParams.optimizeByCollection;
+        R = this.m_parameterValues.optimizeByCollection;
     end
     
     %% getEvaluationJobNames_perOptimizationMethod

@@ -60,7 +60,7 @@ methods (Static)
     
     function plotResults(experimentRuns, outputManager)
         if ParamsManager.ASYNC_RUNS == 0 
-            RunMain.plotEvaluationSummary(experimentRuns, outputManager);
+            RunMain.plotEvaluationSummary(experimentRuns);
         else
         	experimentRuns = RunMain.clearGraphs( experimentRuns );
             fileFullPath = outputManager.createFileNameAtCurrentFolder...
@@ -77,36 +77,21 @@ methods (Static)
     
     %% plotEvaluationSummary
     
-    function plotEvaluationSummary(experimentRuns, outputManager)
+    function plotEvaluationSummary(experimentRuns)
         
         numExperiments = length(experimentRuns);
         experimentRange = 1:numExperiments;
         disp('**** Multiple Runs Summary ****');
-
+        
+        resultsSummary = ResultsSummary;
         for experimentID = experimentRange
             disp(['experiment ID = ' num2str(experimentID) ]);
             experimentRun = experimentRuns(experimentID);
-            numParameterRuns = experimentRun.numParameterRuns();
-            for parameter_run_i=1:numParameterRuns
-                disp(['parameters run index = ' num2str(parameter_run_i) ]);
-                parameterRun = experimentRun.getParameterRun(parameter_run_i);
-
-                optimizationMethods = parameterRun.optimizationMethodsCollection();
-                for optimization_method_i=optimizationMethods
-                    disp(['optimized by = ' OptimizationMethodToStringConverter.convert(optimization_method_i) ]);
-                    allEvaluationRuns = MultipleRuns;
-                    numEvaluationRuns = parameterRun.numEvaluationRuns();
-                    for evaluation_run_i=1:numEvaluationRuns
-                        evaluationRunJobName = ...
-                            parameterRun.getEvaluationRunJobName...
-                                (optimization_method_i, evaluation_run_i);
-                        evaluation_run = JobManager.loadJobOutput(evaluationRunJobName);
-                        allEvaluationRuns.addRun(evaluation_run);
-                    end
-                    showMultipleExperimentsResults.show(allEvaluationRuns, outputManager );
-                end
-            end
+            experimentRunResults = ExperimentRunResult;
+            experimentRunResults.create(experimentRun)
+            resultsSummary.add(experimentRunResults);
         end
+        resultsSummary.printSummary();
     end
     
     %% plotAllSingleResults

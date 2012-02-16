@@ -34,10 +34,6 @@ methods
     %% addRun
     
     function addRun(this, singleRun )
-%         if ~isempty( this.m_runs )
-%             %this.checkConstructionParams (singleRun.constructionParams());
-%             %this.checkAlgorithmParams    (singleRun.algorithmParams());
-%         end
         this.m_runs = [this.m_runs; singleRun];
     end
 
@@ -67,9 +63,9 @@ methods
 
     %% calcAveragePrecisionAndRecall
 
-    function [prebpAverage estimatedPrebpAverage] = calcAveragePrecisionAndRecall(this, algorithmType)
+    function [prbepAverage estimatedPrebpAverage] = calcAveragePrecisionAndRecall(this, algorithmType)
         numLabels = this.getRun(1).numLabels();
-        prebpAverage            = zeros(numLabels, 1);
+        prbepAverage            = zeros(numLabels, 1);
         estimatedPrebpAverage   = zeros(numLabels, 1);
         for run_i=1:this.num_runs()
 
@@ -81,11 +77,11 @@ methods
                 estimated_prbep  = singleRun.estimatePRBEP_testSet(algorithmType, labelIndex);
                 disp(['prbep (estimated) for class ' num2str(labelIndex) ' = ' num2str(prbep)...
                   ' (' num2str(estimated_prbep) ')']);
-                prebpAverage(labelIndex) = prebpAverage(labelIndex) + prbep;
+                prbepAverage(labelIndex) = prbepAverage(labelIndex) + prbep;
                 estimatedPrebpAverage(labelIndex) = estimatedPrebpAverage(labelIndex) + estimated_prbep;
             end
         end
-        prebpAverage          = prebpAverage / this.num_runs();
+        prbepAverage          = prbepAverage / this.num_runs();
         estimatedPrebpAverage = estimatedPrebpAverage / this.num_runs();
     end
     

@@ -20,12 +20,12 @@ methods (Access = public)
         this.m_graph = ExperimentGraph;
         this.m_constructionParams = constructionParams;
     end
+
+    %% get_constructionParams
     
-    %% getGraph
-    
-    function R = getGraph(this)
-        R = this.m_graph;
-    end    
+    function R = get_constructionParams(this)
+        R = this.m_constructionParams;
+    end
     
     %% constructGraph
     

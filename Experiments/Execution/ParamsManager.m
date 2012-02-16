@@ -248,10 +248,7 @@ methods (Static)
         numOptions = length(optionsCollection);
         for option_i=1:numOptions
             currentOption = optionsCollection(option_i);
-            %http://stackoverflow.com/questions/38645/what-are-some-efficient-ways-to-combine-two-structures-in-matlab
-            M = [fieldnames(currentOption)' fieldnames(paramsToAdd)'; ...
-                 struct2cell(currentOption)' struct2cell(paramsToAdd)'];
-            R(option_i)=struct(M{:}); %#ok<AGROW>
+            R(option_i) = Utilities.combineStructs(currentOption, paramsToAdd); %#ok<AGROW>
         end
     end
     

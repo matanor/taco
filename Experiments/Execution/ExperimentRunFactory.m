@@ -173,9 +173,9 @@ methods (Static)
     function runEvaluations(parametersRun,   progressParams, optimalParamsAllMethods, ...
                             algorithmsToRun, outputManager)
         disp('******** Running Evaluations ********');
-        numEvaluationRuns = parametersRun.get_evaluationParams().numEvaluationRuns;
+        numEvaluationRuns = parametersRun.numEvaluationRuns();
         progressParams.numEvaluationRuns = numEvaluationRuns;
-        optimizeByMethods = parametersRun.get_evaluationParams().optimizeByCollection;
+        optimizeByMethods = parametersRun.optimizationMethodsCollection();
         
         evaluationJobs = [];
         for optimization_method_i=optimizeByMethods
@@ -254,7 +254,7 @@ methods (Static)
     
     function R = combineOptimizationAndNonOptimizationParams...
             (optimizationParams_allOptions, parametersRun)
-        nonOptimizationParams = parametersRun.get_evaluationParams();
+        nonOptimizationParams = parametersRun.get_paramValues();
         % combine optimization options with current run parameters
         R = ParamsManager.addParamsToCollection...
             (optimizationParams_allOptions, nonOptimizationParams);
