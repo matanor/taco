@@ -47,11 +47,11 @@ methods (Static)
 
         for experimentID = experimentRange
             experimentRun = experimentRuns(experimentID);
-            experimentRun.m_graph = GraphLoader.clearWeights( experimentRun.m_graph );
+            experimentRun.m_graph.clearWeights();
             numParameterRuns = experimentRun.numParameterRuns();
             for parameter_run_i=1:numParameterRuns
                 parameterRun = experimentRun.getParameterRun(parameter_run_i);
-                parameterRun.m_graph = GraphLoader.clearWeights( parameterRun.m_graph );
+                parameterRun.m_graph.clearWeights();
             end
         end
     end
