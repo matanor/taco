@@ -45,7 +45,7 @@ methods
                     withHeuristics = similarParameterRun;
                     noHeuristics = parameterRunResult;
                 end
-                tablePrinter = PRBEPTablePrinter(noHeuristics, withHeuristics);
+                tablePrinter = ExcelTablePrinter(noHeuristics, withHeuristics);
                 tablePrinter.printAllAvailableTables();
                 wasReported(parameter_run_i) = 1;
                 if ~isempty(similarParameterRun)

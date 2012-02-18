@@ -1,4 +1,4 @@
-classdef PRBEPTablePrinter < handle
+classdef ExcelTablePrinter < handle
     %PRBEPTABLEPRINTER Summary of this class goes here
     %   Detailed explanation goes here
     
@@ -15,7 +15,7 @@ end
 methods
     %% construtor
     
-    function this = PRBEPTablePrinter( noHeuristics, withHeuristics)
+    function this = ExcelTablePrinter( noHeuristics, withHeuristics)
         this.m_noHeuristics     = noHeuristics;
         this.m_withHeuristics   = withHeuristics;
     end
@@ -199,7 +199,7 @@ methods
     function R = getPRBEPresultsTable...
             (this, parameterRunResults, optimizationMethod, isEstimated)
         numClasses = this.numClasses(optimizationMethod);
-        numAlgorithmsInResult = PRBEPTablePrinter.numAlgorithmInResult();
+        numAlgorithmsInResult = ExcelTablePrinter.numAlgorithmInResult();
         if ~isempty(parameterRunResults)
             R = parameterRunResults.resultsTablePRBEP...
                     (optimizationMethod, isEstimated);
@@ -212,7 +212,7 @@ methods
     
     function R = getAvgAccuracy...
             (~, parameterRunResults, optimizationMethod)
-        numAlgorithmsInResult = PRBEPTablePrinter.numAlgorithmInResult();
+        numAlgorithmsInResult = ExcelTablePrinter.numAlgorithmInResult();
         if ~isempty(parameterRunResults)
             R = parameterRunResults.avgAccuracy_testSet(optimizationMethod);
         else
