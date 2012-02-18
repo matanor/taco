@@ -65,7 +65,7 @@ methods (Static)
         	experimentRuns = RunMain.clearGraphs( experimentRuns );
             fileFullPath = outputManager.createFileNameAtCurrentFolder...
                 ('EvaluationSummary.mat');
-            save(fileFullPath, 'experimentRuns', 'outputManager');
+            save(fileFullPath, 'experimentRuns');
             job = JobManager.scheduleJob(fileFullPath, 'asyncEvaluationSummary', outputManager);
             JobManager.waitForJobs( job );
         end
