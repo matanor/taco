@@ -50,6 +50,8 @@ methods
                 wasReported(parameter_run_i) = 1;
                 if ~isempty(similarParameterRun)
                     wasReported(similarParameterRunIndex) = 1;
+                    disp(['Similar parameter runs (with/without heuristics): '...
+                         num2str(parameter_run_i) ' and ' num2str(similarParameterRunIndex)]);
                 end
             end
         end
