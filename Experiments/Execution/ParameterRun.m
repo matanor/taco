@@ -9,6 +9,7 @@ classdef ParameterRun < handle
         m_evaluationRunsJobNames;
         m_parameterValues;
         m_trunsductionSets;
+        m_optimalParams;
     end
     
 methods (Access = public)
@@ -20,6 +21,28 @@ methods (Access = public)
         this.m_graph              = graph;
         this.m_trunsductionSets   = trunsductionSets;
         this.m_parameterValues    = parameterValues;
+    end
+    
+    %% set_optimalParams
+    
+    function set_optimalParams(this, value)
+        this.m_optimalParams = value;
+    end
+    
+    %% get_optimalParams
+    
+    function R = get_optimalParams(this)
+        R = this.m_optimalParams;
+    end
+    
+    %% get_optimalParams_perOptimizationMethod
+    
+    function R = get_optimalParams_perOptimizationMethod...
+                    (this, optimization_method_i, algorithmsToRun)
+        for algorithm_i=algorithmsToRun.algorithmsRange()
+            R{algorithm_i} = ...
+                this.m_optimalParams{optimization_method_i,algorithm_i}.values; %#ok<AGROW>
+        end
     end
     
     %% get_paramValues
@@ -128,9 +151,10 @@ methods (Static)
             scores(tuning_run_i) = ParameterRun.doEvaluateRun...
                 ( tuneRuns( tuning_run_i ), algorithmType, optimizeBy );
         end
-        [bestValue,bestRunIndex] = max(scores);
-        disp(['Optimal on run ' num2str(bestRunIndex) ' with value ' num2str(bestValue)]);
-        R = tuneRuns(bestRunIndex).getParams( algorithmType );
+        [bestScore,bestRunIndex] = max(scores);
+        disp(['Optimal on run ' num2str(bestRunIndex) ' with value ' num2str(bestScore)]);
+        R.values = tuneRuns(bestRunIndex).getParams( algorithmType );
+        R.score = bestScore;
     end
     
     %% doEvaluateRun

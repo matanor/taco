@@ -6,6 +6,7 @@ classdef ParameterRunResult < handle
         m_results; % indexed by optimization method
         m_parameterValues;
         m_constructionParams;
+        m_optimalParams;
     end
     
 methods
@@ -21,6 +22,7 @@ methods
     function create(this, parameterRun, constructionParams)
         this.m_constructionParams = constructionParams;
         this.m_parameterValues = parameterRun.get_paramValues();
+        this.m_optimalParams = parameterRun.get_optimalParams();
         
         optimizationMethods = this.optimizationMethodsCollection();
         for optimization_method_i=optimizationMethods
@@ -38,6 +40,12 @@ methods
             multipleRunResult.create(allEvaluationRuns );
             this.m_results{optimization_method_i} = multipleRunResult;
         end
+    end
+    
+    %% get_optimalParams
+    
+    function R = get_optimalParams(this, optimization_method_i, algorithm_i)
+        R = this.m_optimalParams{optimization_method_i,algorithm_i};
     end
     
     %% resultsTablePRBEP

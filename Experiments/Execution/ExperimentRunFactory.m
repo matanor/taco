@@ -50,13 +50,13 @@ methods (Static)
                     ( parametersRun, paramsManager, progressParams, ...
                       algorithmsToRun, outputManager);
                   
-                optimalParams = ExperimentRunFactory.searchForOptimalParams...
+                ExperimentRunFactory.searchForOptimalParams...
                     ( parametersRun, paramsManager, algorithmsToRun, outputManager );
 
                 % run evaluations
 
                 ExperimentRunFactory.runEvaluations...
-                    ( parametersRun, progressParams, optimalParams, ...
+                    ( parametersRun, progressParams, ...
                       algorithmsToRun, outputManager);
 
                 experimentRun.addParameterRun( parametersRun );
@@ -78,7 +78,7 @@ methods (Static)
     
     %% searchForOptimalParams
     
-    function R = searchForOptimalParams(parametersRun, paramsManager, algorithmsToRun, outputManager)
+    function searchForOptimalParams(parametersRun, paramsManager, algorithmsToRun, outputManager)
         disp('****** Searching for optimal parameter *****')
         optimizationEvaluationMethods = parametersRun.optimizationMethodsCollection();
         jobsToWaitFor = [];
@@ -98,7 +98,8 @@ methods (Static)
                 for evaluation_method_i=optimizationEvaluationMethods
                     ExperimentRunFactory.printOptimal...
                         (optimal, algorithm_i, evaluation_method_i );
-                    optimalParams{evaluation_method_i,algorithm_i} = optimal; %#ok<AGROW>
+                    optimalParams{evaluation_method_i,algorithm_i}.values = optimal; %#ok<AGROW>
+                    optimalParams{evaluation_method_i,algorithm_i}.score = 1; %#ok<AGROW>
                 end
             end
         end
@@ -111,12 +112,12 @@ methods (Static)
                     job = optimalJobs{evaluation_method_i,algorithm_i};
                     optimal = JobManager.loadJobOutput(job.fileFullPath);
                     ExperimentRunFactory.printOptimal...
-                        (optimal, algorithm_i, evaluation_method_i );
+                        (optimal.values, algorithm_i, evaluation_method_i );
                     optimalParams{evaluation_method_i,algorithm_i} = optimal; %#ok<AGROW>
                 end
             end
         end
-        R = optimalParams;
+        parametersRun.set_optimalParams(optimalParams);
     end
     
     %% printOptimal
@@ -162,7 +163,7 @@ methods (Static)
         
         % evaluate arccording to optimization criterion
         optimal = ParameterRun.calcOptimalParams(optimizationRuns, algorithmType, optimizeBy);
-        optimalString = Utilities.StructToStringConverter(optimal);
+        optimalString = Utilities.StructToStringConverter(optimal.values);
         algorithmName = AlgorithmTypeToStringConverter.convert( algorithmType );
         disp(['algorithm = ' algorithmName ...
               '. optimal params: ' optimalString]);
@@ -170,7 +171,7 @@ methods (Static)
     
     %% runEvaluations
     
-    function runEvaluations(parametersRun,   progressParams, optimalParamsAllMethods, ...
+    function runEvaluations(parametersRun,   progressParams, ...
                             algorithmsToRun, outputManager)
         disp('******** Running Evaluations ********');
         numEvaluationRuns = parametersRun.numEvaluationRuns();
@@ -182,10 +183,8 @@ methods (Static)
             progressParams.optimization_method_i = optimization_method_i;
             evaluationJobNamesPerMethod = [];
             outputManager.startEvaluationRun(optimization_method_i);
-            for algorithm_i=algorithmsToRun.algorithmsRange()
-                optimalParams{algorithm_i} = ...
-                    optimalParamsAllMethods{optimization_method_i,algorithm_i}; %#ok<AGROW>
-            end
+            optimalParams = parametersRun.get_optimalParams_perOptimizationMethod...
+                                (optimization_method_i, algorithmsToRun);
             for evaluation_run_i=1:numEvaluationRuns
                 progressParams.evaluation_run_i = evaluation_run_i;
                 ExperimentRunFactory.displayEvaluationProgress(progressParams);
