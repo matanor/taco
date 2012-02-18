@@ -3,19 +3,26 @@ classdef ParameterRunResult < handle
     %   Detailed explanation goes here
     
     properties
-        m_results;
+        m_results; % indexed by optimization method
         m_parameterValues;
         m_constructionParams;
     end
     
 methods
+    
+    %% optimizationMethodsCollection
+    
+    function R = optimizationMethodsCollection(this)
+        R = this.m_parameterValues.optimizeByCollection;
+    end
+    
     %% create
     
     function create(this, parameterRun, constructionParams)
         this.m_constructionParams = constructionParams;
         this.m_parameterValues = parameterRun.get_paramValues();
         
-        optimizationMethods = parameterRun.optimizationMethodsCollection();
+        optimizationMethods = this.optimizationMethodsCollection();
         for optimization_method_i=optimizationMethods
             disp(['optimized by = ' OptimizationMethodToStringConverter.convert(optimization_method_i) ]);
             allEvaluationRuns = MultipleRuns;
@@ -37,6 +44,12 @@ methods
     
     function R = resultsTablePRBEP(this,optimization_method_i, isEstimated)
         R = this.m_results{optimization_method_i}.resultsTablePRBEP(isEstimated);
+    end
+    
+    %% avgAccuracy_testSet
+    
+    function R = avgAccuracy_testSet(this, optimization_method_i)
+        R = this.m_results{optimization_method_i}.avgAccuracy_testSet();
     end
     
     %% parameterValues

@@ -69,6 +69,26 @@ methods
         end
     end
     
+    %% avgAccuracy_testSet
+    
+    function R = avgAccuracy_testSet(this)
+        algorithmsInResult = MultipleRunsResult.algorithmsResultOrder();
+        numAlgorithms = length(algorithmsInResult);
+        R = zeros(1, numAlgorithms);
+        table_i = 1;
+        for algorithm_i=algorithmsInResult
+            if algorithm_i <= length(this.m_algorithmResults) && ...
+               ~isempty(this.m_algorithmResults{algorithm_i})
+                result = this.m_algorithmResults{algorithm_i};
+                avgAccuracy = result.avgAccuracy_testSet;
+            else
+                avgAccuracy = 0;
+            end
+            R(table_i) = avgAccuracy;
+            table_i = table_i + 1;
+        end
+    end
+    
     %% numClasses
     
     function R = numClasses(this)

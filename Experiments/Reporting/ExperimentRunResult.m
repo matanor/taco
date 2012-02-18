@@ -46,8 +46,7 @@ methods
                     noHeuristics = parameterRunResult;
                 end
                 tablePrinter = PRBEPTablePrinter(noHeuristics, withHeuristics);
-                isEstimated = 0;
-                tablePrinter.print( 1, isEstimated );
+                tablePrinter.printAllAvailableTables();
                 wasReported(parameter_run_i) = 1;
                 if ~isempty(similarParameterRun)
                     wasReported(similarParameterRunIndex) = 1;
