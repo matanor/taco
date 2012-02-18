@@ -24,6 +24,7 @@ methods
     
     function printAllAvailableTables(this)
         for optimization_method_i=this.optimizationMethodsCollection()
+            disp('****');
             isEstimated = 0;
             this.print( optimization_method_i, isEstimated );
             this.printBlankRow();
