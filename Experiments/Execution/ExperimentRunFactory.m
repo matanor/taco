@@ -26,6 +26,7 @@ methods (Static)
         progressParams.numExperiments = numConstructionStructs;
         
         for construction_i=1:numConstructionStructs
+            outputManager.startExperimentRun(construction_i);
             constructionParams = constructionParams_allOptions( construction_i );
             constructionParams.classToLabelMap = classToLabelMap;
 
@@ -40,7 +41,7 @@ methods (Static)
             
             for parameters_run_i=1:numEvaluationOptions
                 progressParams.evaluation_i = parameters_run_i;
-                outputManager.stepIntoFolder(['Parameters_run_' num2str(parameters_run_i)]);
+                outputManager.startParametersRun(parameters_run_i);
                 
                 parameterValues = parameterValues_allOptions(parameters_run_i);
                 ExperimentRunFactory.displayParameterValues( parameterValues, constructionParams);
@@ -63,6 +64,7 @@ methods (Static)
                 outputManager.moveUpOneDirectory();
             end
             experimentCollection = [experimentCollection; experimentRun ]; %#ok<AGROW>
+            outputManager.moveUpOneDirectory();
         end
     
     R = experimentCollection;

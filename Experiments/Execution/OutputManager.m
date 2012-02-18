@@ -47,6 +47,12 @@ methods
         this.m_currentFolder( (deleteFromPosition+1):end ) = [];
     end
     
+    %% startExperimentRun
+    
+    function startExperimentRun(this, experiment_run_i)
+        this.stepIntoFolder(['Experiment_run_' num2str(experiment_run_i)]);
+    end
+    
     %% startParametersRun
     
     function startParametersRun(this, parameters_run_i)  

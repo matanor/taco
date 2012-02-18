@@ -107,6 +107,7 @@ methods (Static)
         plottingJobs = [];
         
         for experimentID = experimentRange
+            outputManager.startExperimentRun(experimentID);
             disp(['experiment ID = ' num2str(experimentID) ...
                   ' of ' num2str(numExperiments)]);
             experimentRun = experimentRuns(experimentID);
@@ -145,6 +146,7 @@ methods (Static)
                 end
                 outputManager.moveUpOneDirectory();
             end
+            outputManager.moveUpOneDirectory();
         end
     end
     
