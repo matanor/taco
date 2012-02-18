@@ -7,7 +7,9 @@ function asyncSingleRun(fileFullPath, codeRoot)
     algorithmsToRun     = runData.algorithmsToRun;
 
     graph = ExperimentGraph;
-    graph.load      ( singleRunFactory.m_constructionParams.fileName )
+    graph.load( singleRunFactory.m_constructionParams.fileName )
+    graph.removeExtraSplitVertices...
+        ( singleRunFactory.m_constructionParams.numFolds);
     singleRunFactory.set_graph(graph);
     
     singleRun = singleRunFactory.run( algorithmParams, algorithmsToRun );
