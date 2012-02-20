@@ -63,16 +63,18 @@ methods (Access = public)
            fileNames = [ {'/u/matanorb/experiments/webkb/data/Rapid_Miner_Result/webkb_constructed.mat' } ];
 %             fileNames = [ {'/u/matanorb/experiments/webkb/data/from_amar/webkb_amar.mat' } ];
         else
-            fileNames = [ {'C:\technion\theses\Experiments\WebKB\data\Rapid_Miner_Result\webkb_constructed.mat'}];
+            fileNames = [ {'C:/technion/theses/Experiments/sentiment_analysis_from_yoav/sentiment_10k.mat' } ];
+%             fileNames = [ {'C:\technion\theses\Experiments\WebKB\data\Rapid_Miner_Result\webkb_constructed.mat'}];
         end
         this = this.createParameter( 'fileName', [1] , isString, fileNames );
         
         isString = 0;
         if (optimize)
-            kOptimizationRange = [10 50 100 500 1000 2000 4204];
+%             kOptimizationRange = [10 50 100 500 1000 2000 4204];
+            kOptimizationRange = [1000];
             this = this.createParameter(  'K', kOptimizationRange, isString, [] );
         else
-            this = this.createParameter(  'K', [500 1000], isString, [] );
+            this = this.createParameter(  'K', [1000], isString, [] );
         end
         %K.range = [1,2,5,10,20,50,100,500];
         
@@ -91,7 +93,7 @@ methods (Access = public)
             this = this.createParameter( 'beta',  betaOptimizationRange, isString, [] );
             this = this.createParameter( 'labeledConfidence', gammaOptimizationRange, isString, [] );
         else
-            this = this.createParameter( 'alpha', [1 2], isString, [] );
+            this = this.createParameter( 'alpha', [1], isString, [] );
             this = this.createParameter( 'beta' , [1], isString, [] );        
             this = this.createParameter( 'labeledConfidence', [1], isString, [] );     
         end
@@ -102,7 +104,7 @@ methods (Access = public)
             this = this.createParameter( 'mu2', paperOprimizationRange, isString, [] );  
             this = this.createParameter( 'mu3', paperOprimizationRange, isString, [] );
         else
-            this = this.createParameter( 'mu2', [1], isString, [] );     
+            this = this.createParameter( 'mu2', [1 10], isString, [] );     
             this = this.createParameter( 'mu3', [1], isString, [] );
         end
         
@@ -124,7 +126,7 @@ methods (Access = public)
         % 0 means all instances
         this = this.createParameter( 'numInstancesPerClass', [0], isString, [] );    
         if isTesting
-            this = this.createParameter( 'useGraphHeuristics', [1], isString, [] );
+            this = this.createParameter( 'useGraphHeuristics', [0 1], isString, [] );
         else 
             this = this.createParameter( 'useGraphHeuristics', [0 1], isString, [] );
         end
@@ -139,14 +141,20 @@ methods (Access = public)
                    ParamsManager.LABELED_INIT_MINUS_PLUS_ONE_UNLABELED], isString, [] );
         end
         
-        this = this.createParameter( 'balanced', [0 1], isString, [] );
+        if isTesting
+            this = this.createParameter( 'balanced', [1], isString, [] );
+        else
+            this = this.createParameter( 'balanced', [0 1], isString, [] );
+        end
         
         if isTesting
             this = this.createParameter( 'optimizeByCollection', ...
-                [ParamsManager.OPTIMIZE_BY_ACCURACY], isString, [] );
+                [ParamsManager.OPTIMIZE_BY_ACCURACY ...
+                 ParamsManager.OPTIMIZE_BY_PRBEP], isString, [] );
         else
             this = this.createParameter( 'optimizeByCollection', ...
-                [ParamsManager.OPTIMIZE_BY_ACCURACY ParamsManager.OPTIMIZE_BY_PRBEP], isString, [] );
+                [ParamsManager.OPTIMIZE_BY_ACCURACY ...
+                 ParamsManager.OPTIMIZE_BY_PRBEP], isString, [] );
         end
     end
     

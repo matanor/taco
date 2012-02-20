@@ -5,12 +5,14 @@ classdef GraphBase < handle
 properties
     m_weights;
     m_correctLabels;
+    m_fileName;
 end
     
 methods
     %% load
     
     function load(this, graphFileName)
+        this.m_fileName = graphFileName;
         disp(['Loading file ''' graphFileName '''']);
         fileData = load( graphFileName, 'graph' );
         
@@ -20,6 +22,12 @@ methods
         this.checkWeightsAndLabels();
         
         this.loadFromStruct( fileData );
+    end
+    
+    %% loadFromSavedFileName
+    
+    function loadFromSavedFileName(this)
+        this.load(this.m_fileName);
     end
     
     %% checkWeightsAndLabels
@@ -44,12 +52,6 @@ methods
     %% loadFromStruct (hook for derived classes)
     
     function loadFromStruct(~, ~)
-    end
-    
-    %% weights
-    
-    function R = weights(this)
-        R = this.m_weights;
     end
     
     %% correctLabels
