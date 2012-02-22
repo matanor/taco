@@ -189,12 +189,12 @@ classdef MAD < handle
             for vertex_i=1:numVertices
                 neighbours = getNeighbours( W, vertex_i );
                 transitions = MAD.calcTransitions( neighbours.weights );
-                % entropy calculation using natural logarithm as in
-                % ProbUtil.java
-                entropy = - sum( transitions .* log(transitions) );
-                % use log2 ad done is scala code downloaded from http://talukdar.net/
-                cv = log2(beta) / log2( beta + exp( entropy) ) ;
-                %cv = log(beta) / log2( beta + entropy ) ;
+                % entropy calculation using log2 as in vertex.java::GetNeighborhoodEntropy
+                entropy = - sum( transitions .* log2(transitions) );
+                % use natural logarithm land no exp as done is junto_1_0_0
+                % in Vertex.java::CalculateRWProbabilities
+%                 cv = log2(beta) / log2( beta + exp( entropy) ) ;
+                cv = log(beta) / log( beta + entropy ) ;
                 isLabeled = ismember( vertex_i, labeledVertices );
                 dv = isLabeled * (1-cv) * sqrt( entropy ) ;
                 zv = max( cv + dv, 1 );
