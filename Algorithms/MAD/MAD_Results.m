@@ -16,10 +16,10 @@ classdef MAD_Results < SSLMC_Result
             this.DUMMY = 3;
         end
         
-        function set_results(this, resultSource)
+        function set_results(this, resultSource, saveAllIterations)
             this.m_numIterations = ...
                 SSLMC_Result.calcNumIterations( resultSource.Y );
-            if ParamsManager.SAVE_ALL_ITERATIONS_IN_RESULT
+            if saveAllIterations%ParamsManager.SAVE_ALL_ITERATIONS_IN_RESULT
                 this.m_Y = resultSource.Y;
             else
                 this.m_Y = resultSource.Y(:,:,end);
@@ -33,7 +33,7 @@ classdef MAD_Results < SSLMC_Result
                              size(this.m_Y,3) );
             for iter_i=1:this.numIterations()
                 new_m_Y(:,:,iter_i) = [ this.m_Y(:,:,iter_i);
-                                         zeros(1, this.numLabels()) ];
+                                         zeros(1, this.numLabelsIncludingDummy()) ];
             end
             this.m_Y = new_m_Y;
             this.m_probabilities.inject   = [ this.m_probabilities.inject;
@@ -77,6 +77,11 @@ classdef MAD_Results < SSLMC_Result
         
         function r = probabilities(this)
             r = this.m_probabilities;
+        end
+        
+        function r = numLabelsIncludingDummy(this)
+            r = this.numLabels();
+            r = r + 1;
         end
         
     end % (Access = public)

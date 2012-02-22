@@ -73,7 +73,8 @@ methods (Access = public)
             madResultsSource = mad.run( w_nn, Ylabeled, madParams, labeledVertices );
 
             mad_results = MAD_Results;
-            mad_results.set_results( madResultsSource );
+            mad_results.set_results( madResultsSource,...
+                                     ParamsManager.SAVE_ALL_ITERATIONS_IN_RESULT );
             mad_results.set_params( madParams );
             singleRun.set_results( mad_results  , singleRun.MAD );
         end

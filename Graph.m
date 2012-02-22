@@ -142,6 +142,22 @@ classdef Graph < handle
             this.setEdgeWeight( v1_idx, v2_idx, weight );
         end
         
+        function R = getEdgeWeight( this, v1_idx, v2_idx )
+            R = this.m_W(v1_idx, v2_idx);
+        end
+        
+        function setEdgeWeight(this, v1_idx, v2_idx, weight )
+            disp([  'Setting edge between vertices ' ...
+                    num2str(v1_idx) ' ' num2str(v2_idx) ...
+                    ' to weight = ' num2str(weight) ]);
+            if (v1_idx == v2_idx)
+                disp('Single node edge, skipping');
+                return ;
+            end
+            this.m_W(v1_idx, v2_idx) = weight;
+            this.m_W(v2_idx, v1_idx) = weight;
+        end
+        
         function moveVertex(this, v_idx, newPosition)
             this.m_vertexPosition(v_idx,this.X) = newPosition.x;
             this.m_vertexPosition(v_idx,this.Y) = newPosition.y;
@@ -166,18 +182,6 @@ classdef Graph < handle
             r.labeled.positive = this.labeled_positive();
             r.labeled.negative = this.labeled_negative();
             r.v_coordinates = this.m_vertexPosition;
-        end
-        
-        function setEdgeWeight(this, v1_idx, v2_idx, weight )
-            disp([  'Setting edge between vertices ' ...
-                    num2str(v1_idx) ' ' num2str(v2_idx) ...
-                    ' to weight = ' num2str(weight) ]);
-            if (v1_idx == v2_idx)
-                disp('Single node edge, skipping');
-                return ;
-            end
-            this.m_W(v1_idx, v2_idx) = weight;
-            this.m_W(v2_idx, v1_idx) = weight;
         end
     end % methods (Access = private)
     

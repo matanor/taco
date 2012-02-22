@@ -234,6 +234,18 @@ classdef MainClass < handle
             this.plotGraph(this.currentIteration);
         end
         
+        function setEdgeWeight_callback(this,~,~)
+            disp('setEdgeWeight');
+            edgeVertices = get(gco,'UserData');
+            prompt={'Enter weight:'};
+            name='Input edge weight';
+            numlines=1;
+            defaultanswer={'1'};
+            weight=inputdlg(prompt,name,numlines,defaultanswer);
+            this.setEdgeWeight(edgeVertices(1), edgeVertices(2), str2double(weight{1}));
+            this.plotGraph(this.currentIteration);            
+        end
+        
         function setVertexPositive(this, ~, ~)
             disp('setVertexPositive');
             this.updateVertex('positive');
@@ -325,11 +337,6 @@ classdef MainClass < handle
             end
             if md<eps, % identical vertexes
               error('The array V has identical rows!')
-            else
-              % MATAN 7.11.11 removed
-              % don't normalize because we added interactive graph
-              % creation
-              %V(:,1:2)=V(:,1:2)/md; % normalization 
             end
             
             hold on
@@ -340,17 +347,28 @@ classdef MainClass < handle
             for currentEdge_i=1:numEdges,
                 edgeVertices = E(currentEdge_i,:);
                 
-                edge_start_idx = edgeVertices(1);
-                edge_end_idx   = edgeVertices(2);
+                start_vertex_idx = edgeVertices(1);
+                end_vertex_idx   = edgeVertices(2);
                 
-                edge = [    this.graph.vertexPosition( edge_start_idx );
-                            this.graph.vertexPosition( edge_end_idx ) ];
+                edgeStartPosition = this.graph.vertexPosition( start_vertex_idx );
+                edgeEndPosition   = this.graph.vertexPosition( end_vertex_idx );
+                
+                edge = [ edgeStartPosition;
+                         edgeEndPosition];
+                edge_weight = this.graph.getEdgeWeight( start_vertex_idx, end_vertex_idx ); 
                         
                 X = 1; Y = 2;
                 plot(edge(:,X),edge(:,Y),'k-',      ...
                         'UserData'     , edgeVertices,   ... 
                         'ButtonDownFcn', ...
                         {@(src, event)onButtonDown(this, src, event)});
+                edgeText = num2str(edge_weight);
+                edge_text_pos = mean(edge, 1) + [0.01 0.01];
+                text( edge_text_pos (X), edge_text_pos (Y), edgeText, ...
+                     'DisplayName', ...
+                     ['text_e_' num2str(start_vertex_idx) num2str(end_vertex_idx)] );
+%                      'UserData'   , vertex_i );
+
               
 %                 if ~isempty(ekind), % labels of edges (arrows)
 %                     if we==3,
@@ -423,6 +441,10 @@ classdef MainClass < handle
         
         function removeEdge(this, v1, v2)
             this.graph.removeEdge( v1, v2 );
+        end
+        
+        function setEdgeWeight(this, v1, v2, weight)
+            this.graph.setEdgeWeight(v1,v2,weight);
         end
 
         function addEdge(this, v1, v2 )
@@ -527,10 +549,12 @@ classdef MainClass < handle
             % Define the context menu items and install their callbacks
             uimenu(hcmenu, 'Label', 'Delete', ...
                            'Callback', @(src, event)deleteEdge(this, src, event));
+            uimenu(hcmenu, 'Label', 'Set Weight',...
+                           'Callback', @(src, event)setEdgeWeight_callback(this, src, event));
             % Locate the objects we want to add the menu to
             objectWithContextMenu = findall(hax,'Type','line');
             
-            % Attach the context menu to each text element
+            % Attach the context menu to each edge element
             for object_i = 1:length(objectWithContextMenu)
                 set(objectWithContextMenu(object_i),...
                     'UIContextMenu',hcmenu)
@@ -644,9 +668,10 @@ classdef MainClass < handle
             mad = MAD;
             
             params.mu1 = 1;
-            params.mu2 = 1;
-            params.mu3 = 1;
-            params.numIterations = this.numIterations;
+            params.mu2 = 0.01;
+            params.mu3 = 0.01;
+            params.useGraphHeuristics = 1;
+            params.maxIterations = this.numIterations; 
             
             Y = MainClass.createLabeledY(this.graph);
             
@@ -654,7 +679,8 @@ classdef MainClass < handle
             this.algorithm_result = MAD_Results;
             R = mad.run...
                 ( this.graph.weights(), Y, params, labeledVertices );
-            this.algorithm_result.set_results( R );
+            saveAllIterations = 1;
+            this.algorithm_result.set_results( R, saveAllIterations );
             this.set_numIterations( this.algorithm_result.numIterations() );
         end
         
