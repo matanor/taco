@@ -60,8 +60,9 @@ methods (Access = public)
         
         isString = 1;
         if isOnOdin
-           fileNames = [ {'/u/matanorb/experiments/webkb/data/Rapid_Miner_Result/webkb_constructed.mat' } ];
-%             fileNames = [ {'/u/matanorb/experiments/webkb/data/from_amar/webkb_amar.mat' } ];
+%          fileNames = [ {'/u/matanorb/experiments/webkb/data/Rapid_Miner_Result/webkb_constructed.mat' } ];
+           fileNames = [ {'/u/matanorb/experiments/sentiment/data/from_yoav/sentiment_10k.mat' } ];
+%          fileNames = [ {'/u/matanorb/experiments/webkb/data/from_amar/webkb_amar.mat' } ];
         else
             fileNames = [ {'C:/technion/theses/Experiments/sentiment_analysis_from_yoav/sentiment_10k.mat' } ];
 %             fileNames = [ {'C:\technion\theses\Experiments\WebKB\data\Rapid_Miner_Result\webkb_constructed.mat'}];
@@ -137,8 +138,7 @@ methods (Access = public)
         else
             this = this.createParameter( 'labeledInitMode', ...
                  [ ParamsManager.LABELED_INIT_ZERO_ONE...
-                   ParamsManager.LABELED_INIT_MINUS_PLUS_ONE...
-                   ParamsManager.LABELED_INIT_MINUS_PLUS_ONE_UNLABELED], isString, [] );
+                   ParamsManager.LABELED_INIT_MINUS_PLUS_ONE], isString, [] );
         end
         
         if isTesting
