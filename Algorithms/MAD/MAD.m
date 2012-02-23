@@ -191,10 +191,11 @@ classdef MAD < handle
                 transitions = MAD.calcTransitions( neighbours.weights );
                 % entropy calculation using log2 as in vertex.java::GetNeighborhoodEntropy
                 entropy = - sum( transitions .* log2(transitions) );
-                % use natural logarithm land no exp as done is junto_1_0_0
+                % natural logarithm and no exp is done in junto_1_0_0
                 % in Vertex.java::CalculateRWProbabilities
-%                 cv = log2(beta) / log2( beta + exp( entropy) ) ;
-                cv = log(beta) / log( beta + entropy ) ;
+                % we follow the paper (not sure it matters much)
+                cv = log2(beta) / log2( beta + exp( entropy) ) ;
+%                 cv = log(beta) / log( beta + entropy ) ;
                 isLabeled = ismember( vertex_i, labeledVertices );
                 dv = isLabeled * (1-cv) * sqrt( entropy ) ;
                 zv = max( cv + dv, 1 );
