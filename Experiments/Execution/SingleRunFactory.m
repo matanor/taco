@@ -30,7 +30,7 @@ methods (Access = public)
         this.m_graph.clearWeights(); % This will be reconstructed when loading task from disk
         save(fileFullPath,'this','algorithmParams','algorithmsToRun');
         
-        job = JobManager.scheduleJob(fileFullPath, 'asyncSingleRun', outputManager);
+        job = JobManager.createJob(fileFullPath, 'asyncSingleRun', outputManager);
     end
     
     %% run

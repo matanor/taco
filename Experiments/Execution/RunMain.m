@@ -66,13 +66,13 @@ methods (Static)
             fileFullPath = outputManager.createFileNameAtCurrentFolder...
                 ('EvaluationSummary.mat');
             save(fileFullPath, 'experimentRuns');
-            job = JobManager.scheduleJob(fileFullPath, 'asyncEvaluationSummary', outputManager);
-            JobManager.waitForJobs( job );
+            job = JobManager.createJob(fileFullPath, 'asyncEvaluationSummary', outputManager);
+            JobManager.executeJobs( job );
         end
 
         plottingJobs = RunMain.plotAllSingleResults...
             (experimentRuns, outputManager);
-        JobManager.waitForJobs(plottingJobs);
+        JobManager.executeJobs(plottingJobs);
     end
     
     %% plotEvaluationSummary
@@ -161,7 +161,7 @@ methods (Static)
             job.fileFullPath = jobFileFullPath;
         else
             save(jobFileFullPath,'jobNamesCollection','outputManager','format');
-            job = JobManager.scheduleJob...
+            job = JobManager.createJob...
                 (jobFileFullPath, 'asyncPlotSingleResults', outputManager);
         end
     end

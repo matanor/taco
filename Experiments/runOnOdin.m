@@ -6,6 +6,10 @@ function runOnOdin(folderName, codeRoot)
     codeFolders = genpath(codeRoot);
     addpath(codeFolders);
     
+    ConfigManager.init([codeRoot '/config.mat']);
+    configManager = ConfigManager.get();
+    configManager.createWithDefaultsIfMissing();
+
     Configurations.clearEverything();
 
     resultsDir = '/u/matanorb/experiments/webkb/results/';

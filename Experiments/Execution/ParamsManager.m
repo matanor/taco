@@ -21,6 +21,8 @@ properties (GetAccess = public, SetAccess = private)
     m_labeledInitMode;
     m_balanced;
     m_optimizeByCollection;
+    m_defaultParamsCSSL;
+    m_defaultParamsMAD;
 end
 
 properties( Constant)
@@ -50,6 +52,7 @@ end
 properties (Constant)
     OPTIMIZE_BY_ACCURACY = 1;
     OPTIMIZE_BY_PRBEP = 2;
+    OPTIMIZE_ALL_1 = 3;
 end
 
 methods (Access = public)
@@ -64,8 +67,8 @@ methods (Access = public)
            fileNames = [ {'/u/matanorb/experiments/sentiment/data/from_yoav/sentiment_10k.mat' } ];
 %          fileNames = [ {'/u/matanorb/experiments/webkb/data/from_amar/webkb_amar.mat' } ];
         else
-            fileNames = [ {'C:/technion/theses/Experiments/sentiment_analysis_from_yoav/sentiment_10k.mat' } ];
-%             fileNames = [ {'C:\technion\theses\Experiments\WebKB\data\Rapid_Miner_Result\webkb_constructed.mat'}];
+%             fileNames = [ {'C:/technion/theses/Experiments/sentiment_analysis_from_yoav/sentiment_10k.mat' } ];
+            fileNames = [ {'C:\technion\theses\Experiments\WebKB\data\Rapid_Miner_Result\webkb_constructed.mat'}];
         end
         this = this.createParameter( 'fileName', [1] , isString, fileNames );
         
@@ -98,8 +101,13 @@ methods (Access = public)
             this = this.createParameter( 'beta' , [1], isString, [] );        
             this = this.createParameter( 'labeledConfidence', [1], isString, [] );     
         end
-
-        this = this.createParameter( 'mu1', [1], isString, [] );     
+        
+        this.m_defaultParamsCSSL.K = 1000;
+        this.m_defaultParamsCSSL.alpha = 1;
+        this.m_defaultParamsCSSL.beta = 1;
+        this.m_defaultParamsCSSL.labeledConfidence = 1;
+        
+        this = this.createParameter( 'mu1', [1], isString, [] );
         if (optimize)
             paperOprimizationRange = [1e-8 1e-4 1e-2 1 10 1e2 1e3];        
             this = this.createParameter( 'mu2', paperOprimizationRange, isString, [] );  
@@ -108,6 +116,11 @@ methods (Access = public)
             this = this.createParameter( 'mu2', [1 10], isString, [] );     
             this = this.createParameter( 'mu3', [1], isString, [] );
         end
+        
+        this.m_defaultParamsMAD.K = 1000;
+        this.m_defaultParamsMAD.mu1 = 1;
+        this.m_defaultParamsMAD.mu2 = 1;
+        this.m_defaultParamsMAD.mu3 = 1;
         
         this = this.createParameter( 'makeSymetric', [1], isString, [] );     
         
@@ -127,7 +140,7 @@ methods (Access = public)
         % 0 means all instances
         this = this.createParameter( 'numInstancesPerClass', [0], isString, [] );    
         if isTesting
-            this = this.createParameter( 'useGraphHeuristics', [0 1], isString, [] );
+            this = this.createParameter( 'useGraphHeuristics', [1], isString, [] );
         else 
             this = this.createParameter( 'useGraphHeuristics', [0 1], isString, [] );
         end
@@ -150,7 +163,8 @@ methods (Access = public)
         if isTesting
             this = this.createParameter( 'optimizeByCollection', ...
                 [ParamsManager.OPTIMIZE_BY_ACCURACY ...
-                 ParamsManager.OPTIMIZE_BY_PRBEP], isString, [] );
+                 ParamsManager.OPTIMIZE_BY_PRBEP ... 
+                 ParamsManager.OPTIMIZE_ALL_1], isString, [] );
         else
             this = this.createParameter( 'optimizeByCollection', ...
                 [ParamsManager.OPTIMIZE_BY_ACCURACY ...
@@ -194,10 +208,22 @@ methods (Access = public)
         R = [ this.m_K, this.m_alpha, this.m_beta, this.m_labeledConfidence];
     end
     
+    %% defaultParamsCSSL
+    
+    function R = defaultParamsCSSL(this)
+        R = this.m_defaultParamsCSSL;
+    end
+    
     %% optimizationParamsMAD
     function R = optimizationParamsMAD(this)
         R = [ this.m_K, this.m_mu1, this.m_mu2, this.m_mu3 ];
-    end         
+    end  
+    
+    %% defaultParamsMAD
+    
+    function R = defaultParamsMAD(this)
+        R = this.m_defaultParamsMAD;
+    end
     
     %% optimizationParams_allOptions
 
@@ -211,12 +237,33 @@ methods (Access = public)
         end
         R = this.createParameterStructures( optimizationParamProperties );
     end
-    
+        
     %% shouldOptimize
     
-    function R = shouldOptimize(this, algorithmType)
-        numOptimizationOptions = length(this.optimizationParams_allOptions(algorithmType) );
-        R = (numOptimizationOptions > 1);
+    function R = shouldOptimize(this, algorithmType, optimization_method_i)
+        if optimization_method_i ~= ParamsManager.OPTIMIZE_ALL_1
+            numOptimizationOptions = length(this.optimizationParams_allOptions(algorithmType) );
+            R = (numOptimizationOptions > 1);
+        else
+            R = 0;
+        end
+    end
+    
+    %% defaultParams
+    
+    function R = defaultParams(this, algorithmType, optimization_method_i)
+        R = [];
+        if optimization_method_i == ParamsManager.OPTIMIZE_ALL_1
+            if (SingleRun.CSSLMC == algorithmType || SingleRun.CSSLMCF == algorithmType)
+                R = this.defaultParamsCSSL();
+            elseif (SingleRun.MAD == algorithmType)
+                R = this.defaultParamsMAD();
+            else
+               disp([ 'Error: no default parameter for algorithm' num2str(algorithmType) ]);
+            end
+        else
+            R = this.optimizationParams_allOptions(algorithmType);
+        end
     end
     
     %% constructionParams_allOptions

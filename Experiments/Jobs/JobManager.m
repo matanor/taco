@@ -4,9 +4,9 @@ classdef JobManager
     
 methods (Static)
     
-    %% scheduleJob
+    %% createJob
     
-    function job = scheduleJob(fileFullPath, functionName, outputManager)
+    function job = createJob(fileFullPath, functionName, outputManager)
         
         JobManager.signalJobIsStarting( fileFullPath );
         
@@ -21,18 +21,9 @@ methods (Static)
         command = ['qsub -N ' runName ' -wd ' codeRoot asyncCodeFolder ' -q all.q -b y -o ' ...
                    outputFile ' -e ' errorFile ' "matlab -nodesktop -r "\""' functionName '(''' ...
                    fileFullPath ''',''' codeRoot ''')"\"" -logfile ' logFile '"' ];
-        disp(['command = "' command '"']);
-        [status, submitResult] = system(command);
-        if status ~= 0
-            disp(['Error scheduling async run. file: ' fileFullPath...
-                  ' status = ' num2str(status)]);
-        end
-        disp(submitResult);
-        pause(1);
         
         job = Job;
         job.startCommand = command;
-        job.submitResult = submitResult;
         job.fileFullPath = fileFullPath;
         job.logFile = logFile;
     end
@@ -95,19 +86,57 @@ methods (Static)
         jobOutput = outputFileData.jobOutput;
     end
     
-    %% waitForJobs
+    %% startJobs
     
-    function waitForJobs( jobsCollection )
+    function R = startJobs( jobsCollection, maxNumJobsToStart )
+        numInputJobs = length(jobsCollection) ;
+        lastJobToStartIndex = min(numInputJobs, maxNumJobsToStart);
+        disp(['Starting ' num2str(lastJobToStartIndex ) ' jobs']);
+        started = [];
+        for job_i=1:lastJobToStartIndex
+            jobToStart = jobsCollection(job_i);
+            jobStatus = jobToStart.checkJobStatus();
+            % In simulation (non-asyncrounous mode) the jobs are
+            % run syncrounsly so they nay have been finished and should
+            % never be started
+            if jobStatus ~= Job.JOB_STATUS_FINISHED
+                JobManager.startJob( jobToStart );
+            end
+            started = [started; job_i]; %#ok<AGROW>
+        end
+        R = started;
+    end
+    
+    %% executeJobs
+    
+    function executeJobs( jobsCollection )
+        configManager = ConfigManager.get();
+        config = configManager.read();
+        
         sleepIntervalInSeconds = 30;
-        idleTimeoutInSeconds = 600; % 10 minutes 
-        idleTimeout = idleTimeoutInSeconds / sleepIntervalInSeconds;
         finished = 0;
+        
+        maxJobs = config.maxJobs;
+        runningJobs = [];
+        
         while ~finished
-            numJobs = length(jobsCollection);
+            idleTimoutInMinutes = config.jobTimeoutInMinutes;
+            idleTimeoutInSeconds = idleTimoutInMinutes * 60;
+            idleTimeout = idleTimeoutInSeconds / sleepIntervalInSeconds;
+            
+            numRunningJobs = length(runningJobs);
+            numJobsToStart = maxJobs - numRunningJobs;
+            runningJobsIndices = JobManager.startJobs(jobsCollection, numJobsToStart);
+            runningJobs = [runningJobs;jobsCollection(runningJobsIndices)]; %#ok<AGROW>
+            jobsCollection(runningJobsIndices) = [];
+            numRunningJobs = length(runningJobs);
+            
             finished_jobs = [];
-            disp('**** Status check ****');
-            for job_i=1:numJobs
-                job = jobsCollection(job_i);
+            disp(['**** Status check ****' ...
+                  ' timeout (min) = ' num2str(idleTimoutInMinutes)...
+                  ' max jobs = '      num2str(config.maxJobs)]);
+            for job_i=1:numRunningJobs
+                job = runningJobs(job_i);
                 jobStatus = job.checkJobStatus();
                 if jobStatus == Job.JOB_STATUS_FINISHED
                     finished_jobs = [finished_jobs;job_i]; %#ok<AGROW>
@@ -116,10 +145,11 @@ methods (Static)
                     JobManager.restartJob( job );
                 end
             end
-            jobsCollection(finished_jobs) = [];
-            finished = isempty( jobsCollection );
+            runningJobs(finished_jobs) = [];
+            finished = isempty( runningJobs ) && isempty(jobsCollection);
             if ~finished
                 pause(sleepIntervalInSeconds);
+                config.read();
             end
         end
     end  
@@ -129,10 +159,16 @@ methods (Static)
     function restartJob(job)
         disp(['restarting job "' job.name() '"']);
         JobManager.deleteJob(job);
-        disp(['restart command = "' job.startCommand '"']);
+        JobManager.startJob(job);
+    end
+    
+    %% startJob
+    
+    function startJob(job)
+        disp(['start command = "' job.startCommand '"']);
         [status, result] = system(job.startCommand);
         if status ~= 0
-            disp(['Error restarting job run. file: ' job.name()...
+            disp(['Error starting job run. file: ' job.name()...
                   ' status = ' num2str(status)]);
         end
         job.submitResult = result;

@@ -27,7 +27,11 @@ methods (Static)
     function runOnDesktop()
         Configurations.clearEverything();
         
-        folderName = '2012_02_15_1_fixed_trunsduction_sets';
+        ConfigManager.init('C:/technion/theses/matlab/config.mat');
+        configManager = ConfigManager.get();
+        configManager.createWithDefaultsIfMissing();
+        
+        folderName = '2012_02_20_1_sentiment';
         resultsDir = 'C:/technion/theses/Experiments/WebKB/results/';
         isOnOdin = 0;
         outputManager = OutputManager;
