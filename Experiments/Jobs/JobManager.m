@@ -149,7 +149,7 @@ methods (Static)
             finished = isempty( runningJobs ) && isempty(jobsCollection);
             if ~finished
                 pause(sleepIntervalInSeconds);
-                config.read();
+                config = configManager.read();
             end
         end
     end  
