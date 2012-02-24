@@ -5,12 +5,12 @@ function runOnOdin(folderName, codeRoot)
     disp(['codeRoot = ' codeRoot]);
     codeFolders = genpath(codeRoot);
     addpath(codeFolders);
+
+    Configurations.clearEverything();
     
     ConfigManager.init([codeRoot '/config.mat']);
     configManager = ConfigManager.get();
     configManager.createWithDefaultsIfMissing();
-
-    Configurations.clearEverything();
 
     resultsDir = '/u/matanorb/experiments/webkb/results/';
     isOnOdin = 1;
