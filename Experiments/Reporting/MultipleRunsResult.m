@@ -44,6 +44,17 @@ methods
         end
     end
     
+    %% avgPRBEP
+    
+    function R = avgPRBEP( this, algorithmType, isEstimated )
+        algResult = this.m_algorithmResults{algorithmType};
+        if isEstimated
+            R = mean(algResult.estimatedAveragePRBEP);
+        else
+            R = mean(algResult.averagePRBEP);
+        end 
+    end
+    
     %% resultsTablePRBEP
     
     function R = resultsTablePRBEP( this, isEstimated )
@@ -53,8 +64,7 @@ methods
         R = zeros(numClasses, numAlgorithms);
         table_i = 1;
         for algorithm_i=algorithmsInResult
-            if algorithm_i <= length(this.m_algorithmResults) && ...
-               ~isempty(this.m_algorithmResults{algorithm_i})
+            if this.hasAlgorithmResult(algorithm_i)
                 result = this.m_algorithmResults{algorithm_i};
                 if isEstimated
                     algorithmStats = result.estimatedAveragePRBEP;
@@ -67,6 +77,19 @@ methods
             R(:,table_i) = algorithmStats;
             table_i = table_i + 1;
         end
+    end
+    
+    %% hasAlgorithmResult
+    
+    function R = hasAlgorithmResult(this, algorithm_i)
+        R = algorithm_i <= length(this.m_algorithmResults) && ...
+               ~isempty(this.m_algorithmResults{algorithm_i});
+    end
+    
+    %% avgAccuracy_testSet_perAlgorithm
+    
+    function R = avgAccuracy_testSet_perAlgorithm(this, algorithmType)
+        R = this.m_algorithmResults{algorithmType}.avgAccuracy_testSet;
     end
     
     %% avgAccuracy_testSet

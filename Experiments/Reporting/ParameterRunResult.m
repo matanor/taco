@@ -10,7 +10,6 @@ classdef ParameterRunResult < handle
     end
     
 methods
-    
     %% optimizationMethodsCollection
     
     function R = optimizationMethodsCollection(this)
@@ -77,6 +76,53 @@ methods
     
     function R = numClasses(this, optimization_method_i)
         R = this.m_results{optimization_method_i}.numClasses();
+    end
+    
+    %% toString_all
+    
+    function R = toString_all(this)
+        optimizationMethods = this.optimizationMethodsCollection();
+        line_i = 1;
+        for optimization_method_i=optimizationMethods
+            multipleRunResult = this.m_results{optimization_method_i};
+            algorithmsInResult = MultipleRunsResult.algorithmsResultOrder();
+            
+            for algorithm_i=algorithmsInResult
+                if multipleRunResult.hasAlgorithmResult(algorithm_i)
+                    S = this.toString(optimization_method_i, algorithm_i);
+                    R{line_i} = S; %#ok<AGROW>
+                    line_i = line_i + 1;
+                end
+            end
+        end
+    end
+    
+    %% toString
+    
+    function R = toString(this, optimization_method_i, algorithmType)
+        fileName = FileHelper.fileName(this.m_constructionParams.fileName);
+        SEPERATOR = ',';
+        EMPTY_CELL = SEPERATOR ;
+        R = [];
+        R = [R fileName SEPERATOR ];
+        R = [R num2str(this.m_constructionParams.balanced) SEPERATOR ];
+        R = [R num2str(this.m_parameterValues.useGraphHeuristics) SEPERATOR ];
+        R = [R num2str(this.m_parameterValues.labeledInitMode) SEPERATOR ];
+        optimizationMethodName = OptimizationMethodToStringConverter.convert( optimization_method_i );
+        R = [R optimizationMethodName SEPERATOR ];
+        algorithmName = AlgorithmTypeToStringConverter.convert(algorithmType);
+        R = [R algorithmName SEPERATOR ];
+        isEstimated = 0;
+        avgPRBEP = this.m_results{optimization_method_i}.avgPRBEP(algorithmType, isEstimated);
+        R = [R num2str(avgPRBEP) SEPERATOR ];
+        avgAccuracy = this.m_results{optimization_method_i}.avgAccuracy_testSet_perAlgorithm(algorithmType);
+        R = [R num2str(avgAccuracy) SEPERATOR ];
+        optimal = this.get_optimalParams(optimization_method_i, algorithmType);
+        R = [R num2str(optimal.avgPRBEP) SEPERATOR ];
+        R = [R num2str(optimal.avgAccuracy) SEPERATOR ];
+        O = OptimalParamsToStringConverter.convert ...
+                    (optimal, algorithmType, EMPTY_CELL, SEPERATOR );
+        R = [R O];
     end
  
 end

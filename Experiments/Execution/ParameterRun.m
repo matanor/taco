@@ -145,31 +145,34 @@ methods (Static)
     
     function R = calcOptimalParams(tuneRuns, algorithmType, optimizeBy)
         numTuningRuns = length(tuneRuns);
-        scores = zeros(numTuningRuns ,1);
         for tuning_run_i=1:numTuningRuns 
             disp(['Optimization run ' num2str(tuning_run_i) ' out of ' num2str(numTuningRuns)]);
             scores(tuning_run_i) = ParameterRun.doEvaluateRun...
-                ( tuneRuns( tuning_run_i ), algorithmType, optimizeBy );
+                ( tuneRuns( tuning_run_i ), algorithmType ); %#ok<AGROW>
         end
-        [bestScore,bestRunIndex] = max(scores);
+        
+        if optimizeBy == ParamsManager.OPTIMIZE_BY_ACCURACY
+            optimizationScores = [scores.avgAccuracy];
+        else
+            optimizationScores = [scores.avgPRBEP];
+        end
+        
+        [bestScore,bestRunIndex] = max(optimizationScores);
         disp(['Optimal on run ' num2str(bestRunIndex) ' with value ' num2str(bestScore)]);
+        R = scores(bestRunIndex);
         R.values = tuneRuns(bestRunIndex).getParams( algorithmType );
-        R.score = bestScore;
     end
     
     %% doEvaluateRun
     
-    function R = doEvaluateRun(singleRun, algorithmType, optimizeBy)
+    function R = doEvaluateRun(singleRun, algorithmType)
         params = singleRun.getParams(algorithmType);
         paramsString = Utilities.StructToStringConverter(params);
         disp(paramsString);
-        if (optimizeBy == ParamsManager.OPTIMIZE_BY_ACCURACY) 
-            R = singleRun.accuracy_testSet(algorithmType);
-            disp(['Accuracy = ' num2str(R)]);
-        else
-            R = singleRun.calcAveragePRBEP_testSet(algorithmType);
-            disp(['Average PRBEP = ' num2str(R)]);
-        end
+        R.avgAccuracy = singleRun.accuracy_testSet(algorithmType);
+        disp(['Accuracy = ' num2str(R.avgAccuracy)]);
+        R.avgPRBEP = singleRun.calcAveragePRBEP_testSet(algorithmType);
+        disp(['Average PRBEP = ' num2str(R.avgPRBEP)]);
     end
 end
     

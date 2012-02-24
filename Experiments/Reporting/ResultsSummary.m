@@ -3,7 +3,7 @@ classdef ResultsSummary < handle
     %   Detailed explanation goes here
     
 properties
-    m_resultCollection;
+    m_resultCollection; % a collection of ExperimentRunResult
 end
 
 methods

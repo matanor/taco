@@ -98,7 +98,8 @@ methods (Static)
                             (optimal, parametersRun);
                     ExperimentRunFactory.printOptimal(optimal, algorithm_i, optimization_method_i );
                     optimalParams{optimization_method_i,algorithm_i}.values = optimal; %#ok<AGROW>
-                    optimalParams{optimization_method_i,algorithm_i}.score = 1; %#ok<AGROW>
+                    optimalParams{optimization_method_i,algorithm_i}.avgPRBEP = 1; %#ok<AGROW>
+                    optimalParams{optimization_method_i,algorithm_i}.avgAccuracy = 1; %#ok<AGROW>
                 end
             end
         end
