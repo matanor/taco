@@ -44,7 +44,12 @@ methods
     %% get_optimalParams
     
     function R = get_optimalParams(this, optimization_method_i, algorithm_i)
-        R = this.m_optimalParams{optimization_method_i,algorithm_i};
+        if optimization_method_i <= size(this.m_optimalParams,1) && ...
+           algorithm_i           <= size(this.m_optimalParams,2)
+            R = this.m_optimalParams{optimization_method_i,algorithm_i};
+        else
+            R = [];
+        end;
     end
     
     %% resultsTablePRBEP
@@ -115,11 +120,21 @@ methods
         isEstimated = 0;
         avgPRBEP = this.m_results{optimization_method_i}.avgPRBEP(algorithmType, isEstimated);
         R = [R num2str(avgPRBEP) SEPERATOR ];
-        avgAccuracy = this.m_results{optimization_method_i}.avgAccuracy_testSet_perAlgorithm(algorithmType);
+        
+        avgAccuracy = this.m_results{optimization_method_i} ...
+                          .avgAccuracy_testSet_perAlgorithm(algorithmType);
         R = [R num2str(avgAccuracy) SEPERATOR ];
+        
+        [avgMRR stddevMRR] = this.m_results{optimization_method_i} ...
+                     .avgMRR_testSet(algorithmType);
+        R = [R num2str(avgMRR) ' (' num2str(stddevMRR) ')' SEPERATOR ];
+        
         optimal = this.get_optimalParams(optimization_method_i, algorithmType);
+        
         R = [R num2str(optimal.avgPRBEP) SEPERATOR ];
         R = [R num2str(optimal.avgAccuracy) SEPERATOR ];
+        R = [R num2str(optimal.MRR) SEPERATOR ];
+        
         O = OptimalParamsToStringConverter.convert ...
                     (optimal, algorithmType, EMPTY_CELL, SEPERATOR );
         R = [R O];

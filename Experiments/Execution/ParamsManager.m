@@ -53,6 +53,7 @@ properties (Constant)
     OPTIMIZE_BY_ACCURACY = 1;
     OPTIMIZE_BY_PRBEP = 2;
     OPTIMIZE_ALL_1 = 3;
+    OPTIMIZE_BY_MRR = 4;
 end
 
 methods (Access = public)
@@ -63,8 +64,8 @@ methods (Access = public)
         
         isString = 1;
         if isOnOdin
-%          fileNames = [ {'/u/matanorb/experiments/webkb/data/Rapid_Miner_Result/webkb_constructed.mat' } ];
-           fileNames = [ {'/u/matanorb/experiments/sentiment/data/from_yoav/sentiment_10k.mat' } ];
+         fileNames = [ {'/u/matanorb/experiments/webkb/data/Rapid_Miner_Result/webkb_constructed.mat' } ];
+%            fileNames = [ {'/u/matanorb/experiments/sentiment/data/from_yoav/sentiment_10k.mat' } ];
 %          fileNames = [ {'/u/matanorb/experiments/webkb/data/from_amar/webkb_amar.mat' } ];
         else
 %             fileNames = [ {'C:/technion/theses/Experiments/sentiment_analysis_from_yoav/sentiment_10k.mat' } ];
@@ -126,11 +127,11 @@ methods (Access = public)
         
         %numIterations.range = [5 10 25 50 100];
         if isTesting
-            this = this.createParameter( 'maxIterations', [1], isString, [] );    
-            this = this.createParameter( 'numEvaluationRuns', [1], isString, [] );
+            this = this.createParameter( 'maxIterations', [3], isString, [] );    
+            this = this.createParameter( 'numEvaluationRuns', [2], isString, [] );
         else
             this = this.createParameter( 'maxIterations',     [10], isString, [] );    
-            this = this.createParameter( 'numEvaluationRuns', [10], isString, [] );
+            this = this.createParameter( 'numEvaluationRuns', [20], isString, [] );
         end
         
         this = this.createParameter( 'numLabeled', [48], isString, [] );    
@@ -164,11 +165,13 @@ methods (Access = public)
             this = this.createParameter( 'optimizeByCollection', ...
                 [ParamsManager.OPTIMIZE_BY_ACCURACY ...
                  ParamsManager.OPTIMIZE_BY_PRBEP ... 
-                 ParamsManager.OPTIMIZE_ALL_1], isString, [] );
+                 ParamsManager.OPTIMIZE_ALL_1 ...
+                 ParamsManager.OPTIMIZE_BY_MRR], isString, [] );
         else
             this = this.createParameter( 'optimizeByCollection', ...
                 [ParamsManager.OPTIMIZE_BY_ACCURACY ...
-                 ParamsManager.OPTIMIZE_BY_PRBEP], isString, [] );
+                 ParamsManager.OPTIMIZE_BY_PRBEP ...
+                 ParamsManager.OPTIMIZE_ALL_1], isString, [] );
         end
     end
     

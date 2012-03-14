@@ -147,14 +147,16 @@ methods (Static)
         numTuningRuns = length(tuneRuns);
         for tuning_run_i=1:numTuningRuns 
             disp(['Optimization run ' num2str(tuning_run_i) ' out of ' num2str(numTuningRuns)]);
-            scores(tuning_run_i) = ParameterRun.doEvaluateRun...
+            scores(tuning_run_i) = ParameterRun.evaluateOptimizationRun...
                 ( tuneRuns( tuning_run_i ), algorithmType ); %#ok<AGROW>
         end
         
         if optimizeBy == ParamsManager.OPTIMIZE_BY_ACCURACY
             optimizationScores = [scores.avgAccuracy];
-        else
+        elseif optimizeBy == ParamsManager.OPTIMIZE_BY_PRBEP
             optimizationScores = [scores.avgPRBEP];
+        elseif optimizeBy == ParamsManager.OPTIMIZE_BY_MRR
+            optimizationScores = [scores.MRR];
         end
         
         [bestScore,bestRunIndex] = max(optimizationScores);
@@ -163,9 +165,9 @@ methods (Static)
         R.values = tuneRuns(bestRunIndex).getParams( algorithmType );
     end
     
-    %% doEvaluateRun
+    %% evaluateOptimizationRun
     
-    function R = doEvaluateRun(singleRun, algorithmType)
+    function R = evaluateOptimizationRun(singleRun, algorithmType)
         params = singleRun.getParams(algorithmType);
         paramsString = Utilities.StructToStringConverter(params);
         disp(paramsString);
@@ -173,7 +175,10 @@ methods (Static)
         disp(['Accuracy = ' num2str(R.avgAccuracy)]);
         R.avgPRBEP = singleRun.calcAveragePRBEP_testSet(algorithmType);
         disp(['Average PRBEP = ' num2str(R.avgPRBEP)]);
+        R.MRR = singleRun.calcMRR_testSet(algorithmType);
+        disp(['MRR = ' num2str(R.MRR)]);
     end
+    
 end
     
 end

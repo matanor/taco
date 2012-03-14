@@ -50,17 +50,19 @@ methods
     function printOptimalParamTable...
             (this, parameterRunResult, optimization_method_i, heuristicsTitle)
         this.printOptimalParamTableTitle(heuristicsTitle );
+
         for algorithm_i=MultipleRunsResult.algorithmsResultOrder()
             algorithmName = AlgorithmTypeToStringConverter.convert(algorithm_i);
+            S = [];
             if ~isempty(parameterRunResult)
                 optimal = parameterRunResult.get_optimalParams...
                             (optimization_method_i, algorithm_i);
-                S = OptimalParamsToStringConverter.convert...
-                    (optimal, algorithm_i, this.EMPTY_CELL, this.SEPERATOR );
-                S = [S num2str(optimal.avgPRBEP) this.SEPERATOR ]; %#ok<AGROW>
-                S = [S num2str(optimal.avgAccuracy) ]; %#ok<AGROW>
-            else
-                S = [];
+                if ~isempty(optimal)
+                    S = OptimalParamsToStringConverter.convert...
+                        (optimal, algorithm_i, this.EMPTY_CELL, this.SEPERATOR );
+                    S = [S num2str(optimal.avgPRBEP) this.SEPERATOR ]; %#ok<AGROW>
+                    S = [S num2str(optimal.avgAccuracy) ]; %#ok<AGROW>
+                end
             end
             S = [algorithmName this.SEPERATOR S]; %#ok<AGROW>
             disp(S);

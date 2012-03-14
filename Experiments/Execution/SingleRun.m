@@ -169,6 +169,14 @@ classdef SingleRun < handle
                 (scoreForLabel, isCurrentLabel );
         end
         
+        %% calcMRR_testSet
+        
+        function MRR = calcMRR_testSet(this, algorithmType)
+            scoreMatrix = this.unlabeled_scoreMatrix_testSet(algorithmType);
+            correctLabels_testSet = this.testSetCorrectLabels();            
+            MRR = EvaluationUtilities.calcMRR( scoreMatrix, correctLabels_testSet);
+        end
+        
         %% calcAveragePRBEP_testSet
         
         function R = calcAveragePRBEP_testSet(this, algorithmType)

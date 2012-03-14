@@ -11,6 +11,7 @@ methods
     function create( this, multipleRuns )
         this.createAveragePRBEP(multipleRuns);
         this.createAverageAccuracy_testSet(multipleRuns);
+        this.createAverageMRR_testSet(multipleRuns);
     end
     
     %% createAveragePRBEP
@@ -41,6 +42,19 @@ methods
             disp(['Algorithm ' algorithmName ...
                   ' average accuracy = ' num2str(avgAccuracy)]);
             this.m_algorithmResults{algorithm_i}.avgAccuracy_testSet = avgAccuracy;
+        end
+    end
+    
+    %% createAverageMRR_testSet
+    
+    function createAverageMRR_testSet(this, multipleRuns)
+        for algorithm_i=multipleRuns.availableResultsAlgorithmRange()
+            [meanMRR stddevMRR] = multipleRuns.calcAverageMRR( algorithm_i);
+            algorithmName = AlgorithmTypeToStringConverter.convert( algorithm_i );
+            disp(['Algorithm ' algorithmName ...
+                  ' avg (stddev) MRR = ' num2str(meanMRR) ' (' num2str(stddevMRR) ')']);
+            this.m_algorithmResults{algorithm_i}.MRR.mean   = meanMRR;
+            this.m_algorithmResults{algorithm_i}.MRR.stddev = stddevMRR;
         end
     end
     
@@ -84,6 +98,13 @@ methods
     function R = hasAlgorithmResult(this, algorithm_i)
         R = algorithm_i <= length(this.m_algorithmResults) && ...
                ~isempty(this.m_algorithmResults{algorithm_i});
+    end
+    
+    %% avgMRR_testSet
+    
+    function [mean stddev] = avgMRR_testSet(this, algorithmType)
+        mean = this.m_algorithmResults{algorithmType}.MRR.mean; 
+        stddev = this.m_algorithmResults{algorithmType}.MRR.stddev; 
     end
     
     %% avgAccuracy_testSet_perAlgorithm

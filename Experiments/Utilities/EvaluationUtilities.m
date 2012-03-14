@@ -7,8 +7,6 @@ classdef EvaluationUtilities
         %%
         %   Y_scores_l  - classifier scores for each example for class l.
         %   Y_l         - correct labeling of examples to class l (binary)
-        %   vector      - a value of 1 indicates that the vertex belong to the
-        %   label).
         
             thresholdRange = sort(Y_scores_l, 'descend').';
             minDifference  = Inf;
@@ -68,14 +66,47 @@ classdef EvaluationUtilities
         function r = calcRecall( Y_hat_l, Y_l )
             r = sum(Y_hat_l .* Y_l) / sum(Y_l);
         end
+
+        %% calcMRR 
+        % scores - an array of (num_examples X numLabels) with label
+        % scores.
+        % correctLabel - a vector containing the corect label index for
+        % every example
         
-        function test()
+        function r = calcMRR( scores, correctLabel )
+            numInstances = size(scores,1);
+            MRR = 0;
+            for instance_i=1:numInstances
+                instanceScores = scores(instance_i,:).';
+                [~, sortedLabels] = sort(instanceScores, 'descend');
+                instanceCorrectLabel = correctLabel(instance_i);
+                correctLabelRank = find(sortedLabels == instanceCorrectLabel);
+                MRR = MRR + 1/correctLabelRank;
+            end
+            MRR = MRR / numInstances;
+            r = MRR;
+        end
+        
+        %% testPRBEP
+        
+        function testPRBEP()
             scores = rand(10,1);
             threshold = median(scores);
             correct = (scores > threshold);
             [prbep, precision,recall] = EvaluationUtilities.calcPRBEP(scores, correct);
             showSingleRunResults.plotPrecisionAndRecall(precision, recall, 'test');
             disp(['prbep = ' num2str(prbep)]);
+        end
+        
+        %% testMRR
+        
+        function testMRR()
+            numInstances = 10;
+            numLabels = 4;
+            scores = rand(numInstances,numLabels);
+            correctLabel = randi(numLabels,numInstances,1);
+            MRR = EvaluationUtilities.calcMRR(scores, correctLabel);
+            disp(['MRR = ' num2str(MRR)]);
         end
 
     end

@@ -60,10 +60,23 @@ methods
     function r = isResultsAvailable( this, algorithmType )
         r = this.getRun(1).isResultsAvailable(algorithmType);
     end
+    
+    %% calcAverageMRR
+    
+    function [meanMRR stddevMRR] = calcAverageMRR(this, algorithmType)
+        MRR = zeros( this.num_runs(), 1);
+        for run_i=1:this.num_runs()
+             singleRun = this.getRun(run_i);
+             MRR(run_i) = singleRun.calcMRR_testSet(algorithmType);
+        end
+        meanMRR     = mean(MRR);
+        stddevMRR   = sqrt(var(MRR));
+    end
 
     %% calcAveragePrecisionAndRecall
 
-    function [prbepAverage estimatedPrebpAverage] = calcAveragePrecisionAndRecall(this, algorithmType)
+    function [prbepAverage estimatedPrebpAverage] = ...
+            calcAveragePrecisionAndRecall(this, algorithmType)
         numLabels = this.getRun(1).numLabels();
         prbepAverage            = zeros(numLabels, 1);
         estimatedPrebpAverage   = zeros(numLabels, 1);

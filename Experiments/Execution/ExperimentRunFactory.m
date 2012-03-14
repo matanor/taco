@@ -163,7 +163,8 @@ methods (Static)
         end
         
         % evaluate arccording to optimization criterion
-        optimal = ParameterRun.calcOptimalParams(optimizationRuns, algorithmType, optimizeBy);
+        optimal = ParameterRun.calcOptimalParams...
+            (optimizationRuns, algorithmType, optimizeBy);
         ExperimentRunFactory.printOptimal(optimal.values, algorithmType, optimizeBy );
     end
     
