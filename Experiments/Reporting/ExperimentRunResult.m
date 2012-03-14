@@ -131,7 +131,7 @@ methods (Static)
         T = [T 'balanced (Y|N)' SEPERATOR];
         T = [T 'heuristics (Y|N)' SEPERATOR];
         T = [T 'labelled init (1|2)' SEPERATOR];
-        T = [T 'optimize_by (P|B|N)' SEPERATOR];
+        T = [T 'optimize_by (P|B|N|M)' SEPERATOR];
         T = [T 'Algorithm' SEPERATOR];
         T = [T 'avg PRBEP' SEPERATOR];
         T = [T 'avg accuracy' SEPERATOR];

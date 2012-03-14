@@ -100,6 +100,7 @@ methods (Static)
                     optimalParams{optimization_method_i,algorithm_i}.values = optimal; %#ok<AGROW>
                     optimalParams{optimization_method_i,algorithm_i}.avgPRBEP = 1; %#ok<AGROW>
                     optimalParams{optimization_method_i,algorithm_i}.avgAccuracy = 1; %#ok<AGROW>
+                    optimalParams{optimization_method_i,algorithm_i}.MRR = 1; %#ok<AGROW>
                 end
             end
         end

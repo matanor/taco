@@ -127,7 +127,7 @@ methods (Access = public)
         
         %numIterations.range = [5 10 25 50 100];
         if isTesting
-            this = this.createParameter( 'maxIterations', [3], isString, [] );    
+            this = this.createParameter( 'maxIterations', [1], isString, [] );    
             this = this.createParameter( 'numEvaluationRuns', [2], isString, [] );
         else
             this = this.createParameter( 'maxIterations',     [10], isString, [] );    
@@ -171,7 +171,8 @@ methods (Access = public)
             this = this.createParameter( 'optimizeByCollection', ...
                 [ParamsManager.OPTIMIZE_BY_ACCURACY ...
                  ParamsManager.OPTIMIZE_BY_PRBEP ...
-                 ParamsManager.OPTIMIZE_ALL_1], isString, [] );
+                 ParamsManager.OPTIMIZE_ALL_1 ...
+                 ParamsManager.OPTIMIZE_BY_MRR], isString, [] );
         end
     end
     
