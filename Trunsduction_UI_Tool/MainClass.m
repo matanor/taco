@@ -53,6 +53,8 @@ classdef MainClass < handle
             set(this.currentIterationUI, 'String', num2str( value ) );
         end
         
+        %% runAlgorithm
+        
         function runAlgorithm(this)   
             disp( ['algorithm type = ' this.algorithmType ] );
             if (strcmp( this.algorithmType,LP.name() ) == 1)
@@ -65,10 +67,14 @@ classdef MainClass < handle
                 this.runCSSLMCF();
             elseif (strcmp( this.algorithmType,MAD.name() ) == 1)
                 this.runMAD();
+            elseif (strcmp( this.algorithmType,AM.name() ) == 1)
+                this.runAM();
             else
-                disp('Error: unknown algorithm');
+                disp('runAlgorithm::Error. unknown algorithm');
             end
         end
+        
+        %% plotGraph
         
         function plotGraph(this, iter_i)
 
@@ -152,11 +158,15 @@ classdef MainClass < handle
             end
         end
         
+        %% onLeftButtonDown
+        
         function onLeftButtonDown(this)
             disp('onLeftButtonDown');
             this.leftButtonDownPosition = MainClass.getClickPosition();
         end
 
+        %% onButtonUp
+        
         function onButtonUp(this, ~, ~)
             disp('onButtonUp');
             buttonType = get(this.figureHandle,'selectiontype');
@@ -164,6 +174,8 @@ classdef MainClass < handle
                 this.onLeftButtonUp();
             end
         end
+        
+        %% onLeftButtonUp
         
         function onLeftButtonUp(this)
             disp('onLeftButtonUp');
@@ -201,6 +213,8 @@ classdef MainClass < handle
             this.plotGraph(this.currentIteration);
         end
         
+        %% findNearbyVertex
+        
         function closestVertex = findNearbyVertex( this, position )
             closestVertex = [];
             radius = 0.05;
@@ -220,6 +234,8 @@ classdef MainClass < handle
             end
         end
         
+        %% deleteVertex
+        
         function deleteVertex(this, ~, ~)
             disp('deleteVertex');
             vertex_i = get(gco,'UserData');
@@ -227,12 +243,16 @@ classdef MainClass < handle
             this.plotGraph(this.currentIteration);
         end
         
+        %% deleteEdge
+        
         function deleteEdge(this,~,~)
             disp('deleteEdge');
             edgeVertices = get(gco,'UserData');
             this.removeEdge(edgeVertices(1), edgeVertices(2));
             this.plotGraph(this.currentIteration);
         end
+        
+        %% setEdgeWeight_callback
         
         function setEdgeWeight_callback(this,~,~)
             disp('setEdgeWeight');
@@ -540,6 +560,8 @@ classdef MainClass < handle
             end
         end
         
+        %% addEdgesContextMenu
+        
         function addEdgesContextMenu(this)
             disp('Adding context menu to edges');
             % Create axes and save handle
@@ -560,6 +582,8 @@ classdef MainClass < handle
                     'UIContextMenu',hcmenu)
             end
         end
+        
+        %% addParamsUI
         
         function addParamsUI(this)
             controlPos.left = 30;
@@ -588,7 +612,8 @@ classdef MainClass < handle
             
             algorithmOptions = [CSSL.name()    '|' CSSLMC.name() '|' ...
                                 CSSLMCF.name() '|' ...
-                                LP.name()      '|' MAD.name()] ;
+                                LP.name()      '|' MAD.name() '|' ...
+                                AM.name()] ;
             MainClass.addComboParam( controlPos, 'algorithm', ... 
                             algorithmOptions, ...
                   @(src, event)updateAlgorithm(this, src, event) );
@@ -664,6 +689,8 @@ classdef MainClass < handle
             this.algorithm_result.set_results( R );
         end
         
+        %% runMAD
+        
         function runMAD(this)
             mad = MAD;
             
@@ -683,6 +710,26 @@ classdef MainClass < handle
             this.algorithm_result.set_results( R, saveAllIterations );
             this.set_numIterations( this.algorithm_result.numIterations() );
         end
+        
+        %% runAM
+        
+        function runAM(this)
+            algorithm = AM;
+            
+            algorithm.m_v = 1;
+            algorithm.m_mu = 1;
+            algorithm.m_alpha = 1;
+            algorithm.m_num_iterations = this.numIterations; 
+            algorithm.m_W  = this.graph.weights();
+            
+            Y = MainClass.createLabeledY(this.graph);
+            
+            this.algorithm_result = AM_Result;
+            R = algorithm.run(Y);
+            saveAllIterations = 1;
+            this.algorithm_result.set_results( R, saveAllIterations );
+            this.set_numIterations( this.algorithm_result.numIterations() );
+        end        
         
     end % private methods
     

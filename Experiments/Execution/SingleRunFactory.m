@@ -77,6 +77,27 @@ methods (Access = public)
                                      ParamsManager.SAVE_ALL_ITERATIONS_IN_RESULT );
             mad_results.set_params( madParams );
             singleRun.set_results( mad_results  , singleRun.MAD );
+            clear madParams;
+            clear mad_results;
+        end
+        
+        if ( algorithmsToRun.shouldRun(SingleRun.AM) ~= 0)
+            am = AM;
+            amParams = algorithmParams{SingleRun.AM};
+            w_nn = this.get_wnnGraph( amParams.makeSymetric, amParams.K);
+
+            Ylabeled = this.createInitialLabeledY(amParams.labeledInitMode);
+            
+            am.m_v      = amParams.v;
+            am.m_mu     = amParams.mu;
+            am.m_alpha  = amParams.alpha;
+            amResultsSource = am.run( w_nn, Ylabeled );
+            
+            am_results = AM_Results;
+            am_results.set_results( amResultsSource,...
+                                    ParamsManager.SAVE_ALL_ITERATIONS_IN_RESULT );
+            am_results.set_params( amParams );
+            singleRun.set_results( am_results, singleRun.MAD );
         end
                 
     end

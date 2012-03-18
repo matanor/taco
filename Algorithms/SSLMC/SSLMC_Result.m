@@ -121,18 +121,35 @@ methods (Access = public )
 end % methods (Access = public )
 
 methods (Static)
-
+    %% calcVertices
+    
     function r = calcVertices( M )
             r = size( M, 1 );
     end
+    
+    %% calcNumLabels
 
     function r = calcNumLabels( M )
         r = size( M, 2 );
     end
 
+    %% calcNumIterations
+    
     function r = calcNumIterations( M )
         r = size( M, 3);
     end     
+
+    %% addVertexToMatrix
+    
+	function Mout = addVertexToMatrix( M )
+        Mout = zeros( size(M,1) + 1, size(M,2), size(M,3) );
+        numIterations = SSLMC_Result.calcNumIterations( M );
+        numLabels     = SSLMC_Result.calcNumLabels(M);
+        for iter_i=1:numIterations
+            Mout(:,:,iter_i) = [ M(:,:,iter_i);
+                                 zeros(1, numLabels) ];
+        end
+    end
 
 end % methods ((Static))
 end

@@ -12,6 +12,7 @@ classdef SingleRun < handle
         CSSLMC = 3;
         MAD = 4;
         CSSLMCF = 5;
+        AM = 6;
     end
     
     properties (Access=public)

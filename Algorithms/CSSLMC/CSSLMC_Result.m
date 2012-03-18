@@ -20,8 +20,8 @@ classdef CSSLMC_Result < SSLMC_Result
         end
         
         function add_vertex(this)
-            this.m_Y = CSSLMC_Result.addVertexToMatrix( this.m_Y );
-            this.m_v = CSSLMC_Result.addVertexToMatrix( this.m_v );
+            this.m_Y = SSLMC_Result.addVertexToMatrix( this.m_Y );
+            this.m_v = SSLMC_Result.addVertexToMatrix( this.m_v );
         end
         
         function remove_vertex(this, vertex_i)
@@ -54,19 +54,6 @@ classdef CSSLMC_Result < SSLMC_Result
         end
         
     end % (Access = public)
-    
-    methods (Static)
-        function Mout = addVertexToMatrix( M )
-            Mout = zeros( size(M,1) + 1, size(M,2), size(M,3) );
-            numIterations = SSLMC_Result.calcNumIterations( M );
-            numLabels     = SSLMC_Result.calcNumLabels(M);
-            for iter_i=1:numIterations
-                Mout(:,:,iter_i) = [ M(:,:,iter_i);
-                                     zeros(1, numLabels) ];
-            end
-        end
-
-    end % (Static)
     
 end
 
