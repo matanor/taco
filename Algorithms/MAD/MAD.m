@@ -29,6 +29,8 @@ classdef MAD < GraphTrunsductionBase
             % Talukdar, P. and Crammer, Koby. pages 10.
 
             tic;
+            
+            this.classPriorNormalization();
 
             mu1 = this.m_mu1;
             mu2 = this.m_mu2;

@@ -93,6 +93,26 @@ methods
         % cannot initialize any priorY entries to -1.
         R = labeledInitMode;
     end
+    
+    %% classPriorNormalization
+    
+    function classPriorNormalization(this)
+        Y = this.m_priorY;
+        
+        Y( this.m_priorY ~= 1) = 0; % remove all (-1) or other values set because of
+                       % different label init modes.
+        sumPerClass = sum(Y);
+        maxSum = max(sumPerClass);
+        multiplyByFactors = maxSum ./ sumPerClass;
+        numVertices = this.numVertices();
+        multiplyByMatrix = repmat(multiplyByFactors, numVertices, 1);
+        Y = Y .* multiplyByMatrix;
+        
+        Y( this.m_priorY ~= 1) = this.m_priorY(this.m_priorY ~= 1);
+        
+        % numCellsChanged = sum(sum(Y ~= this.m_priorY))
+        this.m_priorY = Y;
+    end
 
 end
     
