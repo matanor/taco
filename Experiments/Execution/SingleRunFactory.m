@@ -68,8 +68,9 @@ methods (Access = public)
         
         algorithm.m_W = this.get_wnnGraph( params.makeSymetric, params.K );
         algorithm.m_num_iterations  = params.maxIterations;
-        algorithm.m_priorY          = this.createInitialLabeledY(params.labeledInitMode);
         algorithm.m_labeledSet      = this.m_trunsductionSet.labeled();
+        
+        algorithm.createInitialLabeledY(this.m_graph, params.labeledInitMode);
         
         this.loadSpecificAlgorithmParams( algorithm, algorithmType, params );
         
@@ -80,36 +81,6 @@ methods (Access = public)
         algorithm_results.set_params( params );
         
         singleRun.set_results( algorithm_results, algorithmType );
-    end
-        
-    %% createInitialLabeledY
-
-    function R = createInitialLabeledY(this, labeledInitMode)
-        numVertices = this.m_graph.numVertices();
-        numLabels = length( this.m_graph.availabelLabels() );
-        labeledVertices_indices         = this.m_trunsductionSet.labeled();
-        labeledVertices_correctLabels   = ...
-            this.m_graph.correctLabelsForVertices(labeledVertices_indices);
-        R = zeros( numVertices, numLabels);
-        availableLabels = 1:numLabels;
-        
-        for label_i=availableLabels
-            labeledVerticesForClass = ...
-                labeledVertices_indices(labeledVertices_correctLabels == label_i);
-            % set +1 for lebeled vertex belonging to a class.
-            R( labeledVerticesForClass, label_i ) = 1;
-            if (labeledInitMode == ParamsManager.LABELED_INIT_MINUS_PLUS_ONE ||...
-                labeledInitMode == ParamsManager.LABELED_INIT_MINUS_PLUS_ONE_UNLABELED)
-                % set -1 for labeled vertex not belonging to other classes.
-                otherLabels = setdiff(availableLabels, label_i);
-                R( labeledVerticesForClass, otherLabels ) = -1;
-            end
-        end
-        if (labeledInitMode == ParamsManager.LABELED_INIT_MINUS_PLUS_ONE_UNLABELED)
-            % set -1 for unlabeled vertices not belonging to any class.
-            unlabeled = setdiff( 1:numVertices, labeledVertices_indices );
-            R( unlabeled, : ) = -1;
-        end
     end
     
 end % methods (Access = public )

@@ -113,7 +113,18 @@ methods (Access=public)
         toc(ticID);
     end
     
-    %% diaplayParams
+    %% checkIfInitModeMathcesAlgorithm
+    
+    function R = checkIfInitModeMathcesAlgorithm(~, ~)
+        % allow derived classes (specific algorithme) to change
+        % the labels init mode if they don't like it.
+        % e.g. for AM the labels prior must be a distribution, so we
+        % cannot initialize any priorY entries to -1.
+        disp('AM: forcing prior Y to be a probability distribution');
+        R = ParamsManager.LABELED_INIT_ZERO_ONE;
+    end
+
+    %% displayParams
     
 	function displayParams(this, numVertices)
         paramsString = ...

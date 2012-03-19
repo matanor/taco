@@ -15,7 +15,7 @@ methods
     %% numVertices
     
     function R = numVertices(this)
-         R = size(this.m_priorY,1);
+         R = size(this.m_W,1);
     end
     
     %% numLabels
@@ -46,6 +46,52 @@ methods
     
     function R = labeledSet(this)
         R = this.m_labeledSet;
+    end
+    
+    %% createInitialLabeledY
+
+    function createInitialLabeledY(this, graph, labeledInitMode)
+        
+        labeledInitMode = this.checkIfInitModeMathcesAlgorithm(labeledInitMode);
+        
+        numVertices = this.numVertices();
+        numLabels = length( graph.availabelLabels() );
+        labeledVertices_indices         = this.labeledSet();
+        labeledVertices_correctLabels   = ...
+            graph.correctLabelsForVertices(labeledVertices_indices);
+        
+        R = zeros( numVertices, numLabels);
+        availableLabels = 1:numLabels;
+        
+        for label_i=availableLabels
+            labeledVerticesForClass = ...
+                labeledVertices_indices(labeledVertices_correctLabels == label_i);
+            % set +1 for lebeled vertex belonging to a class.
+            R( labeledVerticesForClass, label_i ) = 1;
+            if (labeledInitMode == ParamsManager.LABELED_INIT_MINUS_PLUS_ONE ||...
+                labeledInitMode == ParamsManager.LABELED_INIT_MINUS_PLUS_ONE_UNLABELED)
+                % set -1 for labeled vertex not belonging to other classes.
+                otherLabels = setdiff(availableLabels, label_i);
+                R( labeledVerticesForClass, otherLabels ) = -1;
+            end
+        end
+        if (labeledInitMode == ParamsManager.LABELED_INIT_MINUS_PLUS_ONE_UNLABELED)
+            % set -1 for unlabeled vertices not belonging to any class.
+            unlabeled = setdiff( 1:numVertices, labeledVertices_indices );
+            R( unlabeled, : ) = -1;
+        end
+        
+        this.m_priorY = R;
+    end
+    
+    %% checkIfInitModeMathcesAlgorithm
+    
+    function R = checkIfInitModeMathcesAlgorithm(this, labeledInitMode)
+        % allow derived classes (specific algorithme) to change
+        % the labels init mode if they don't like it.
+        % e.g. for AM the labels prior must be a distribution, so we
+        % cannot initialize any priorY entries to -1.
+        R = labeledInitMode;
     end
 
 end
