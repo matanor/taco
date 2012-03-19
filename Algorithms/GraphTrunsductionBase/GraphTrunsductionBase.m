@@ -33,7 +33,7 @@ methods
     %% priorVector
     
     function R = priorVector(this, vertex_i)
-        R = this.m_priorY(vertex_i,:);
+        R = this.m_priorY(vertex_i,:).';
     end
     
     %% priorLabelScore
@@ -46,12 +46,6 @@ methods
     
     function R = labeledSet(this)
         R = this.m_labeledSet;
-%         R = [];
-%         for vertex_i=1:this.numVertices
-%             if this.isLabeled( vertex_i)
-%                 R = [R; vertex_i]; %#ok<AGROW>
-%             end
-%         end
     end
 
 end
