@@ -47,9 +47,10 @@ methods (Access=protected)
     
     function updateGraphUsingHeuristics(this, p)
         num_vertices = size( this.m_W, 1);
-        for vertex_i=1:num_vertices
-            for vertex_j=1:num_vertices
-                continueFactor = p.continue(vertex_i) + p.continue(vertex_j);
+        for vertex_j=1:num_vertices
+            p_cont_j = p.continue(vertex_j);
+            for vertex_i=1:num_vertices
+                continueFactor = p.continue(vertex_i) + p_cont_j;
                 this.m_W(vertex_i, vertex_j) = ...
                     continueFactor * this.m_W(vertex_i, vertex_j);
             end
