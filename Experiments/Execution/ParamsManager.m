@@ -149,8 +149,8 @@ methods (Access = public)
         
         %numIterations.range = [5 10 25 50 100];
         if isTesting
-            this = this.createParameter( 'maxIterations', [2], isString, [] );    
-            this = this.createParameter( 'numEvaluationRuns', [1], isString, [] );
+            this = this.createParameter( 'maxIterations', [1], isString, [] );    
+            this = this.createParameter( 'numEvaluationRuns', [2], isString, [] );
         else
             this = this.createParameter( 'maxIterations',     [10], isString, [] );    
             this = this.createParameter( 'numEvaluationRuns', [20], isString, [] );
@@ -170,7 +170,7 @@ methods (Access = public)
         
         if isTesting
             this = this.createParameter( 'labeledInitMode', ...
-                [ParamsManager.LABELED_INIT_MINUS_PLUS_ONE_UNLABELED], isString, [] );
+                [ParamsManager.LABELED_INIT_ZERO_ONE], isString, [] );
         else
             this = this.createParameter( 'labeledInitMode', ...
                  [ ParamsManager.LABELED_INIT_ZERO_ONE...
@@ -179,14 +179,17 @@ methods (Access = public)
         end
         
         if isTesting
-            this = this.createParameter( 'balanced', [0], isString, [] );
+            this = this.createParameter( 'balanced', [1], isString, [] );
         else
             this = this.createParameter( 'balanced', [0 1], isString, [] );
         end
         
         if isTesting
             this = this.createParameter( 'optimizeByCollection', ...
-                [ParamsManager.OPTIMIZE_ALL_1 ], isString, [] );
+                [ParamsManager.OPTIMIZE_BY_ACCURACY ...
+                 ParamsManager.OPTIMIZE_BY_PRBEP ... 
+                 ParamsManager.OPTIMIZE_ALL_1 ...
+                 ParamsManager.OPTIMIZE_BY_MRR], isString, [] );
         else
             this = this.createParameter( 'optimizeByCollection', ...
                 [ParamsManager.OPTIMIZE_BY_ACCURACY ...
