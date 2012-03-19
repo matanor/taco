@@ -145,7 +145,8 @@ methods (Static)
     function R = algorithmsResultOrder()
         R = [SingleRun.CSSLMC   ...
              SingleRun.CSSLMCF  ...
-             SingleRun.MAD];
+             SingleRun.MAD ...
+             SingleRun.AM];
     end
 end
 

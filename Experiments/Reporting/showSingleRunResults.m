@@ -25,7 +25,8 @@ methods (Static)
 
         numRows = singleRun.isResultsAvailable( SingleRun.CSSLMC ) + ...
                   singleRun.isResultsAvailable( SingleRun.CSSLMCF ) + ...
-                  singleRun.isResultsAvailable( SingleRun.MAD );
+                  singleRun.isResultsAvailable( SingleRun.MAD ) + ...
+                  singleRun.isResultsAvailable( SingleRun.AM );
         numCols = 1;
 
         figure('name', t);

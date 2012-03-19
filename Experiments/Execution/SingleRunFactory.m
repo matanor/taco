@@ -88,16 +88,19 @@ methods (Access = public)
 
             Ylabeled = this.createInitialLabeledY(amParams.labeledInitMode);
             
-            am.m_v      = amParams.v;
-            am.m_mu     = amParams.mu;
-            am.m_alpha  = amParams.alpha;
-            amResultsSource = am.run( w_nn, Ylabeled );
+            am.m_v      = amParams.am_v;
+            am.m_mu     = amParams.am_mu;
+            am.m_alpha  = amParams.am_alpha;
+            am.m_W = w_nn;
+            am.m_num_iterations = amParams.maxIterations;
             
-            am_results = AM_Results;
+            amResultsSource = am.run( Ylabeled );
+            
+            am_results = AM_Result;
             am_results.set_results( amResultsSource,...
                                     ParamsManager.SAVE_ALL_ITERATIONS_IN_RESULT );
             am_results.set_params( amParams );
-            singleRun.set_results( am_results, singleRun.MAD );
+            singleRun.set_results( am_results, singleRun.AM );
         end
                 
     end

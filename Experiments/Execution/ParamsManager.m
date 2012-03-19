@@ -10,6 +10,9 @@ properties (GetAccess = public, SetAccess = private)
     m_mu1;
     m_mu2;
     m_mu3;
+    m_am_v;
+    m_am_mu;
+    m_am_alpha;
     m_makeSymetric;
     m_maxIterations;
     m_numLabeled;
@@ -23,6 +26,7 @@ properties (GetAccess = public, SetAccess = private)
     m_optimizeByCollection;
     m_defaultParamsCSSL;
     m_defaultParamsMAD;
+    m_defaultParamsAM;
 end
 
 properties( Constant)
@@ -122,6 +126,23 @@ methods (Access = public)
         this.m_defaultParamsMAD.mu1 = 1;
         this.m_defaultParamsMAD.mu2 = 1;
         this.m_defaultParamsMAD.mu3 = 1;
+        
+        if (optimize)
+            this = this.createParameter...
+                ( 'am_v',     [1e-8 1e-6 1e-4 0.01 0.1 ], isString,[]);
+            this = this.createParameter...
+                ( 'am_mu',    [1e-8 1e-4 0.01 0.1 1 10 100], isString,[]);
+            this = this.createParameter( 'am_alpha', [2], isString,[]);
+        else
+            this = this.createParameter( 'am_v',     [1e-4], isString,[]);
+            this = this.createParameter( 'am_mu',    [1e-2], isString,[]);
+            this = this.createParameter( 'am_alpha', [2], isString,[]);
+        end
+        
+        this.m_defaultParamsAM.K = 1000;
+        this.m_defaultParamsAM.am_v = 1e-4;
+        this.m_defaultParamsAM.am_mu = 1e-2;
+        this.m_defaultParamsAM.am_alpha = 2;
         
         this = this.createParameter( 'makeSymetric', [1], isString, [] );     
         
@@ -223,10 +244,22 @@ methods (Access = public)
         R = [ this.m_K, this.m_mu1, this.m_mu2, this.m_mu3 ];
     end  
     
+    %% optimizationParamsAM
+    
+    function R = optimizationParamsAM(this)
+        R = [ this.m_K, this.m_am_v, this.m_am_mu, this.m_am_alpha ];
+    end
+    
     %% defaultParamsMAD
     
     function R = defaultParamsMAD(this)
         R = this.m_defaultParamsMAD;
+    end
+    
+    %% defaulPatamsAM
+    
+    function R = defaultParamsAM(this)
+        R = this.m_defaultParamsAM;
     end
     
     %% optimizationParams_allOptions
@@ -236,6 +269,8 @@ methods (Access = public)
             optimizationParamProperties = this.optimizationParamsCSSL();
         elseif (SingleRun.MAD == algorithmType)
             optimizationParamProperties = this.optimizationParamsMAD();
+        elseif (SingleRun.AM == algorithmType)
+            optimizationParamProperties = this.optimizationParamsAM();
         else
            disp([ 'Error: not parameter to optimize for algorithm' num2str(algorithmType) ]);
         end
@@ -262,6 +297,8 @@ methods (Access = public)
                 R = this.defaultParamsCSSL();
             elseif (SingleRun.MAD == algorithmType)
                 R = this.defaultParamsMAD();
+            elseif (SingleRun.AM == algorithmType)
+                R = this.defaultParamsAM();
             else
                disp([ 'Error: no default parameter for algorithm' num2str(algorithmType) ]);
             end

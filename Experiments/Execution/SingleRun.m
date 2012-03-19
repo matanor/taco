@@ -15,6 +15,12 @@ classdef SingleRun < handle
         AM = 6;
     end
     
+    methods (Static)
+        function r = numAvailableAlgorithms()
+            r = 6;
+        end
+    end
+    
     properties (Access=public)
         m_constructionParams;
 
@@ -25,6 +31,7 @@ classdef SingleRun < handle
         m_CSSL_result
         m_CSSLMC_result;
         m_CSSLMCF_result;
+        m_AM_result;
         
         m_algorithmsCollection;
         m_trunsductionSet;
@@ -110,6 +117,8 @@ classdef SingleRun < handle
                 this.m_CSSLMC_result = R;
             elseif (algorithmType == this.CSSLMCF)
                 this.m_CSSLMCF_result = R;
+            elseif (algorithmType == this.AM)
+                this.m_AM_result = R;
             end
             this.m_algorithmsCollection.setRun( algorithmType );
         end
@@ -297,6 +306,8 @@ classdef SingleRun < handle
                 r = this.m_CSSLMC_result;
             elseif (algorithmType == this.CSSLMCF)
                 r = this.m_CSSLMCF_result;
+            elseif (algorithmType == this.AM)
+                r = this.m_AM_result;
             end
         end
         
@@ -367,9 +378,4 @@ classdef SingleRun < handle
 
     end % (Access = private)
     
-    methods (Static)
-        function r = numAvailableAlgorithms()
-            r = 5;
-        end
-    end
 end
