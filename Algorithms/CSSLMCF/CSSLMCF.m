@@ -17,10 +17,10 @@ classdef CSSLMCF < CSSLBase
         this.displayParams(CSSLMCF.name());
 
         result.mu     = zeros( num_vertices, num_labels, num_iterations );
-        result.sigma  = ones ( num_vertices, num_labels, num_labels, num_iterations );
+        result.sigma  = ones ( num_labels, num_labels, num_vertices, num_iterations );
         first_iteration = 1;
         for vertex_i=1:num_vertices
-            result.sigma(vertex_i,:,:,first_iteration) = eye( num_labels );
+            result.sigma(:,:,vertex_i,first_iteration) = eye( num_labels );
         end
 
         inv_gamma = diag( zeros(1,num_labels) + 1 / gamma );
@@ -47,15 +47,14 @@ classdef CSSLMCF < CSSLBase
             prev_mu     = result.mu    ( :, :, iter_i - 1) ;
             prev_sigma  = result.sigma ( :, :, :, iter_i - 1) ;
 
-            inv_prev_sigma = zeros( num_vertices, num_labels, num_labels );
+            inv_prev_sigma = zeros( num_labels, num_labels, num_vertices );
             for vertex_i=1:num_vertices
-                sigma_i(:,:) = prev_sigma(vertex_i,:,: );
-                inv_prev_sigma(vertex_i, :, :) = ...
-                    inv( sigma_i );
+                sigma_i = prev_sigma(:,:,vertex_i );
+                inv_prev_sigma(:, :, vertex_i) = inv( sigma_i );
             end
             
             for vertex_i=1:num_vertices
-                inv_sigma_i(:,:) = inv_prev_sigma(vertex_i,:,:);
+                inv_sigma_i = inv_prev_sigma(:,:,vertex_i);
                 
                 isLabeled = this.injectionProbability(vertex_i);
                 
@@ -70,7 +69,7 @@ classdef CSSLMCF < CSSLBase
                     neighbour_id     = neighbours.indices(neighbour_i);
                     neighbour_weight = neighbours.weights(neighbour_i);
                     neighbour_mu     = prev_mu( neighbour_id, : ).';
-                    inv_neighbour_sigma(:,:) = inv_prev_sigma(neighbour_id,:,:);
+                    inv_neighbour_sigma = inv_prev_sigma(:,:,neighbour_id);
                     covariance = ...
                         neighbour_weight * (inv_sigma_i + inv_neighbour_sigma);
                     Q_i = Q_i + covariance;
@@ -105,7 +104,7 @@ classdef CSSLMCF < CSSLBase
                 
                 R_i = R_i + 0.5 * isLabeled * (mu_diff_y * mu_diff_y.');
                 new_sigma_i = CSSLMCF.solveQuadratic( - (beta/alpha), - (1/alpha) * R_i);
-                result.sigma( vertex_i, :,:, iter_i) = new_sigma_i;
+                result.sigma( :,:, vertex_i, iter_i) = new_sigma_i;
             end
             
             current_mu     = result.mu( :, :, iter_i) ;
