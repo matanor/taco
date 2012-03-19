@@ -82,24 +82,6 @@ methods (Access = public)
         singleRun.set_results( algorithm_results, algorithmType );
     end
         
-    %% runCSSL
-
-    function runCSSL( this, algorithm, algorithm_results, params )
-        algorithm.m_W = this.get_wnnGraph( params.makeSymetric, params.K );
-        algorithm.m_num_iterations      = params.maxIterations;
-        algorithm.m_alpha               = params.alpha;
-        algorithm.m_beta                = params.beta;
-        algorithm.m_labeledConfidence   = params.labeledConfidence;
-        algorithm.m_useGraphHeuristics  = params.useGraphHeuristics;
-        
-        Ylabeled = this.createInitialLabeledY(params.labeledInitMode);
-        
-        algorithmResultsSource = algorithm.run( Ylabeled );
-
-        algorithm_results.set_results(algorithmResultsSource);
-        algorithm_results.set_params( params );
-    end
-    
     %% createInitialLabeledY
 
     function R = createInitialLabeledY(this, labeledInitMode)
