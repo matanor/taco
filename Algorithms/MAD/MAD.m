@@ -1,5 +1,9 @@
-classdef MAD < handle
+classdef MAD < GraphTrunsductionBase
     properties (Access=public)
+        m_mu1;
+        m_mu2;
+        m_mu3;
+        m_useGraphHeuristics;
     end
     
     methods(Static)
@@ -9,7 +13,7 @@ classdef MAD < handle
     end
     
     methods (Access=public)
-        function    result = run( this, W, Y, params, labeledVertices )
+        function    result = run( this )
             %MAD Modified ADsorption
             %   W - graph weights
             %   Y - prior labeling, its size should be
@@ -26,11 +30,11 @@ classdef MAD < handle
 
             tic;
 
-            mu1 = params.mu1;
-            mu2 = params.mu2;
-            mu3 = params.mu3;
-            useGraphHeuristics = params.useGraphHeuristics;
-            maxIterations = params.maxIterations;
+            mu1 = this.m_mu1;
+            mu2 = this.m_mu2;
+            mu3 = this.m_mu3;
+            useGraphHeuristics  = this.m_useGraphHeuristics;
+            maxIterations       = this.m_num_iterations;
             
             paramsString = ...
                 [' useGraphHeuristics = '   num2str(useGraphHeuristics) ...
@@ -40,12 +44,12 @@ classdef MAD < handle
                  ' maximum iterations = '   num2str(maxIterations)];                
             disp(['Running MAD.' paramsString]);
 
-            numVertices = size(W, 1);
+            numVertices = this.numVertices();
             disp(['numVertices = ' num2str(numVertices)]);
 
             disp('Calculating probabilities...');
             if (useGraphHeuristics ~=0)
-                p = MAD.calcProbabilities(W, labeledVertices);
+                p = MAD.calcProbabilities(this.m_W, this.labeledSet());
             else
                 p = MAD.constantProbabilities(numVertices);
             end
@@ -54,21 +58,21 @@ classdef MAD < handle
 
             % add dummy label. initialy no vertex is
             % associated with the dummy label.
-            disp(['size(Y) = ' num2str(size(Y))]);
-            Y = [Y zeros(numVertices, 1) ];
-            numLabels = size( Y, 2 );
+            disp(['size(Y) = ' num2str(size(this.m_priorY))]);
+            this.m_priorY = [this.m_priorY zeros(numVertices, 1) ];
+            numLabels = this.numLabels();
 
             % Line (2) of MAD page 10 in reference 
 
             disp('Calculating M(v)...');
-            M = MAD.calcM(W, p, params);
+            M = MAD.calcM(this.m_W, p, mu1, mu2, mu3);
             disp('done');
 
-            D = zeros( size(Y) );
+            D = zeros( size(this.m_priorY) );
             r = zeros(numLabels, 1);
             r(end) = 1;
 
-            Y_hat = Y;
+            Y_hat = this.m_priorY;
             result.Y(:,:,1) = Y_hat;
             
             iteration_diff = 10^1000;
@@ -89,7 +93,7 @@ classdef MAD < handle
 
                 % line (4) of MAD page 10 in reference 
                 for vertex_i=1:numVertices
-                    Dv = MAD.calcDv(W, p, Y_hat, vertex_i);
+                    Dv = MAD.calcDv(this.m_W, p, Y_hat, vertex_i);
                     D( vertex_i, :) = Dv.';
                 end
 
@@ -99,7 +103,7 @@ classdef MAD < handle
                     p_inject   = p.inject(vertex_i); 
                     p_abandon  = p.abandon(vertex_i); 
 
-                    Yv = Y( vertex_i, : ).';
+                    Yv = this.priorVector( vertex_i );
                     Dv = D( vertex_i, : ).';
                     Mv = M( vertex_i );
                     Yv_hat = (1/Mv) * ...
@@ -141,13 +145,9 @@ classdef MAD < handle
             end
         end
         
-        function M = calcM( W, p, params )
+        function M = calcM( W, p, mu1, mu2, mu3 )
             %CALCM Summary of this function goes here
             %   Detailed explanation goes here
-
-            mu1 = params.mu1;
-            mu2 = params.mu2;
-            mu3 = params.mu3;
 
             numVertices = size(W, 1);
             M = zeros( numVertices, 1);

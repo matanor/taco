@@ -1,18 +1,15 @@
-classdef AM < handle
+classdef AM < GraphTrunsductionBase
 % Reference: Soft-supervised learning for text classification
 
 properties (Access=public)
-    
     m_v;                % Parameter 1. See page 3, bottom left.
     m_mu;               % Parameter 2. See page 3, bottom left.
-    m_W;                % The weights of the graph.
     m_alpha;            % parameter 3. See page 5, left column.
-    m_num_iterations;
 end % properties (Access=public)
 
 methods (Access=public)
         
-	function iteration = run( this, labeledY)
+	function iteration = run( this )
 
         ticID = tic;
         
@@ -21,8 +18,8 @@ methods (Access=public)
         alpha           = this.m_alpha;
         num_iterations  = this.m_num_iterations;
 
-        num_vertices = size(labeledY,1);
-        num_labels   = size(labeledY,2);
+        num_vertices = this.numVertices();
+        num_labels   = this.numLabels();
         
         this.displayParams(num_vertices);
 
@@ -91,14 +88,14 @@ methods (Access=public)
             for vertex_i=1:num_vertices
                 neighbours = getNeighbours( this.m_W, vertex_i);
                 
-                y_i = labeledY( vertex_i, : );
-                isLabeled = (sum(y_i) ~=0);
+                isLabeled = this.isLabeled(vertex_i );
                 
                 q_i = zeros(num_labels, 1);
 
                 for label_i = 1:num_labels
+                    y_i_l = this.priorLabelScore( vertex_i, label_i );
                     p_neighbours = current_p(neighbours.indices, label_i);
-                    q_i(label_i) = isLabeled * y_i(label_i) + ...
+                    q_i(label_i) = isLabeled * y_i_l + ...
                                    mu * sum( neighbours.weights .* p_neighbours);
                 end
                 

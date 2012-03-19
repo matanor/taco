@@ -1,9 +1,7 @@
-classdef CSSLBase < handle
+classdef CSSLBase < GraphTrunsductionBase
 % Base class for CSSL algorithms
 
     properties (SetAccess=public, GetAccess=protected)
-        m_W;
-        m_num_iterations;
         m_alpha;
         m_beta;
         m_labeledConfidence;
@@ -34,14 +32,18 @@ methods (Access=protected)
         disp(['Running ' algorithmName '.' paramsString]);
     end
     
-    function prepareGraph(this, labeledY)
-        labeledVertices = find(sum(labeledY,2) ~=0 );
+    %% prepareGraph
+    
+    function prepareGraph(this)
+        labeledVertices = this.labeledSet();
         if (this.m_useGraphHeuristics ~=0)
-            p = MAD.calcProbabilities(this.m_W, labeledVertices); %#ok<FNDSB>
+            p = MAD.calcProbabilities(this.m_W, labeledVertices);
             this.m_p = p;
             this.updateGraphUsingHeuristics(p);
         end
     end
+    
+    %% updateGraphUsingHeuristics
     
     function updateGraphUsingHeuristics(this, p)
         num_vertices = size( this.m_W, 1);
@@ -54,16 +56,15 @@ methods (Access=protected)
         end
     end
     
-    function r = injectionProbability( this, vertex_i, y_i )
-        r = (sum(y_i) ~=0) ;
+    %% injectionProbability
+    
+    function r = injectionProbability( this, vertex_i )
+        r = this.isLabeled(vertex_i);
         if (this.m_useGraphHeuristics ~=0)
             r = r * this.m_p.inject(vertex_i);
         end
     end
     
-    function r = numVertices(this)
-        r = size(this.m_W, 1);
-    end
 end % methods (Access=protected)
     
 end % classdef

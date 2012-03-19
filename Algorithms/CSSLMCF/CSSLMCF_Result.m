@@ -9,10 +9,10 @@ classdef CSSLMCF_Result < SSLMC_Result
     
     methods (Access = public)
         
-        function set_results(this, resultSource)
+        function set_results(this, resultSource, saveAllIterations)
             this.m_numIterations = ...
                 SSLMC_Result.calcNumIterations( resultSource.mu );
-            if ParamsManager.SAVE_ALL_ITERATIONS_IN_RESULT
+            if saveAllIterations
                 this.m_Y = resultSource.mu;
                 this.m_sigma = resultSource.sigma;
             else

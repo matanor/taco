@@ -2,7 +2,7 @@ classdef CSSLMC < CSSLBase
 
 methods (Access=public)
         
-	function iteration = run( this, labeledY)
+	function iteration = run( this )
 
         ticID = tic;
         
@@ -11,15 +11,15 @@ methods (Access=public)
         num_iterations      = this.m_num_iterations;
         gamma               = this.m_labeledConfidence;
 
-        this.displayParams('CSSLMC');
+        this.displayParams(CSSLMC.name());
         
-        num_vertices = size(labeledY,1);
-        num_labels   = size(labeledY,2);
+        num_vertices = this.numVertices();
+        num_labels   = this.numLabels();
 
         iteration.mu = zeros( num_vertices, num_labels, num_iterations );
         iteration.v  = ones ( num_vertices, num_labels, num_iterations );
         
-        this.prepareGraph(labeledY);
+        this.prepareGraph();
         
         iteration_diff = 10^1000;
         diff_epsilon = 0.0001;
@@ -47,8 +47,8 @@ methods (Access=public)
 
                 for label_i = 1:num_labels
 
-                    y_i = labeledY( vertex_i, label_i );
-                    isLabeled = this.injectionProbability(vertex_i,y_i);
+                    y_i_l = this.priorLabelScore( vertex_i, label_i );
+                    isLabeled = this.injectionProbability(vertex_i);
                     
                     neighbours = getNeighbours( this.m_W, vertex_i);
 
@@ -56,9 +56,9 @@ methods (Access=public)
                     neighbours_mu = prev_mu( neighbours.indices, label_i );
                     neighbours_v  = prev_v ( neighbours.indices, label_i );
                     B = sum( neighbours.weights .* neighbours_mu ) ...
-                        + isLabeled * y_i;
+                        + isLabeled * y_i_l;
                     C = sum( neighbours.weights .* neighbours_mu ./ neighbours_v ) ...
-                        + isLabeled * (y_i / gamma) ;
+                        + isLabeled * (y_i_l / gamma) ;
                     D = sum( neighbours.weights ./ neighbours_v ) ...
                         + isLabeled / gamma + 1;
 
@@ -71,8 +71,8 @@ methods (Access=public)
             for vertex_i=1:num_vertices
                 
                 for label_i=1:num_labels
-                    y_i = labeledY( vertex_i, label_i );
-                    isLabeled = this.injectionProbability(vertex_i,y_i);
+                    y_i_l     = this.priorLabelScore( vertex_i, label_i );
+                    isLabeled = this.injectionProbability(vertex_i);
 
                     neighbours = getNeighbours( this.m_W, vertex_i);
 
@@ -80,7 +80,7 @@ methods (Access=public)
                     neighbours_mu = prev_mu( neighbours.indices, label_i );
                     A = sum ( neighbours.weights .* ...
                         (mu_i  - neighbours_mu).^2 )...
-                        + isLabeled * 0.5 *  (mu_i -y_i)^2;
+                        + isLabeled * 0.5 *  (mu_i -y_i_l)^2;
 
                     new_v = (beta + sqrt( beta^2 + 4 * alpha * A))...
                             / (2 * alpha);
@@ -97,8 +97,6 @@ methods (Access=public)
         end
 
         toc(ticID);
-%         disp('size(iteration.v)=');
-%         disp(size(iteration.v));
     
     end
         

@@ -3,7 +3,7 @@ classdef CSSLMCF < CSSLBase
     
     methods (Access=public)
         
-	function result = run( this, labeledY)
+	function result = run( this )
 
         ticID = tic;
         
@@ -12,9 +12,9 @@ classdef CSSLMCF < CSSLBase
         num_iterations      = this.m_num_iterations;
         gamma               = this.m_labeledConfidence;
         
-        num_vertices = size(labeledY,1);
-        num_labels   = size(labeledY,2);
-        this.displayParams('CSSLMCF');
+        num_vertices = this.numVertices();
+        num_labels   = this.numLabels();
+        this.displayParams(CSSLMCF.name());
 
         result.mu     = zeros( num_vertices, num_labels, num_iterations );
         result.sigma  = ones ( num_vertices, num_labels, num_labels, num_iterations );
@@ -25,7 +25,7 @@ classdef CSSLMCF < CSSLBase
 
         inv_gamma = diag( zeros(1,num_labels) + 1 / gamma );
         
-        this.prepareGraph(labeledY);
+        this.prepareGraph();
         
         iteration_diff  = 10^1000;
         diff_epsilon    = 0.0001;
@@ -57,8 +57,7 @@ classdef CSSLMCF < CSSLBase
             for vertex_i=1:num_vertices
                 inv_sigma_i(:,:) = inv_prev_sigma(vertex_i,:,:);
                 
-                y_i       = labeledY( vertex_i, : ).';
-                isLabeled = this.injectionProbability(vertex_i,y_i);
+                isLabeled = this.injectionProbability(vertex_i);
                 
                 P_i = isLabeled * (inv_sigma_i + inv_gamma);
                     
@@ -79,15 +78,14 @@ classdef CSSLMCF < CSSLBase
                     sum_K_i_j = sum_K_i_j + K_i_j;
                 end
                 
+                y_i       = this.priorVector( vertex_i );
                 new_mu = ( Q_i + P_i ) \ ( sum_K_i_j + P_i * y_i );
 
                 result.mu( vertex_i, :, iter_i) = new_mu.';
             end
 
             for vertex_i=1:num_vertices
-                
-                y_i       = labeledY( vertex_i, : ).';
-                isLabeled = this.injectionProbability(vertex_i,y_i);
+                isLabeled = this.injectionProbability(vertex_i);
                 
                 neighbours      = getNeighbours( this.m_W, vertex_i);
                 num_neighbours  = length( neighbours.weights);
@@ -101,7 +99,10 @@ classdef CSSLMCF < CSSLBase
                     mu_diff = mu_i - neighbour_mu;
                     R_i = R_i + neighbour_weight * (mu_diff * mu_diff.');
                 end
+                
+                y_i       = this.priorVector( vertex_i );
                 mu_diff_y = mu_i - y_i;
+                
                 R_i = R_i + 0.5 * isLabeled * (mu_diff_y * mu_diff_y.');
                 new_sigma_i = CSSLMCF.solveQuadratic( - (beta/alpha), - (1/alpha) * R_i);
                 result.sigma( vertex_i, :,:, iter_i) = new_sigma_i;
