@@ -12,6 +12,10 @@ methods (Static)
         %% The parameters manager
 
         paramsManager = ParamsManager(isOnOdin);
+        
+        if paramsManager.REAL_RANDOMIZATION
+            rng('shuffle') ;
+        end
 
         %% what algorithms we want to run in the simulation
         algorithmsToRun = AlgorithmsCollection;

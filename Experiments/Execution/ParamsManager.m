@@ -47,6 +47,7 @@ end
 
 properties (Constant)
     SAVE_ALL_ITERATIONS_IN_RESULT = 0;
+    REAL_RANDOMIZATION = 1;
 end
 
 properties (Constant)
