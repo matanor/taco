@@ -41,7 +41,6 @@ methods (Access = public)
                               this.m_constructionParams, ...
                               this.m_trunsductionSet);
         
-        dbstop in SingleRunFactory.m at 45;
         for algorithm_i=algorithmsToRun.algorithmsRange()
             this.runAlgorithm( singleRun, algorithm_i, algorithmParams{algorithm_i} );
         end
