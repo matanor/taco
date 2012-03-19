@@ -1,6 +1,6 @@
 
 outputDir=/u/matanorb/experiments/webkb/results
-folderName=2012_02_13_02_amar_graph_unbalanced_optimized_heuristics_all_labeled_init_modes_2_3
+folderName=2012_03_19_02_webkb_amar_balanced_all_heuristics_all_init_mode_all_optimized_added_AM
 runName=CSSLMC
 outputFile=$outputDir/$folderName/output.txt
 errorFile=$outputDir/$folderName/error.txt

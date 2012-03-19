@@ -31,7 +31,7 @@ methods (Static)
         configManager = ConfigManager.get();
         configManager.createWithDefaultsIfMissing();
         
-        folderName = '2012_02_20_1_sentiment';
+        folderName = '2012_03_14_1_MRR';
         resultsDir = 'C:/technion/theses/Experiments/WebKB/results/';
         isOnOdin = 0;
         outputManager = OutputManager;
