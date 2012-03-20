@@ -97,6 +97,7 @@ methods
     %% classPriorNormalization
     
     function classPriorNormalization(this)
+        disp('classPriorNormalization');
         Y = this.m_priorY;
         
         Y( this.m_priorY ~= 1) = 0; % remove all (-1) or other values set because of
