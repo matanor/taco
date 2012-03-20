@@ -146,6 +146,10 @@ methods (Static)
         T = [T 'mu1' SEPERATOR];
         T = [T 'mu2' SEPERATOR];
         T = [T 'mu3' SEPERATOR];
+        T = [T 'am_v'       SEPERATOR];
+        T = [T 'am_mu'      SEPERATOR];
+        T = [T 'am_alpha'   SEPERATOR];
+
         disp(T);
     end
    
