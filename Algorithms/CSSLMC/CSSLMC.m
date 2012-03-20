@@ -6,6 +6,8 @@ methods (Access=public)
 
         ticID = tic;
         
+        this.classPriorNormalization();
+        
         alpha               = this.m_alpha;
         beta                = this.m_beta;
         num_iterations      = this.m_num_iterations;
