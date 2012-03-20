@@ -20,15 +20,15 @@ methods
         for algorithm_i=multipleRuns.availableResultsAlgorithmRange()
             algorithmName = AlgorithmTypeToStringConverter.convert( algorithm_i );
             disp(['algorithmName =  ' algorithmName]);
-            [averagePRBEP estimatedAveragePRBEP] = ...
+            [exactPRBEP_perLabel estimatedPRBEP_perLabel] = ...
                 multipleRuns.calcAveragePrecisionAndRecall(algorithm_i);
-            numClasses = numel(averagePRBEP);
+            numClasses = numel(exactPRBEP_perLabel.mean);
             disp('averagePRBEP');
-            disp(averagePRBEP);
+            disp(exactPRBEP_perLabel.mean);
             disp('estimatedAveragePRBEP');
-            disp(estimatedAveragePRBEP);
-            this.m_algorithmResults{algorithm_i}.averagePRBEP = averagePRBEP;
-            this.m_algorithmResults{algorithm_i}.estimatedAveragePRBEP = estimatedAveragePRBEP;
+            disp(estimatedPRBEP_perLabel.mean);
+            this.m_algorithmResults{algorithm_i}.exactPRBEP_perLabel     = exactPRBEP_perLabel;
+            this.m_algorithmResults{algorithm_i}.estimatedPRBEP_perLabel = estimatedPRBEP_perLabel;
         end
         this.m_numClasses = numClasses;
     end
@@ -37,11 +37,14 @@ methods
     
     function createAverageAccuracy_testSet( this, multipleRuns )
         for algorithm_i=multipleRuns.availableResultsAlgorithmRange()
-            avgAccuracy = multipleRuns.calcAverageAccuracy_testSet(algorithm_i);
+            [avgAccuracy stddevAccuracy] = ...
+                multipleRuns.calcAverageAccuracy_testSet(algorithm_i);
             algorithmName = AlgorithmTypeToStringConverter.convert( algorithm_i );
             disp(['Algorithm ' algorithmName ...
-                  ' average accuracy = ' num2str(avgAccuracy)]);
-            this.m_algorithmResults{algorithm_i}.avgAccuracy_testSet = avgAccuracy;
+                  ' avg (stddev) accuracy = ' ...
+                  num2str(avgAccuracy) ' (' num2str(stddevAccuracy) ')']);
+            this.m_algorithmResults{algorithm_i}.accuracy.mean   = avgAccuracy;
+            this.m_algorithmResults{algorithm_i}.accuracy.stddev = stddevAccuracy;
         end
     end
     
@@ -58,14 +61,16 @@ methods
         end
     end
     
-    %% avgPRBEP
+    %% avgPRBEP_allLabels
     
-    function R = avgPRBEP( this, algorithmType, isEstimated )
+    function R = avgPRBEP_allLabels( this, algorithmType, isEstimated )
         algResult = this.m_algorithmResults{algorithmType};
         if isEstimated
-            R = mean(algResult.estimatedAveragePRBEP);
+            R.mean   = mean(    algResult.estimatedPRBEP_perLabel.mean);
+            R.stddev = sqrt(var(algResult.estimatedPRBEP_perLabel.mean));
         else
-            R = mean(algResult.averagePRBEP);
+            R.mean   = mean(    algResult.exactPRBEP_perLabel.mean);
+            R.stddev = sqrt(var(algResult.exactPRBEP_perLabel.mean));
         end 
     end
     
@@ -73,6 +78,7 @@ methods
     
     function R = resultsTablePRBEP( this, isEstimated )
         algorithmsInResult = MultipleRunsResult.algorithmsResultOrder();
+        
         numAlgorithms = length(algorithmsInResult);
         numClasses = this.m_numClasses;
         R = zeros(numClasses, numAlgorithms);
@@ -81,13 +87,14 @@ methods
             if this.hasAlgorithmResult(algorithm_i)
                 result = this.m_algorithmResults{algorithm_i};
                 if isEstimated
-                    algorithmStats = result.estimatedAveragePRBEP;
+                    algorithmStats = result.estimatedPRBEP_perLabel.mean;
                 else
-                    algorithmStats = result.averagePRBEP;
+                    algorithmStats = result.exactPRBEP_perLabel.mean;
                 end 
             else
                 algorithmStats = zeros(numClasses, 1);
             end
+            
             R(:,table_i) = algorithmStats;
             table_i = table_i + 1;
         end
@@ -103,19 +110,20 @@ methods
     %% avgMRR_testSet
     
     function [mean stddev] = avgMRR_testSet(this, algorithmType)
-        mean = this.m_algorithmResults{algorithmType}.MRR.mean; 
+        mean   = this.m_algorithmResults{algorithmType}.MRR.mean; 
         stddev = this.m_algorithmResults{algorithmType}.MRR.stddev; 
     end
     
     %% avgAccuracy_testSet_perAlgorithm
     
-    function R = avgAccuracy_testSet_perAlgorithm(this, algorithmType)
-        R = this.m_algorithmResults{algorithmType}.avgAccuracy_testSet;
+    function [mean stddev] = avgAccuracy_testSet_perAlgorithm(this, algorithmType)
+        mean   = this.m_algorithmResults{algorithmType}.accuracy.mean;
+        stddev = this.m_algorithmResults{algorithmType}.accuracy.stddev; 
     end
     
-    %% avgAccuracy_testSet
+    %% avgAccuracy_testSet_allAlgorithms
     
-    function R = avgAccuracy_testSet(this)
+    function R = avgAccuracy_testSet_allAlgorithms(this)
         algorithmsInResult = MultipleRunsResult.algorithmsResultOrder();
         numAlgorithms = length(algorithmsInResult);
         R = zeros(1, numAlgorithms);
@@ -124,7 +132,7 @@ methods
             if algorithm_i <= length(this.m_algorithmResults) && ...
                ~isempty(this.m_algorithmResults{algorithm_i})
                 result = this.m_algorithmResults{algorithm_i};
-                avgAccuracy = result.avgAccuracy_testSet;
+                avgAccuracy = result.accuracy.mean;
             else
                 avgAccuracy = 0;
             end

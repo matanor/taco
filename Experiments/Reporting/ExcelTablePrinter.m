@@ -176,8 +176,8 @@ methods
     %% printAvgAccuracy
     
     function printAvgAccuracy(this, optimizationMethod)
-        T1 = this.getAvgAccuracy(this.m_noHeuristics, optimizationMethod);
-        T2 = this.getAvgAccuracy(this.m_withHeuristics, optimizationMethod);
+        T1 = this.getAvgAccuracyTable(this.m_noHeuristics, optimizationMethod);
+        T2 = this.getAvgAccuracyTable(this.m_withHeuristics, optimizationMethod);
         avgAccuracyTable = [0 T1 T2];
         Utilities.printCommaSeperatedMatrix(avgAccuracyTable);
     end
@@ -196,13 +196,13 @@ methods
         end
     end
     
-    %% getAvgAccuracy
+    %% getAvgAccuracyTable
     
-    function R = getAvgAccuracy...
+    function R = getAvgAccuracyTable...
             (~, parameterRunResults, optimizationMethod)
         numAlgorithmsInResult = ExcelTablePrinter.numAlgorithmInResult();
         if ~isempty(parameterRunResults)
-            R = parameterRunResults.avgAccuracy_testSet(optimizationMethod);
+            R = parameterRunResults.avgAccuracy_testSet_allAlgorithms(optimizationMethod);
         else
             R = zeros(1, numAlgorithmsInResult);
         end

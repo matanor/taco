@@ -58,10 +58,10 @@ methods
         R = this.m_results{optimization_method_i}.resultsTablePRBEP(isEstimated);
     end
     
-    %% avgAccuracy_testSet
+    %% avgAccuracy_testSet_allAlgorithms
     
-    function R = avgAccuracy_testSet(this, optimization_method_i)
-        R = this.m_results{optimization_method_i}.avgAccuracy_testSet();
+    function R = avgAccuracy_testSet_allAlgorithms(this, optimization_method_i)
+        R = this.m_results{optimization_method_i}.avgAccuracy_testSet_allAlgorithms();
     end
     
     %% parameterValues
@@ -118,12 +118,12 @@ methods
         algorithmName = AlgorithmTypeToStringConverter.convert(algorithmType);
         R = [R algorithmName SEPERATOR ];
         isEstimated = 0;
-        avgPRBEP = this.m_results{optimization_method_i}.avgPRBEP(algorithmType, isEstimated);
-        R = [R num2str(avgPRBEP) SEPERATOR ];
+        avgPRBEP = this.m_results{optimization_method_i}.avgPRBEP_allLabels(algorithmType, isEstimated);
+        R = [R num2str(avgPRBEP.mean) ' (' num2str(avgPRBEP.stddev) ')' SEPERATOR ];
         
-        avgAccuracy = this.m_results{optimization_method_i} ...
+        [avgAccuracy stddevAccuracy] = this.m_results{optimization_method_i} ...
                           .avgAccuracy_testSet_perAlgorithm(algorithmType);
-        R = [R num2str(avgAccuracy) SEPERATOR ];
+        R = [R num2str(avgAccuracy) ' (' num2str(stddevAccuracy) ')' SEPERATOR ];
         
         [avgMRR stddevMRR] = this.m_results{optimization_method_i} ...
                      .avgMRR_testSet(algorithmType);

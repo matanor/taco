@@ -75,41 +75,44 @@ methods
 
     %% calcAveragePrecisionAndRecall
 
-    function [prbepAverage estimatedPrebpAverage] = ...
+    function [exactResult estimatedResult] = ...
             calcAveragePrecisionAndRecall(this, algorithmType)
         numLabels = this.getRun(1).numLabels();
-        prbepAverage            = zeros(numLabels, 1);
-        estimatedPrebpAverage   = zeros(numLabels, 1);
+        exactPRBEP     = zeros(this.num_runs(), numLabels);
+        estimatedPRBEP = zeros(this.num_runs(), numLabels);
         for run_i=1:this.num_runs()
 
             disp(['MultipleRuns::calcAveragePrecisionAndRecall. run_i =  ' num2str(run_i)]);
             singleRun = this.getRun(run_i);
 
             for labelIndex = 1:numLabels
-                [prbep, ~, ~]   = singleRun.calcPRBEP_testSet(algorithmType, labelIndex);
-                estimated_prbep  = singleRun.estimatePRBEP_testSet(algorithmType, labelIndex);
-                disp(['prbep (estimated) for class ' num2str(labelIndex) ' = ' num2str(prbep)...
-                  ' (' num2str(estimated_prbep) ')']);
-                prbepAverage(labelIndex) = prbepAverage(labelIndex) + prbep;
-                estimatedPrebpAverage(labelIndex) = estimatedPrebpAverage(labelIndex) + estimated_prbep;
+                [exact, ~, ~]   = singleRun.calcPRBEP_testSet(algorithmType, labelIndex);
+                estimated       = singleRun.estimatePRBEP_testSet(algorithmType, labelIndex);
+                disp(['prbep (estimated) for class ' num2str(labelIndex) ...
+                    ' = ' num2str(exact) ' (' num2str(estimated) ')']);
+                exactPRBEP    (run_i, labelIndex) = exact;
+                estimatedPRBEP(run_i, labelIndex) = estimated;
             end
         end
-        prbepAverage          = prbepAverage / this.num_runs();
-        estimatedPrebpAverage = estimatedPrebpAverage / this.num_runs();
+        
+        exactResult.mean       = mean(exactPRBEP).';
+        exactResult.stddev     = sqrt(var(exactPRBEP)).'; 
+        estimatedResult.mean   = mean(estimatedPRBEP).';
+        estimatedResult.stddev = sqrt(var(estimatedPRBEP)).'; 
     end
     
     %% calcAverageAccuracy_testSet
     
-    function R = calcAverageAccuracy_testSet(this, algorithmType)
-        averageAccuracy = 0;
+    function [meanAccuracy stddevAccuracy] ...
+            = calcAverageAccuracy_testSet(this, algorithmType)
+        accuracyPerRun = zeros(this.num_runs(), 1);
         for run_i=1:this.num_runs()
             singleRun = this.getRun(run_i);
-            singleRunAccuracy = singleRun.accuracy_testSet(algorithmType);
-            disp(['run ' num2str(run_i) ' accuracy = ' num2str(singleRunAccuracy)]);
-            averageAccuracy = averageAccuracy + singleRunAccuracy;
+            accuracyPerRun(run_i) = singleRun.accuracy_testSet(algorithmType);
+            disp(['run ' num2str(run_i) ' accuracy = ' num2str(accuracyPerRun(run_i))]);
         end
-        averageAccuracy = averageAccuracy / this.num_runs();
-        R = averageAccuracy;
+        meanAccuracy    = mean(accuracyPerRun);
+        stddevAccuracy  = sqrt(var(accuracyPerRun));
     end
     
 end
