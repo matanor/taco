@@ -104,6 +104,10 @@ methods (Static)
             end
             started = [started; job_i]; %#ok<AGROW>
         end
+        if ~isempty(started)
+            disp('Started job (indices):');
+            disp(started);
+        end
         R = started;
     end
     
@@ -127,6 +131,8 @@ methods (Static)
             numRunningJobs = length(runningJobs);
             numJobsToStart = maxJobs - numRunningJobs;
             runningJobsIndices = JobManager.startJobs(jobsCollection, numJobsToStart);
+            disp(['size(runningJobs) = ' num2str(size(runningJobs))]);
+            disp(['size(jobsCollection) = ' num2str(size(jobsCollection))]);
             runningJobs = [runningJobs;jobsCollection(runningJobsIndices)]; %#ok<AGROW>
             jobsCollection(runningJobsIndices) = [];
             numRunningJobs = length(runningJobs);
