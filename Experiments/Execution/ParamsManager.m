@@ -174,8 +174,7 @@ methods (Access = public)
         else
             this = this.createParameter( 'labeledInitMode', ...
                  [ ParamsManager.LABELED_INIT_ZERO_ONE...
-                   ParamsManager.LABELED_INIT_MINUS_PLUS_ONE ...
-                   ParamsManager.LABELED_INIT_MINUS_PLUS_ONE_UNLABELED], isString, [] );
+                   ParamsManager.LABELED_INIT_MINUS_PLUS_ONE ], isString, [] );
         end
         
         if isTesting
