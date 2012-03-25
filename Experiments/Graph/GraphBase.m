@@ -36,12 +36,12 @@ methods
         numLabels   = length(this.m_correctLabels);
         numVertices = size(this.m_weights, 1);
         if ( numLabels > numVertices)
-            disp(['Warning.' 'Labels: ' num2str(numLabels) ...
+            disp(['checkWeightsAndLabels:: Warning.' 'Labels: ' num2str(numLabels) ...
                   '. Vertices: '        num2str(numVertices)]);
             verticesToRemove = (numVertices+1):numLabels;
             this.m_correctLabels(verticesToRemove) = [];
         elseif numLabels < numVertices
-            disp(['Warning.' 'Labels: ' num2str(numLabels) ...
+            disp(['checkWeightsAndLabels:: Warning.' 'Labels: ' num2str(numLabels) ...
                   '. Vertices: '        num2str(numVertices)]);
             verticesToRemove = (numLabels+1):numVertices;
             this.m_weights(verticesToRemove,:) = [];
