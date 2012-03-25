@@ -10,6 +10,7 @@ properties (GetAccess = public, SetAccess = private)
     m_mu1;
     m_mu2;
     m_mu3;
+    m_mad_K;
     m_am_v;
     m_am_mu;
     m_am_K;
@@ -119,9 +120,13 @@ methods (Access = public)
             paperOprimizationRange = [1e-8 1e-4 1e-2 1 10 1e2 1e3];        
             this = this.createParameter( 'mu2', paperOprimizationRange, isString, [] );  
             this = this.createParameter( 'mu3', paperOprimizationRange, isString, [] );
+            this = this.createParameter...
+                ( 'mad_K',     [10,50,100,500,1000,2000], isString,[]); % NO all vertices option
         else
             this = this.createParameter( 'mu2', [1 10], isString, [] );     
             this = this.createParameter( 'mu3', [1], isString, [] );
+            this = this.createParameter...
+                ( 'mad_K',     [500 1000], isString,[]); % NO all vertices option
         end
         
         this.m_defaultParamsMAD.K = 1000;
@@ -206,7 +211,8 @@ methods (Access = public)
     
     function this = createParameter( this, name, range , isString, strValues)
         memebrName = ['m_' name];
-        if (1 == strcmp(name, 'am_K'))
+        if (1 == strcmp(name, 'am_K') || ...
+            1 == strcmp(name, 'mad_K') )
             name = 'K';
         end
         this.(memebrName).range = range;
@@ -249,7 +255,7 @@ methods (Access = public)
     
     %% optimizationParamsMAD
     function R = optimizationParamsMAD(this)
-        R = [ this.m_K, this.m_mu1, this.m_mu2, this.m_mu3 ];
+        R = [ this.m_mad_K, this.m_mu1, this.m_mu2, this.m_mu3 ];
     end  
     
     %% optimizationParamsAM
