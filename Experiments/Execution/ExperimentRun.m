@@ -38,6 +38,14 @@ methods (Access = public)
         this.m_trunsductionSets = trunsductionSetsFactory.create();
     end
     
+    %% saveTrunsductionSets
+    
+    function saveTrunsductionSets(this, outputFileFullPath )
+        disp(['Saving trunsduction sets to ' outputFileFullPath '''']);
+        trunsductionSets = this.m_trunsductionSets; %#ok<NASGU>
+        save(outputFileFullPath, 'trunsductionSets');
+    end
+    
     %% createParameterRun
     
     function R = createParameterRun(this, parameterValues)

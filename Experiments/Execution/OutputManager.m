@@ -90,6 +90,12 @@ methods
         r = [this.m_currentFolder fileName];
     end
     
+    %% trunsductionSetsFileName
+    
+    function r = trunsductionSetsFileName(this)
+        r = this.createFileNameAtCurrentFolder('TrunsductionSets.mat');
+    end
+    
     %% evaluteOptimizationJobName
         
     function r = evaluteOptimizationJobName( this, algorithmType, optimizationMethod )

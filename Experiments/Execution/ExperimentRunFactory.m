@@ -33,6 +33,8 @@ methods (Static)
             disp(['File Name = ' constructionParams.fileName]);
             experimentRun = ExperimentRun(constructionParams);
             experimentRun.constructGraph();
+            trunsductionSetsFileName = outputManager.trunsductionSetsFileName();
+            experimentRun.saveTrunsductionSets( trunsductionSetsFileName );
 
             numEvaluationOptions = length(parameterValues_allOptions);
             
