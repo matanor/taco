@@ -6,6 +6,7 @@ properties
     m_w_nn;
     m_w_nn_symetric;
     m_lastUsedK;
+    m_savedNumFolds;
 end
     
 methods
@@ -13,6 +14,13 @@ methods
     
     function this = ExperimentGraph()
         this.m_lastUsedK = 0;
+    end
+    
+    %% loadFromSavedFileName
+    
+    function loadFromSavedFileName(this)
+        loadFromSavedFileName@GraphBase(this);
+        this.removeExtraSplitVertices(this.m_savedNumFolds)
     end
     
     %% removeExtraSplitVertices
@@ -23,6 +31,7 @@ methods
         verticesToRemove = (newNumVertices+1):numVertices;
 
         this.removeVertices(verticesToRemove);
+        this.m_savedNumFolds = numFolds;
     end
 
     %% clearWeights

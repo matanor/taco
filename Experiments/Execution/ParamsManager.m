@@ -12,6 +12,7 @@ properties (GetAccess = public, SetAccess = private)
     m_mu3;
     m_am_v;
     m_am_mu;
+    m_am_K;
     m_am_alpha;
     m_makeSymetric;
     m_maxIterations;
@@ -134,10 +135,13 @@ methods (Access = public)
             this = this.createParameter...
                 ( 'am_mu',    [1e-8 1e-4 0.01 0.1 1 10 100], isString,[]);
             this = this.createParameter( 'am_alpha', [2], isString,[]);
+            this = this.createParameter...
+                ( 'am_K',     [2,10,50,100,250,500,1000,2000], isString,[]); % NO all vertices option
         else
             this = this.createParameter( 'am_v',     [1e-4], isString,[]);
             this = this.createParameter( 'am_mu',    [1e-2], isString,[]);
             this = this.createParameter( 'am_alpha', [2], isString,[]);
+            this = this.createParameter( 'am_K',     [250 500], isString,[]);
         end
         
         this.m_defaultParamsAM.K = 1000;
@@ -202,6 +206,9 @@ methods (Access = public)
     
     function this = createParameter( this, name, range , isString, strValues)
         memebrName = ['m_' name];
+        if (1 == strcmp(name, 'am_K'))
+            name = 'K';
+        end
         this.(memebrName).range = range;
         this.(memebrName).name = name;
         this.(memebrName).isString = isString;
@@ -248,7 +255,7 @@ methods (Access = public)
     %% optimizationParamsAM
     
     function R = optimizationParamsAM(this)
-        R = [ this.m_K, this.m_am_v, this.m_am_mu, this.m_am_alpha ];
+        R = [ this.m_am_K, this.m_am_v, this.m_am_mu, this.m_am_alpha ];
     end
     
     %% defaultParamsMAD
