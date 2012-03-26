@@ -1,8 +1,8 @@
 function runOnOdin(folderName, codeRoot)
 %RUNONODIN Summary of this function goes here
 %   Detailed explanation goes here
-    Logger.log('runOnOdin');
-    Logger.log(['codeRoot = ' codeRoot]);
+    disp('runOnOdin');
+    disp(['codeRoot = ' codeRoot]);
     codeFolders = genpath(codeRoot);
     addpath(codeFolders);
 
