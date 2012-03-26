@@ -17,6 +17,7 @@ methods
     %% printSummary
     
     function printSummary(this)
+        Logger.log('***** Results Summary *****');
         numExperiments = length(this.m_resultCollection);
         for experiment_i=1:numExperiments
             experimentRunResult = this.m_resultCollection (experiment_i);
