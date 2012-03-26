@@ -31,7 +31,7 @@ classdef EvaluationUtilities
                 end
             end
             if (minDifference ~= 0)
-                disp(['Precision recall difference = ' num2str(minDifference)]);
+                Logger.log(['Precision recall difference = ' num2str(minDifference)]);
             end
             precision = p_i;
             recall = r_i;
@@ -95,7 +95,7 @@ classdef EvaluationUtilities
             correct = (scores > threshold);
             [prbep, precision,recall] = EvaluationUtilities.calcPRBEP(scores, correct);
             showSingleRunResults.plotPrecisionAndRecall(precision, recall, 'test');
-            disp(['prbep = ' num2str(prbep)]);
+            Logger.log(['prbep = ' num2str(prbep)]);
         end
         
         %% testMRR
@@ -106,7 +106,7 @@ classdef EvaluationUtilities
             scores = rand(numInstances,numLabels);
             correctLabel = randi(numLabels,numInstances,1);
             MRR = EvaluationUtilities.calcMRR(scores, correctLabel);
-            disp(['MRR = ' num2str(MRR)]);
+            Logger.log(['MRR = ' num2str(MRR)]);
         end
 
     end

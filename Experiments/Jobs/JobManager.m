@@ -91,7 +91,7 @@ methods (Static)
     function R = startJobs( jobsCollection, maxNumJobsToStart )
         numInputJobs = length(jobsCollection) ;
         lastJobToStartIndex = min(numInputJobs, maxNumJobsToStart);
-        disp(['Starting ' num2str(lastJobToStartIndex ) ' jobs']);
+        Logger.log(['Starting ' num2str(lastJobToStartIndex ) ' jobs']);
         started = [];
         for job_i=1:lastJobToStartIndex
             jobToStart = jobsCollection(job_i);
@@ -105,8 +105,8 @@ methods (Static)
             started = [started; job_i]; %#ok<AGROW>
         end
         if ~isempty(started)
-            disp('Started job (indices):');
-            disp(started);
+            Logger.log('Started job (indices):');
+            Logger.log(num2str(started.'));
         end
         R = started;
     end
@@ -131,14 +131,14 @@ methods (Static)
             numRunningJobs = length(runningJobs);
             numJobsToStart = maxJobs - numRunningJobs;
             runningJobsIndices = JobManager.startJobs(jobsCollection, numJobsToStart);
-            disp(['size(runningJobs) = ' num2str(size(runningJobs))]);
-            disp(['size(jobsCollection) = ' num2str(size(jobsCollection))]);
+            Logger.log(['size(runningJobs) = ' num2str(size(runningJobs))]);
+            Logger.log(['size(jobsCollection) = ' num2str(size(jobsCollection))]);
             runningJobs = [runningJobs;jobsCollection(runningJobsIndices)]; %#ok<AGROW>
             jobsCollection(runningJobsIndices) = [];
             numRunningJobs = length(runningJobs);
             
             finished_jobs = [];
-            disp(['**** Status check ****' ...
+            Logger.log(['**** Status check ****' ...
                   ' timeout (min) = ' num2str(idleTimoutInMinutes)...
                   ' max jobs = '      num2str(config.maxJobs)]);
             for job_i=1:numRunningJobs
@@ -163,7 +163,7 @@ methods (Static)
     %% restartJob
     
     function restartJob(job)
-        disp(['restarting job "' job.name() '"']);
+        Logger.log(['restarting job "' job.name() '"']);
         JobManager.deleteJob(job);
         JobManager.startJob(job);
     end
@@ -171,16 +171,16 @@ methods (Static)
     %% startJob
     
     function startJob(job)
-        disp(['start command = "' job.startCommand '"']);
+        Logger.log(['start command = "' job.startCommand '"']);
         [status, result] = system(job.startCommand);
         if status ~= 0
-            disp(['Error starting job run. file: ' job.name()...
+            Logger.log(['Error starting job run. file: ' job.name()...
                   ' status = ' num2str(status)]);
         end
         job.submitResult = result;
         job.lastLogFileSize = 0;
         job.idleCount = 0;
-        disp(result);
+        Logger.log(result);
     end
     
     %% deleteJob
@@ -188,13 +188,13 @@ methods (Static)
     function deleteJob(job)
         id = job.jobID();
         deleteCommand = ['qdel ' num2str(id) ];
-        disp(['deleteCommand = "' deleteCommand '"']);
+        Logger.log(['deleteCommand = "' deleteCommand '"']);
         [status, result] = system(deleteCommand);
         if status ~= 0
-            disp(['Error deleting job run. file: ' job.name()...
+            Logger.log(['Error deleting job run. file: ' job.name()...
                   ' status = ' num2str(status)]);
         end
-        disp(result);
+        Logger.log(result);
     end
 
 end

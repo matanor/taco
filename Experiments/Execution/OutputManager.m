@@ -32,7 +32,7 @@ methods
     
     function moveUpOneDirectory(this)
         if strcmp(this.m_currentFolder,this.SEPERATOR)
-            disp(['Cannot move up one directory. current = ' ...
+            Logger.log(['Cannot move up one directory. current = ' ...
                   this.m_currentFolder]);
             return;
         end
@@ -114,7 +114,7 @@ methods
                 '.' num2str(progressParams.currentParameterRun()) ...
                 '.' num2str(progressParams.currentEvaluationRun()) ...
                 '.' optimizationMethodName '.mat']);
-        disp(['evaluationSingleRunName = ' r]);
+        Logger.log(['evaluationSingleRunName = ' r]);
     end
     
     %% optimizationSingleRunName
@@ -126,7 +126,7 @@ methods
              '.' num2str(progressParams.currentParameterRun()) ...
              '.' num2str(progressParams.currentOptimizationRun()) ...
              '.' algorithmName '.mat']);
-         disp(['optimizationSingleRunName = ' r]);
+         Logger.log(['optimizationSingleRunName = ' r]);
     end
 end
     

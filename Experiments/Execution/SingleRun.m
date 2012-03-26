@@ -197,7 +197,7 @@ classdef SingleRun < handle
                 labelsPRBEP(label_i) = prbep;
             end
             R = mean(prbep);
-            disp(['calcAveragePRBEP_testSet: ' num2str(R)]);
+            Logger.log(['calcAveragePRBEP_testSet: ' num2str(R)]);
         end
         
         %% estimatePRBEP_testSet

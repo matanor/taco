@@ -13,7 +13,7 @@ methods
     
     function load(this, graphFileName)
         this.m_fileName = graphFileName;
-        disp(['Loading file ''' graphFileName '''']);
+        Logger.log(['Loading file ''' graphFileName '''']);
         fileData = load( graphFileName, 'graph' );
         
         this.m_weights = fileData.graph.weights;
@@ -36,12 +36,12 @@ methods
         numLabels   = length(this.m_correctLabels);
         numVertices = size(this.m_weights, 1);
         if ( numLabels > numVertices)
-            disp(['checkWeightsAndLabels:: Warning.' 'Labels: ' num2str(numLabels) ...
+            Logger.log(['checkWeightsAndLabels:: Warning.' 'Labels: ' num2str(numLabels) ...
                   '. Vertices: '        num2str(numVertices)]);
             verticesToRemove = (numVertices+1):numLabels;
             this.m_correctLabels(verticesToRemove) = [];
         elseif numLabels < numVertices
-            disp(['checkWeightsAndLabels:: Warning.' 'Labels: ' num2str(numLabels) ...
+            Logger.log(['checkWeightsAndLabels:: Warning.' 'Labels: ' num2str(numLabels) ...
                   '. Vertices: '        num2str(numVertices)]);
             verticesToRemove = (numLabels+1):numVertices;
             this.m_weights(verticesToRemove,:) = [];

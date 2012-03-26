@@ -29,7 +29,7 @@ methods (Access=protected)
                  ' useGraphHeuristics = '   num2str(this.m_useGraphHeuristics) ...
                  ' maxIterations = '        num2str(this.m_num_iterations)...
                  ' num vertices = '         num2str(numVertices) ];                
-        disp(['Running ' algorithmName '.' paramsString]);
+        Logger.log(['Running ' algorithmName '.' paramsString]);
     end
     
     %% prepareGraph

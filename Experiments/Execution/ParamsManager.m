@@ -286,7 +286,7 @@ methods (Access = public)
         elseif (SingleRun.AM == algorithmType)
             optimizationParamProperties = this.optimizationParamsAM();
         else
-           disp([ 'Error: not parameter to optimize for algorithm' num2str(algorithmType) ]);
+           Logger.log([ 'Error: not parameter to optimize for algorithm' num2str(algorithmType) ]);
         end
         R = this.createParameterStructures( optimizationParamProperties );
     end
@@ -314,7 +314,7 @@ methods (Access = public)
             elseif (SingleRun.AM == algorithmType)
                 R = this.defaultParamsAM();
             else
-               disp([ 'Error: no default parameter for algorithm' num2str(algorithmType) ]);
+               Logger.log([ 'Error: no default parameter for algorithm' num2str(algorithmType) ]);
             end
         else
             R = this.optimizationParams_allOptions(algorithmType);

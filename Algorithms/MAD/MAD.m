@@ -44,31 +44,31 @@ classdef MAD < GraphTrunsductionBase
                  ' mu2 = '                  num2str(mu2) ...
                  ' mu3 = '                  num2str(mu3) ...
                  ' maximum iterations = '   num2str(maxIterations)];                
-            disp(['Running MAD.' paramsString]);
+            Logger.log(['Running MAD.' paramsString]);
 
             numVertices = this.numVertices();
-            disp(['numVertices = ' num2str(numVertices)]);
+            Logger.log(['numVertices = ' num2str(numVertices)]);
 
-            disp('Calculating probabilities...');
+            Logger.log('Calculating probabilities...');
             if (useGraphHeuristics ~=0)
                 p = MAD.calcProbabilities(this.m_W, this.labeledSet());
             else
                 p = MAD.constantProbabilities(numVertices);
             end
             result.p = p;
-            disp('done');
+            Logger.log('done');
 
             % add dummy label. initialy no vertex is
             % associated with the dummy label.
-            disp(['size(Y) = ' num2str(size(this.m_priorY))]);
+            Logger.log(['size(Y) = ' num2str(size(this.m_priorY))]);
             this.m_priorY = [this.m_priorY zeros(numVertices, 1) ];
             numLabels = this.numLabels();
 
             % Line (2) of MAD page 10 in reference 
 
-            disp('Calculating M(v)...');
+            Logger.log('Calculating M(v)...');
             M = MAD.calcM(this.m_W, p, mu1, mu2, mu3);
-            disp('done');
+            Logger.log('done');
 
             D = zeros( size(this.m_priorY) );
             r = zeros(numLabels, 1);
@@ -84,12 +84,12 @@ classdef MAD < GraphTrunsductionBase
             for iter_i=2:maxIterations
 
                 if iteration_diff < diff_epsilon
-                    disp(['converged after ' num2str(iter_i) ' iterations']);
+                    Logger.log(['converged after ' num2str(iter_i) ' iterations']);
                     break;
                 end
                 
                 if ( mod(iter_i, 2) == 0 )
-                    disp([  '#Iteration = '      num2str(iter_i)...
+                    Logger.log([  '#Iteration = '      num2str(iter_i)...
                             ' iteration_diff = ' num2str(iteration_diff)]);
                 end
 

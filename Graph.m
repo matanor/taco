@@ -147,11 +147,11 @@ classdef Graph < handle
         end
         
         function setEdgeWeight(this, v1_idx, v2_idx, weight )
-            disp([  'Setting edge between vertices ' ...
+            Logger.log([  'Setting edge between vertices ' ...
                     num2str(v1_idx) ' ' num2str(v2_idx) ...
                     ' to weight = ' num2str(weight) ]);
             if (v1_idx == v2_idx)
-                disp('Single node edge, skipping');
+                Logger.log('Single node edge, skipping');
                 return ;
             end
             this.m_W(v1_idx, v2_idx) = weight;

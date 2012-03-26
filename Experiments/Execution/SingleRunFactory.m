@@ -25,7 +25,7 @@ methods (Access = public)
     
     function job = scheduleAsyncRun(this, algorithmParams, algorithmsToRun, ...
                               fileFullPath, outputManager )
-        disp('scheduleAsyncRun');
+        Logger.log('scheduleAsyncRun');
         % save us to a file.
         this.m_graph.clearWeights(); % This will be reconstructed when loading task from disk
         save(fileFullPath,'this','algorithmParams','algorithmsToRun');
@@ -50,7 +50,7 @@ methods (Access = public)
     %% get_wnnGraph
     
     function R = get_wnnGraph(this, makeSymetric, K)
-        disp(['get_wnnGraph. K = ' num2str(K) ...
+        Logger.log(['get_wnnGraph. K = ' num2str(K) ...
               ' makeSymetric = ' num2str(makeSymetric)]);
         this.m_graph.createKnn ( K );
         if ( makeSymetric ~= 0)
@@ -111,7 +111,7 @@ methods (Static)
                 algorithm.m_mu     = params.am_mu;
                 algorithm.m_alpha  = params.am_alpha;
             otherwise
-                disp(['loadSpecificAlgorithmParams::Error. unknown algorithm type ' ...
+                Logger.log(['loadSpecificAlgorithmParams::Error. unknown algorithm type ' ...
                         num2str( algorithmType) ]);
         end                
     end
@@ -133,7 +133,7 @@ methods (Static)
                 algorithm = AM;
                 algorithm_result = AM_Result;
             otherwise
-                disp(['createAlgorithm::Error. unknown algorithm type ' ...
+                Logger.log(['createAlgorithm::Error. unknown algorithm type ' ...
                         num2str( algorithmType) ]);
         end
     end

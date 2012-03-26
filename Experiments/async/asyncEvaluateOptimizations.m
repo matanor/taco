@@ -6,10 +6,10 @@ function asyncEvaluateOptimizations(fileFullPath, codeRoot)
     algorithmType        = runData.algorithmType;
     optimizeBy           = runData.optimizeBy;
     
-    disp(['optimizeBy = ' num2str(optimizeBy)]);
-    disp(['algorithmType = ' num2str(algorithmType)]);
+    Logger.log(['optimizeBy = ' num2str(optimizeBy)]);
+    Logger.log(['algorithmType = ' num2str(algorithmType)]);
     algorithmName = AlgorithmTypeToStringConverter.convert(algorithmType);
-    disp(['algorithmName = ' num2str(algorithmName)]);
+    Logger.log(['algorithmName = ' num2str(algorithmName)]);
     
     optimal = ExperimentRunFactory.evaluateAndFindOptimalParams...
         (optimizationJobNames, algorithmType, optimizeBy);

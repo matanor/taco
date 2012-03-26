@@ -43,7 +43,7 @@ methods (Access = public)
             constructionParams = constructionParams_allOptions( construction_i );
             constructionParams.classToLabelMap = classToLabelMap;
 
-            disp(['File Name = ' constructionParams.fileName]);
+            Logger.log(['File Name = ' constructionParams.fileName]);
             experimentRun = ExperimentRun(constructionParams);
             experimentRun.constructGraph();
             trunsductionSetsFileName = this.m_outputManager.trunsductionSetsFileName();
@@ -104,7 +104,7 @@ methods (Access = public)
     %% searchForOptimalParams
     
     function searchForOptimalParams(this, parametersRun, algorithmsToRun)
-        disp('****** Searching for optimal parameter *****')
+        Logger.log('****** Searching for optimal parameter *****')
         optimizationEvaluationMethods = parametersRun.optimizationMethodsCollection();
         evaluateOptimizationJobs = [];
         for algorithm_i=algorithmsToRun.algorithmsRange()
@@ -149,7 +149,7 @@ methods (Access = public)
     
     function runOptimizationJobs_allAlgorithms...
             (this, parametersRun, progressParams, algorithmsToRun)
-        disp('******** Optimizing ********');
+        Logger.log('******** Optimizing ********');
                 
         for algorithm_i=algorithmsToRun.algorithmsRange()
             this.runOptimizationJobs_oneAlgorithm....
@@ -179,7 +179,7 @@ methods (Access = public)
     
     function runEvaluations(this, parametersRun,   progressParams, ...
                             algorithmsToRun)
-        disp('******** Running Evaluations ********');
+        Logger.log('******** Running Evaluations ********');
         numEvaluationRuns = parametersRun.numEvaluationRuns();
         progressParams.set_numEvaluationRuns( numEvaluationRuns );
         optimizeByMethods = parametersRun.optimizationMethodsCollection();
@@ -208,7 +208,7 @@ methods (Access = public)
             evaluationJobNames{optimization_method_i} = evaluationJobNamesPerMethod; %#ok<AGROW>
         end
         JobManager.executeJobs(evaluationJobs);
-        disp('all evaluation runs are finished');
+        Logger.log('all evaluation runs are finished');
         parametersRun.setEvaluationRunsJobNames(evaluationJobNames);
     end
     
@@ -224,7 +224,7 @@ methods (Access = public)
         if length(optimizationParams_allOptions) == 1
             % only one option in optimization options
             algorithmName           = AlgorithmTypeToStringConverter.convert( algorithmType );
-            disp([algorithmName ': Only 1 optimization option. Skipping optimization jobs.']);
+            Logger.log([algorithmName ': Only 1 optimization option. Skipping optimization jobs.']);
             return;
         end
         
@@ -273,7 +273,7 @@ methods (Access = public)
         end
         
         JobManager.executeJobs( optionsJobs );
-        disp('all options collection runs are finished');
+        Logger.log('all options collection runs are finished');
         
         toc(ticID);
         R = optionsJobNames;
@@ -332,7 +332,7 @@ methods (Static)
     function displayParameterValues(parameterValues, constructionParams)
         parameterValuesString    = Utilities.StructToStringConverter(parameterValues);
         constructionParamsString = Utilities.StructToStringConverter(constructionParams);
-        disp(['Parameter run values. ' constructionParamsString ' ' parameterValuesString]);
+        Logger.log(['Parameter run values. ' constructionParamsString ' ' parameterValuesString]);
     end
     
     %% printOptimal
@@ -341,7 +341,7 @@ methods (Static)
         optimalString = Utilities.StructToStringConverter(optimal);
         algorithmName = AlgorithmTypeToStringConverter.convert( algorithm_i );
         evaluationMethodName = OptimizationMethodToStringConverter.convert(optimization_method_i);
-        disp(['algorithm = '    algorithmName ...
+        Logger.log(['algorithm = '    algorithmName ...
               ' evaluation = '  evaluationMethodName ...
               ' optimal: '      optimalString]);      
     end

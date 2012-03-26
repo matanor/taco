@@ -24,7 +24,7 @@ methods
     
     function printAllAvailableTables(this)
         for optimization_method_i=this.optimizationMethodsCollection()
-            disp('**********************************');
+            Logger.log('**********************************');
             isEstimated = 0;
             this.print( optimization_method_i, isEstimated );
             this.printBlankRow();
@@ -65,7 +65,7 @@ methods
                 end
             end
             S = [algorithmName this.SEPERATOR S]; %#ok<AGROW>
-            disp(S);
+            Logger.log(S);
         end
     end
         
@@ -76,7 +76,7 @@ methods
                     'optimal' this.SEPERATOR ...
                     heuristicsTitle this.SEPERATOR ...
                     ];
-        disp(firstRow);
+        Logger.log(firstRow);
         secondRow = [this.EMPTY_CELL ...
                      'alpha' this.SEPERATOR ...
                      'beta' this.SEPERATOR ...
@@ -90,7 +90,7 @@ methods
                      'am_alpha' this.SEPERATOR ...
                      'optimal prbep' this.SEPERATOR ...
                      'optimal accuracy'];
-         disp(secondRow);
+         Logger.log(secondRow);
     end
     
     %% printBlankRow
@@ -98,7 +98,7 @@ methods
     function printBlankRow(this)
         numAlgorithms = this.numAlgorithmInResult();
         blankRow(1:(numAlgorithms*2))=this.EMPTY_CELL;
-        disp(blankRow);
+        Logger.log(blankRow);
     end
     
     %% print
@@ -152,9 +152,9 @@ methods
                       algorithmsStr ...
                       algorithmsStr ...
                       'paper'];
-         disp(firstLine);
-         disp(secondLine);
-         disp(thirdLine);
+         Logger.log(firstLine);
+         Logger.log(secondLine);
+         Logger.log(thirdLine);
     end
     
     %% printPRBEPtable

@@ -5,11 +5,11 @@ classdef Configurations
 methods (Static)
     
     function setupAsyncRun(functionName, fileFullPath, codeRoot)
-        disp(functionName);
+        Logger.log(functionName);
         Configurations.clearEverything();
 
-        disp(['fileFullPath = ' fileFullPath]);
-        disp(['codeRoot = ' codeRoot]);
+        Logger.log(['fileFullPath = ' fileFullPath]);
+        Logger.log(['codeRoot = ' codeRoot]);
     
         codeFolders = genpath(codeRoot);
         addpath(codeFolders);

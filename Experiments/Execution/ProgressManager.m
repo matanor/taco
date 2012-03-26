@@ -103,7 +103,7 @@ methods
          '. evaluation run ' num2str(this.m_currentEvaluationRun)  ...
          ' out of '          num2str(this.m_numEvaluationRuns) ];
 
-        disp(progressString);
+        Logger.log(progressString);
     end
     
     %% displayOptimizationProgress
@@ -117,7 +117,7 @@ methods
          '. optimization run '  num2str(this.m_currentOptimizationRun)...
          ' out of '             num2str(this.m_numOptimizationRuns) ];
 
-        disp(progressString);
+        Logger.log(progressString);
     end
     
     %% displayExperimentAndParameterRun
@@ -129,7 +129,7 @@ methods
          '. parameter run '     num2str(this.m_currentParameterRun)   ...
          ' out of '             num2str(this.m_numParameterRuns) ];
 
-        disp(progressString);
+        Logger.log(progressString);
     end
 
 end

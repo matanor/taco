@@ -82,13 +82,13 @@ methods
         estimatedPRBEP = zeros(this.num_runs(), numLabels);
         for run_i=1:this.num_runs()
 
-            disp(['MultipleRuns::calcAveragePrecisionAndRecall. run_i =  ' num2str(run_i)]);
+            Logger.log(['MultipleRuns::calcAveragePrecisionAndRecall. run_i =  ' num2str(run_i)]);
             singleRun = this.getRun(run_i);
 
             for labelIndex = 1:numLabels
                 [exact, ~, ~]   = singleRun.calcPRBEP_testSet(algorithmType, labelIndex);
                 estimated       = singleRun.estimatePRBEP_testSet(algorithmType, labelIndex);
-                disp(['prbep (estimated) for class ' num2str(labelIndex) ...
+                Logger.log(['prbep (estimated) for class ' num2str(labelIndex) ...
                     ' = ' num2str(exact) ' (' num2str(estimated) ')']);
                 exactPRBEP    (run_i, labelIndex) = exact;
                 estimatedPRBEP(run_i, labelIndex) = estimated;
@@ -109,7 +109,7 @@ methods
         for run_i=1:this.num_runs()
             singleRun = this.getRun(run_i);
             accuracyPerRun(run_i) = singleRun.accuracy_testSet(algorithmType);
-            disp(['run ' num2str(run_i) ' accuracy = ' num2str(accuracyPerRun(run_i))]);
+            Logger.log(['run ' num2str(run_i) ' accuracy = ' num2str(accuracyPerRun(run_i))]);
         end
         meanAccuracy    = mean(accuracyPerRun);
         stddevAccuracy  = sqrt(var(accuracyPerRun));

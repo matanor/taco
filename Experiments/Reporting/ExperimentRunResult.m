@@ -12,7 +12,7 @@ methods
     function create(this, experimentRun)
         numParameterRuns = experimentRun.numParameterRuns();
         for parameter_run_i=1:numParameterRuns
-            disp(['parameters run index = ' num2str(parameter_run_i) ]);
+            Logger.log(['parameters run index = ' num2str(parameter_run_i) ]);
             parameterRun = experimentRun.getParameterRun(parameter_run_i);
             constructionParams = experimentRun.get_constructionParams();
             parameterRunResult = ParameterRunResult;
@@ -43,7 +43,7 @@ methods
             parameterRunResult = this.m_resultCollection(parameter_run_i);
             lines = parameterRunResult.toString_all();
             for line_i=1:length(lines)
-                disp( lines{line_i} );
+                Logger.log( lines{line_i} );
             end
         end
     end
@@ -70,7 +70,7 @@ methods
                 wasReported(parameter_run_i) = 1;
                 if ~isempty(similarParameterRun)
                     wasReported(similarParameterRunIndex) = 1;
-                    disp(['Similar parameter runs (with/without heuristics): '...
+                    Logger.log(['Similar parameter runs (with/without heuristics): '...
                          num2str(parameter_run_i) ' and ' num2str(similarParameterRunIndex)]);
                 end
             end
@@ -150,7 +150,7 @@ methods (Static)
         T = [T 'am_mu'      SEPERATOR];
         T = [T 'am_alpha'   SEPERATOR];
 
-        disp(T);
+        Logger.log(T);
     end
    
 end

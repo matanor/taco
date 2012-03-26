@@ -41,7 +41,7 @@ methods (Access = public)
     %% saveTrunsductionSets
     
     function saveTrunsductionSets(this, outputFileFullPath )
-        disp(['Saving trunsduction sets to ' outputFileFullPath '''']);
+        Logger.log(['Saving trunsduction sets to ' outputFileFullPath '''']);
         trunsductionSets = this.m_trunsductionSets; %#ok<NASGU>
         save(outputFileFullPath, 'trunsductionSets');
     end

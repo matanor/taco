@@ -56,7 +56,7 @@ classdef MainClass < handle
         %% runAlgorithm
         
         function runAlgorithm(this)   
-            disp( ['algorithm type = ' this.algorithmType ] );
+            Logger.log( ['algorithm type = ' this.algorithmType ] );
             if (strcmp( this.algorithmType,LP.name() ) == 1)
                 this.runLP();
             elseif (strcmp( this.algorithmType,CSSLMC.name() ) == 1)
@@ -70,7 +70,7 @@ classdef MainClass < handle
             elseif (strcmp( this.algorithmType,AM.name() ) == 1)
                 this.runAM();
             else
-                disp('runAlgorithm::Error. unknown algorithm');
+                Logger.log('runAlgorithm::Error. unknown algorithm');
             end
         end
         
@@ -78,9 +78,9 @@ classdef MainClass < handle
         
         function plotGraph(this, iter_i)
 
-            disp(['plotGraph: ' num2str(iter_i)]);
+            Logger.log(['plotGraph: ' num2str(iter_i)]);
             if (isempty( this.figureHandle ) )
-                disp('Creating figure...');
+                Logger.log('Creating figure...');
                 this.figureHandle  = this.createFigureToolbar();
                 this.createPlotInfo();
                 this.addParamsUI();
@@ -109,28 +109,28 @@ classdef MainClass < handle
             if (this.currentIteration > 1)
                 plotGraph(this, this.currentIteration - 1);
             end
-            disp('back');
+            Logger.log('back');
         end
         
         function forward(this, ~, ~)
             if (this.currentIteration < this.numIterations)
                 plotGraph(this, this.currentIteration + 1);
             end
-            disp('forward');
+            Logger.log('forward');
         end
         
         function run(this, ~, ~)
-            disp('run');
+            Logger.log('run');
             this.runAlgorithm();
             this.set_currentIteration( 1 );
             plotGraph(this, this.currentIteration);
         end
         
         function save(this, ~, ~)
-            disp('save');
+            Logger.log('save');
             fileName = uiputfile;
             if (0 ~= fileName)
-                disp(['Saving to file: ' fileName]);
+                Logger.log(['Saving to file: ' fileName]);
                 this.graph.save( fileName );
                 %graph = this.graph;
                 %save(fileName, 'graph' );
@@ -138,10 +138,10 @@ classdef MainClass < handle
         end
         
         function open(this, ~, ~)
-            disp('open');
+            Logger.log('open');
             fileName = uigetfile;
             if (0 ~= fileName)
-                disp(['Opening file: ' fileName]);
+                Logger.log(['Opening file: ' fileName]);
                 this.graph = Graph;
                 this.graph.load( fileName );
                 this.run();
@@ -149,7 +149,7 @@ classdef MainClass < handle
         end
 
         function onButtonDown(this, ~, ~)
-            disp('onButtonDown');
+            Logger.log('onButtonDown');
             buttonType = get(this.figureHandle,'selectiontype');
             if MainClass.isLeftButton(buttonType)
                 this.onLeftButtonDown();
@@ -161,14 +161,14 @@ classdef MainClass < handle
         %% onLeftButtonDown
         
         function onLeftButtonDown(this)
-            disp('onLeftButtonDown');
+            Logger.log('onLeftButtonDown');
             this.leftButtonDownPosition = MainClass.getClickPosition();
         end
 
         %% onButtonUp
         
         function onButtonUp(this, ~, ~)
-            disp('onButtonUp');
+            Logger.log('onButtonUp');
             buttonType = get(this.figureHandle,'selectiontype');
             if MainClass.isLeftButton(buttonType)
                 this.onLeftButtonUp();
@@ -178,11 +178,11 @@ classdef MainClass < handle
         %% onLeftButtonUp
         
         function onLeftButtonUp(this)
-            disp('onLeftButtonUp');
+            Logger.log('onLeftButtonUp');
             leftButtonUpPosition = MainClass.getClickPosition();
             
             if (isempty(this.leftButtonDownPosition) )
-                disp('Error: No button down position');
+                Logger.log('Error: No button down position');
                 return;
             end
             if (this.leftButtonDownPosition.x == leftButtonUpPosition.x && ...
@@ -191,7 +191,7 @@ classdef MainClass < handle
                 existing_vertex = this.findNearbyVertex ...
                     ( this.leftButtonDownPosition);
                 if (~isempty(existing_vertex))
-                    disp('Error: can not add new vertex. too close to an existing vertex');
+                    Logger.log('Error: can not add new vertex. too close to an existing vertex');
                     return;
                 end
                 addVertex( this, leftButtonUpPosition );
@@ -237,7 +237,7 @@ classdef MainClass < handle
         %% deleteVertex
         
         function deleteVertex(this, ~, ~)
-            disp('deleteVertex');
+            Logger.log('deleteVertex');
             vertex_i = get(gco,'UserData');
             this.removeVertex( vertex_i );
             this.plotGraph(this.currentIteration);
@@ -246,7 +246,7 @@ classdef MainClass < handle
         %% deleteEdge
         
         function deleteEdge(this,~,~)
-            disp('deleteEdge');
+            Logger.log('deleteEdge');
             edgeVertices = get(gco,'UserData');
             this.removeEdge(edgeVertices(1), edgeVertices(2));
             this.plotGraph(this.currentIteration);
@@ -255,7 +255,7 @@ classdef MainClass < handle
         %% setEdgeWeight_callback
         
         function setEdgeWeight_callback(this,~,~)
-            disp('setEdgeWeight');
+            Logger.log('setEdgeWeight');
             edgeVertices = get(gco,'UserData');
             prompt={'Enter weight:'};
             name='Input edge weight';
@@ -267,73 +267,73 @@ classdef MainClass < handle
         end
         
         function setVertexPositive(this, ~, ~)
-            disp('setVertexPositive');
+            Logger.log('setVertexPositive');
             this.updateVertex('positive');
         end
         
         function setVertexNegative(this, ~, ~)
-            disp('setVertexNegative');
+            Logger.log('setVertexNegative');
             this.updateVertex('negative');
         end
         
         function setVertexUnlabled(this, ~, ~)
-            disp('setVertexUnlabled');
+            Logger.log('setVertexUnlabled');
 %             vertex_i = get(gco,'UserData');
             this.updateVertex('none');
         end
         
         function updateNumIterations(this, ~, ~)
-            disp('updateNumIterations');
+            Logger.log('updateNumIterations');
             newValue = get(gco,'string');
             newNumericValue = str2double(newValue);
             if ceil(newNumericValue) == floor(newNumericValue)
                 this.numIterations = newNumericValue;
             else
-                disp(['Error: new value ' newValue ' is not an integer']);
+                Logger.log(['Error: new value ' newValue ' is not an integer']);
             end
             this.run();
         end
         
         function updateCurrentIteration(this,~,~)
-            disp('updateCurrentIteration');
+            Logger.log('updateCurrentIteration');
             newValue = get(gco,'string');
             newNumericValue = str2double(newValue);
             if ceil(newNumericValue) == floor(newNumericValue)
                 if newNumericValue <= this.numIterations
                     this.currentIteration = newNumericValue;
                 else
-                    disp(['Error: new value ' newValue ' is larger then '...
+                    Logger.log(['Error: new value ' newValue ' is larger then '...
                           'maximal value ' num2str( this.numIterations )]);
                 end
             else
-                disp(['Error: new value ' newValue ' is not an integer']);
+                Logger.log(['Error: new value ' newValue ' is not an integer']);
             end
             this.plotGraph(this.currentIteration);
         end
         
         function updateAlpha(this, ~, ~)
-            disp('updateAlpha');
+            Logger.log('updateAlpha');
             newValue = get(gco,'string');
             this.alpha = str2double(newValue);
             this.run();
         end
 
         function updateBeta(this, ~, ~)
-            disp('updateBeta');
+            Logger.log('updateBeta');
             newValue = get(gco,'string');
             this.beta = str2double(newValue);
             this.run();
         end
 
         function updateLabeledConfidence(this, ~, ~)
-            disp('updateLabeledConfidence');
+            Logger.log('updateLabeledConfidence');
             newValue = get(gco,'string');
             this.labeledConfidence = str2double(newValue);
             this.run();
         end
         
         function updateAlgorithm(this, hObj, ~)
-            disp('updateAlgorithm');
+            Logger.log('updateAlgorithm');
             selectedIndex = get(hObj,'Value');
             values        = get(hObj,'String');
             this.algorithmType = values(selectedIndex,:);
@@ -435,23 +435,23 @@ classdef MainClass < handle
 
         function addVertex( this, position )
             old_num_vertices = this.graph.numVertices();
-            disp(['Old num vertices: ' num2str(old_num_vertices)]);
-            disp(['Adding vertex:(' num2str(position.x) ',' num2str(position.y) ')']);
+            Logger.log(['Old num vertices: ' num2str(old_num_vertices)]);
+            Logger.log(['Adding vertex:(' num2str(position.x) ',' num2str(position.y) ')']);
 
             this.graph.addVertex( position );
             this.algorithm_result.add_vertex();
             
             new_num_vertices = this.graph.numVertices();
-            disp(['New num vertices: ' num2str(new_num_vertices)]);
+            Logger.log(['New num vertices: ' num2str(new_num_vertices)]);
         end
         
         function removeVertex(this, vertex_i )
-            disp('removeVertex');
+            Logger.log('removeVertex');
             if (~isempty(vertex_i))
                 this.graph.removeVertex(vertex_i);
                 this.algorithm_result.remove_vertex(vertex_i);
             else
-                disp('No nearby vertex');
+                Logger.log('No nearby vertex');
             end
         end
         
@@ -478,7 +478,7 @@ classdef MainClass < handle
         
         function updateVertexIndex(this, updateType, vertex_i)
             if (isempty(vertex_i))
-                disp('Error: no vertex index');
+                Logger.log('Error: no vertex index');
                 return;
             end
             
@@ -492,7 +492,7 @@ classdef MainClass < handle
                 case 'none'
                     this.graph.clearLabels(vertex_i);
                 otherwise
-                    disp(['Error: unknown update type: ''' updateType ''''] );
+                    Logger.log(['Error: unknown update type: ''' updateType ''''] );
             end
             
             this.run();
@@ -534,7 +534,7 @@ classdef MainClass < handle
         end
         
         function addVerticesContextMenu(this)
-            disp('Adding context menu to vertices');
+            Logger.log('Adding context menu to vertices');
             % Create axes and save handle
             hax = gca;
             % Define a context menu; it is not attached to anything
@@ -552,7 +552,7 @@ classdef MainClass < handle
 %             points = findall(hax,'DisplayName','vertices');
             objectWithContextMenu = findall(hax,'Type','text');
             
-%             disp(length(objectWithContextMenu));
+%             Logger.log(length(objectWithContextMenu));
             % Attach the context menu to each text element
             for object_i = 1:length(objectWithContextMenu)
                 set(objectWithContextMenu(object_i),...
@@ -563,7 +563,7 @@ classdef MainClass < handle
         %% addEdgesContextMenu
         
         function addEdgesContextMenu(this)
-            disp('Adding context menu to edges');
+            Logger.log('Adding context menu to edges');
             % Create axes and save handle
             hax = gca;
             % Define a context menu; it is not attached to anything
@@ -748,7 +748,7 @@ classdef MainClass < handle
             
         function curPos = getClickPosition()
             coordinates = get(gca,'CurrentPoint');
-            %disp(coordinates));
+            %Logger.log(coordinates));
             curPos.x = coordinates(1,1);
             curPos.y = coordinates(1,2);
         end

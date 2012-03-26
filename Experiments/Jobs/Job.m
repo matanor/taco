@@ -46,7 +46,7 @@ methods (Access = public)
         jobFileFullPath = this.fileFullPath;
         if JobManager.isJobFinished(jobFileFullPath)
            [~, fileName, ~] = fileparts(jobFileFullPath);
-           disp(['job ' fileName ' has finished']);
+           Logger.log(['job ' fileName ' has finished']);
            R = Job.JOB_STATUS_FINISHED;
         else
            R = this.anyProgressDone();
@@ -59,10 +59,10 @@ methods (Access=private)
     %% anyProgressDone
     
     function R = anyProgressDone(this)
-        disp(['checking log file ' FileHelper.fileName(this.logFile)]);
+        Logger.log(['checking log file ' FileHelper.fileName(this.logFile)]);
         logFileInfo         = dir(this.logFile);
         if (isempty(logFileInfo))
-            disp(['Log file '  FileHelper.fileName(this.logFile) 'does not exist yet']);
+            Logger.log(['Log file '  FileHelper.fileName(this.logFile) 'does not exist yet']);
             R = Job.JOB_STATUS_IDLE;
             return;
         end
@@ -70,11 +70,11 @@ methods (Access=private)
         if ( currentLogFileSize ~= this.lastLogFileSize) % any progress?
             this.lastLogFileSize = currentLogFileSize;
             this.idleCount = 0;
-            disp(['WORKING. idleCount = ' num2str(this.idleCount)]);
+            Logger.log(['WORKING. idleCount = ' num2str(this.idleCount)]);
             R = Job.JOB_STATUS_WORKING;
         else
             this.idleCount = this.idleCount + 1;
-            disp(['IDLE. idleCount = ' num2str(this.idleCount)]);
+            Logger.log(['IDLE. idleCount = ' num2str(this.idleCount)]);
             R = Job.JOB_STATUS_IDLE;
         end
     end

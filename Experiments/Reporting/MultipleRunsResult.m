@@ -19,14 +19,14 @@ methods
     function createAveragePRBEP( this, multipleRuns )
         for algorithm_i=multipleRuns.availableResultsAlgorithmRange()
             algorithmName = AlgorithmTypeToStringConverter.convert( algorithm_i );
-            disp(['algorithmName =  ' algorithmName]);
+            Logger.log(['algorithmName =  ' algorithmName]);
             [exactPRBEP_perLabel estimatedPRBEP_perLabel] = ...
                 multipleRuns.calcAveragePrecisionAndRecall(algorithm_i);
             numClasses = numel(exactPRBEP_perLabel.mean);
-            disp('averagePRBEP');
-            disp(exactPRBEP_perLabel.mean);
-            disp('estimatedAveragePRBEP');
-            disp(estimatedPRBEP_perLabel.mean);
+            Logger.log('averagePRBEP');
+            Logger.log(num2str(exactPRBEP_perLabel.mean.'));
+            Logger.log('estimatedAveragePRBEP');
+            Logger.log(num2str(estimatedPRBEP_perLabel.mean.'));
             this.m_algorithmResults{algorithm_i}.exactPRBEP_perLabel     = exactPRBEP_perLabel;
             this.m_algorithmResults{algorithm_i}.estimatedPRBEP_perLabel = estimatedPRBEP_perLabel;
         end
@@ -40,7 +40,7 @@ methods
             [avgAccuracy stddevAccuracy] = ...
                 multipleRuns.calcAverageAccuracy_testSet(algorithm_i);
             algorithmName = AlgorithmTypeToStringConverter.convert( algorithm_i );
-            disp(['Algorithm ' algorithmName ...
+            Logger.log(['Algorithm ' algorithmName ...
                   ' avg (stddev) accuracy = ' ...
                   num2str(avgAccuracy) ' (' num2str(stddevAccuracy) ')']);
             this.m_algorithmResults{algorithm_i}.accuracy.mean   = avgAccuracy;
@@ -54,7 +54,7 @@ methods
         for algorithm_i=multipleRuns.availableResultsAlgorithmRange()
             [meanMRR stddevMRR] = multipleRuns.calcAverageMRR( algorithm_i);
             algorithmName = AlgorithmTypeToStringConverter.convert( algorithm_i );
-            disp(['Algorithm ' algorithmName ...
+            Logger.log(['Algorithm ' algorithmName ...
                   ' avg (stddev) MRR = ' num2str(meanMRR) ' (' num2str(stddevMRR) ')']);
             this.m_algorithmResults{algorithm_i}.MRR.mean   = meanMRR;
             this.m_algorithmResults{algorithm_i}.MRR.stddev = stddevMRR;

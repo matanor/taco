@@ -5,10 +5,6 @@ methods (Static)
     
     function run(outputManager, isOnOdin)
 
-        %% global shared parameters
-        %graphFileName = 'C:\technion\theses\Experiments\WebKB\data\Rapid_Miner_Result\webkb_constructed.mat';
-        %graphFileName = 'C:\technion\theses\Experiments\WebKB\data\From Amar\webkb_amar.mat';
-
         %% The parameters manager
 
         paramsManager = ParamsManager(isOnOdin);
@@ -86,11 +82,11 @@ methods (Static)
         
         numExperiments = length(experimentRuns);
         experimentRange = 1:numExperiments;
-        disp('**** Multiple Runs Summary ****');
+        Logger.log('**** Multiple Runs Summary ****');
         
         resultsSummary = ResultsSummary;
         for experimentID = experimentRange
-            disp(['experiment ID = ' num2str(experimentID) ]);
+            Logger.log(['experiment ID = ' num2str(experimentID) ]);
             experimentRun = experimentRuns(experimentID);
             experimentRunResults = ExperimentRunResult;
             experimentRunResults.create(experimentRun)
@@ -107,24 +103,24 @@ methods (Static)
         numExperiments = length(experimentRuns);
         experimentRange = 1:numExperiments;
 
-        disp('**** Single Run Results ****');
+        Logger.log('**** Single Run Results ****');
 
         plottingJobs = [];
         
         for experimentID = experimentRange
             outputManager.startExperimentRun(experimentID);
-            disp(['experiment ID = ' num2str(experimentID) ...
+            Logger.log(['experiment ID = ' num2str(experimentID) ...
                   ' of ' num2str(numExperiments)]);
             experimentRun = experimentRuns(experimentID);
             numParameterRuns = experimentRun.numParameterRuns();
             for parameter_run_i=1:numParameterRuns
                 outputManager.startParametersRun(parameter_run_i);
-                disp(['parameters run index = ' num2str(parameter_run_i) ...
+                Logger.log(['parameters run index = ' num2str(parameter_run_i) ...
                       ' of ' num2str(numParameterRuns)]);
                 parameterRun = experimentRun.getParameterRun(parameter_run_i);
                 for algorithm_i = parameterRun.algorithmsRange()
                     algorithmName = AlgorithmTypeToStringConverter.convert(algorithm_i);
-                    disp(['algorithm = ' algorithmName]);
+                    Logger.log(['algorithm = ' algorithmName]);
                     jobNames = parameterRun.get_optimizationJobNames_perAlgorithm(algorithm_i);
                     descriptionFormat = ['Optimization.' num2str(parameter_run_i) '.%d.' algorithmName];
                     jobFileFullPath = outputManager.createFileNameAtCurrentFolder...

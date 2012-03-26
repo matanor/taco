@@ -30,7 +30,7 @@ methods (Static)
         s.f3 = 'abc';
         s.f4 = {'abc'};
         x = Utilities.StructToStringConverter(s);
-        disp(x);
+        Logger.log(x);
     end
     
     %% combineStructs
@@ -74,7 +74,7 @@ methods (Static)
                 rowString = [rowString ...
                              SEPERATOR num2str(M(row,col))]; %#ok<AGROW>
             end
-            disp(rowString);
+            Logger.log(rowString);
         end
     end
     

@@ -70,7 +70,7 @@ classdef MAD_Results < SSLMC_Result
         end
         
         function r = getFinalScoreMatrix(this)
-%             disp('MAD::getFinalPredictionMatrix');
+%             Logger.log('MAD::getFinalPredictionMatrix');
             r = this.m_Y(:,:,end);
             r(:,end) = [];
         end

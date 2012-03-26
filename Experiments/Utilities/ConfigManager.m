@@ -32,7 +32,7 @@ methods
     end
     
     function createWithDefaults(this)
-        disp(['Creating default config file at ' this.m_configFullPath]);
+        Logger.log(['Creating default config file at ' this.m_configFullPath]);
         config.maxJobs = 60;
         config.jobTimeoutInMinutes = 10;
         this.write(config);
@@ -56,7 +56,7 @@ methods (Static)
         elseif 1 == strcmp(op,'set')
             static_data = argument;
         else
-            disp(['unknown operation ''' op '''' ]);
+            Logger.log(['unknown operation ''' op '''' ]);
         end
     end
 end

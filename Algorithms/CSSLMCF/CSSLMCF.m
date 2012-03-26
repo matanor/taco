@@ -35,11 +35,11 @@ classdef CSSLMCF < CSSLBase
         % note iteration index starts from 2
         for iter_i = 2:num_iterations
 
-            disp([  '#Iteration = ' num2str(iter_i)...
+            Logger.log([  '#Iteration = ' num2str(iter_i)...
                     ' iteration_diff = ' num2str(iteration_diff)]);
             
             if iteration_diff < diff_epsilon
-                disp(['converged after ' num2str(iter_i-1) ' iterations.'...
+                Logger.log(['converged after ' num2str(iter_i-1) ' iterations.'...
                       ' iteration_diff = ' num2str(iteration_diff)]);
                 result.mu(:,:, iter_i:end) = [];
                 result.sigma(:,:,:, iter_i:end) = [];

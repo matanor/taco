@@ -23,7 +23,7 @@ classdef CSSL < handle
         
         gamma = labeledConfidence;
         num_vertices = size(this.m_W,1);
-        disp(['confidenceSSL. num vertices: ' num2str(num_vertices)]);
+        Logger.log(['confidenceSSL. num vertices: ' num2str(num_vertices)]);
 
         iteration.mu = zeros( num_vertices, num_iterations );
         iteration.v  = ones ( num_vertices, num_iterations );
@@ -35,7 +35,7 @@ classdef CSSL < handle
         for iter_i = 2:num_iterations
 
             if ( mod(iter_i, 10) == 0 )
-                disp(['#Iteration = ' num2str(iter_i)]);
+                Logger.log(['#Iteration = ' num2str(iter_i)]);
             end
             prev_mu = iteration.mu( :, iter_i - 1) ;
             prev_v =  iteration.v ( :, iter_i - 1) ;
@@ -94,8 +94,8 @@ classdef CSSL < handle
         end
 
         toc;
-        disp('size(iteration.v)=');
-        disp(size(iteration.v));
+        Logger.log('size(iteration.v)=');
+        Logger.log(size(iteration.v));
     
         end
 

@@ -43,12 +43,12 @@ methods (Access=public)
         for iter_i = 2:num_iterations
 
             if ( mod(iter_i, 2) == 0 )
-                disp([ '#Iteration = '      num2str(iter_i)...
+                Logger.log([ '#Iteration = '      num2str(iter_i)...
                        ' iteration_diff = ' num2str(iteration_diff)]);
             end
             
             if iteration_diff < diff_epsilon
-                disp([  'converged after '   num2str(iter_i-1) ' iterations'...
+                Logger.log([  'converged after '   num2str(iter_i-1) ' iterations'...
                         ' iteration_diff = ' num2str(iteration_diff)]);
                 iteration.p(:,:, iter_i:end) = [];
                 iteration.q(:,:, iter_i:end) = [];
@@ -120,7 +120,7 @@ methods (Access=public)
         % the labels init mode if they don't like it.
         % e.g. for AM the labels prior must be a distribution, so we
         % cannot initialize any priorY entries to -1.
-        disp('AM: forcing prior Y to be a probability distribution');
+        Logger.log('AM: forcing prior Y to be a probability distribution');
         R = ParamsManager.LABELED_INIT_ZERO_ONE;
     end
 
@@ -133,7 +133,7 @@ methods (Access=public)
                  ' alpha = '             num2str(this.m_alpha) ...
                  ' maxIterations = '     num2str(this.m_num_iterations)...
                  ' num vertices = '      num2str(numVertices) ];                
-        disp(['Running ' this.name() '.' paramsString]);
+        Logger.log(['Running ' this.name() '.' paramsString]);
     end
         
 end % methods (Access=public)

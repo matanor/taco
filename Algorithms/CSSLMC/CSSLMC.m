@@ -30,12 +30,12 @@ methods (Access=public)
         for iter_i = 2:num_iterations
 
             if ( mod(iter_i, 2) == 0 )
-                disp([ '#Iteration = ' num2str(iter_i)...
+                Logger.log([ '#Iteration = ' num2str(iter_i)...
                        ' iteration_diff = ' num2str(iteration_diff)]);
             end
             
             if iteration_diff < diff_epsilon
-                disp([  'converged after '   num2str(iter_i-1) ' iterations'...
+                Logger.log([  'converged after '   num2str(iter_i-1) ' iterations'...
                         ' iteration_diff = ' num2str(iteration_diff)]);
                 iteration.mu(:,:, iter_i:end) = [];
                 iteration.v(:,:, iter_i:end) = [];

@@ -25,7 +25,7 @@ methods
         
         optimizationMethods = this.optimizationMethodsCollection();
         for optimization_method_i=optimizationMethods
-            disp(['optimized by = ' OptimizationMethodToStringConverter.convert(optimization_method_i) ]);
+            Logger.log(['optimized by = ' OptimizationMethodToStringConverter.convert(optimization_method_i) ]);
             allEvaluationRuns = MultipleRuns;
             numEvaluationRuns = parameterRun.numEvaluationRuns();
             for evaluation_run_i=1:numEvaluationRuns

@@ -70,7 +70,7 @@ methods (Access = public )
     %% getFinalScoreMatrix
     
     function r = getFinalScoreMatrix(this)
-%             disp('SSLMC::getFinalScoreMatrix');
+%             Logger.log('SSLMC::getFinalScoreMatrix');
         r = this.m_Y(:,:,end);
     end
 
