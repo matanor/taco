@@ -27,8 +27,8 @@ methods (Static)
         %% allocate a multiple runs object per each parameter combination
         %  and run all experiments with all the parameter combinations
 
-        experimentRuns = ExperimentRunFactory.run...
-            ( paramsManager, algorithmsToRun, outputManager );
+        experimentRunFactory = ExperimentRunFactory( paramsManager, outputManager );
+        experimentRuns = experimentRunFactory.run( algorithmsToRun );
 
         %% Define which result figures to display
         outputManager.m_showSingleRuns = 1;
