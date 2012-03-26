@@ -136,7 +136,10 @@ methods (Static)
             runningJobs = [runningJobs;jobsCollection(runningJobsIndices)]; %#ok<AGROW>
             jobsCollection(runningJobsIndices) = [];
             numRunningJobs = length(runningJobs);
-            
+
+            pause(sleepIntervalInSeconds);
+            config = configManager.read();
+
             finished_jobs = [];
             Logger.log(['**** Status check ****' ...
                   ' timeout (min) = ' num2str(idleTimoutInMinutes)...
@@ -153,10 +156,6 @@ methods (Static)
             end
             runningJobs(finished_jobs) = [];
             finished = isempty( runningJobs ) && isempty(jobsCollection);
-            if ~finished
-                pause(sleepIntervalInSeconds);
-                config = configManager.read();
-            end
         end
     end  
     
