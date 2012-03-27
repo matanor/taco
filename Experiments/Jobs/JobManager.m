@@ -137,7 +137,9 @@ methods (Static)
             jobsCollection(runningJobsIndices) = [];
             numRunningJobs = length(runningJobs);
 
-            pause(sleepIntervalInSeconds);
+            if ParamsManager.ASYNC_RUNS == 1
+                pause(sleepIntervalInSeconds);
+            end
             config = configManager.read();
 
             finished_jobs = [];
