@@ -187,6 +187,14 @@ classdef SingleRun < handle
             MRR = EvaluationUtilities.calcMRR( scoreMatrix, correctLabels_testSet);
         end
         
+        %% calc_macroMRR_testSet
+        
+        function MRR = calc_macroMRR_testSet(this, algorithmType)
+            scoreMatrix = this.unlabeled_scoreMatrix_testSet(algorithmType);
+            correctLabels_testSet = this.testSetCorrectLabels();            
+            MRR = EvaluationUtilities.calc_macroMRR( scoreMatrix, correctLabels_testSet);
+        end
+        
         %% calcAveragePRBEP_testSet
         
         function R = calcAveragePRBEP_testSet(this, algorithmType)

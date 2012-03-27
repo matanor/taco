@@ -9,56 +9,64 @@ methods
     %% create
     
     function create( this, multipleRuns )
-        this.createAveragePRBEP(multipleRuns);
-        this.createAverageAccuracy_testSet(multipleRuns);
-        this.createAverageMRR_testSet(multipleRuns);
+        for algorithm_i=multipleRuns.availableResultsAlgorithmRange()
+            this.createAveragePRBEP(multipleRuns, algorithm_i);
+            this.createAverageAccuracy_testSet(multipleRuns, algorithm_i);
+            this.createAverageMRR_testSet(multipleRuns, algorithm_i);
+            this.createAverage_macroMRR_testSet(multipleRuns, algorithm_i);
+        end
     end
     
     %% createAveragePRBEP
     
-    function createAveragePRBEP( this, multipleRuns )
-        for algorithm_i=multipleRuns.availableResultsAlgorithmRange()
-            algorithmName = AlgorithmTypeToStringConverter.convert( algorithm_i );
-            Logger.log(['algorithmName =  ' algorithmName]);
-            [exactPRBEP_perLabel estimatedPRBEP_perLabel] = ...
-                multipleRuns.calcAveragePrecisionAndRecall(algorithm_i);
-            numClasses = numel(exactPRBEP_perLabel.mean);
-            Logger.log('averagePRBEP');
-            Logger.log(num2str(exactPRBEP_perLabel.mean.'));
-            Logger.log('estimatedAveragePRBEP');
-            Logger.log(num2str(estimatedPRBEP_perLabel.mean.'));
-            this.m_algorithmResults{algorithm_i}.exactPRBEP_perLabel     = exactPRBEP_perLabel;
-            this.m_algorithmResults{algorithm_i}.estimatedPRBEP_perLabel = estimatedPRBEP_perLabel;
-        end
+    function createAveragePRBEP( this, multipleRuns, algorithm_i )
+        algorithmName = AlgorithmTypeToStringConverter.convert( algorithm_i );
+        Logger.log(['algorithmName =  ' algorithmName]);
+        [exactPRBEP_perLabel estimatedPRBEP_perLabel] = ...
+            multipleRuns.calcAveragePrecisionAndRecall(algorithm_i);
+        numClasses = numel(exactPRBEP_perLabel.mean);
+        Logger.log('averagePRBEP');
+        Logger.log(num2str(exactPRBEP_perLabel.mean.'));
+        Logger.log('estimatedAveragePRBEP');
+        Logger.log(num2str(estimatedPRBEP_perLabel.mean.'));
+        this.m_algorithmResults{algorithm_i}.exactPRBEP_perLabel     = exactPRBEP_perLabel;
+        this.m_algorithmResults{algorithm_i}.estimatedPRBEP_perLabel = estimatedPRBEP_perLabel;
         this.m_numClasses = numClasses;
     end
     
     %% createAverageAccuracy_testSet
     
-    function createAverageAccuracy_testSet( this, multipleRuns )
-        for algorithm_i=multipleRuns.availableResultsAlgorithmRange()
-            [avgAccuracy stddevAccuracy] = ...
-                multipleRuns.calcAverageAccuracy_testSet(algorithm_i);
-            algorithmName = AlgorithmTypeToStringConverter.convert( algorithm_i );
-            Logger.log(['Algorithm ' algorithmName ...
-                  ' avg (stddev) accuracy = ' ...
-                  num2str(avgAccuracy) ' (' num2str(stddevAccuracy) ')']);
-            this.m_algorithmResults{algorithm_i}.accuracy.mean   = avgAccuracy;
-            this.m_algorithmResults{algorithm_i}.accuracy.stddev = stddevAccuracy;
-        end
+    function createAverageAccuracy_testSet( this, multipleRuns, algorithm_i )
+        [avgAccuracy stddevAccuracy] = ...
+            multipleRuns.calcAverageAccuracy_testSet(algorithm_i);
+        algorithmName = AlgorithmTypeToStringConverter.convert( algorithm_i );
+        Logger.log(['Algorithm ' algorithmName ...
+              ' avg (stddev) accuracy = ' ...
+              num2str(avgAccuracy) ' (' num2str(stddevAccuracy) ')']);
+        this.m_algorithmResults{algorithm_i}.accuracy.mean   = avgAccuracy;
+        this.m_algorithmResults{algorithm_i}.accuracy.stddev = stddevAccuracy;
     end
     
     %% createAverageMRR_testSet
     
-    function createAverageMRR_testSet(this, multipleRuns)
-        for algorithm_i=multipleRuns.availableResultsAlgorithmRange()
-            [meanMRR stddevMRR] = multipleRuns.calcAverageMRR( algorithm_i);
-            algorithmName = AlgorithmTypeToStringConverter.convert( algorithm_i );
-            Logger.log(['Algorithm ' algorithmName ...
-                  ' avg (stddev) MRR = ' num2str(meanMRR) ' (' num2str(stddevMRR) ')']);
-            this.m_algorithmResults{algorithm_i}.MRR.mean   = meanMRR;
-            this.m_algorithmResults{algorithm_i}.MRR.stddev = stddevMRR;
-        end
+    function createAverageMRR_testSet(this, multipleRuns, algorithm_i)
+        [meanMRR stddevMRR] = multipleRuns.calcAverageMRR( algorithm_i);
+        algorithmName = AlgorithmTypeToStringConverter.convert( algorithm_i );
+        Logger.log(['Algorithm ' algorithmName ...
+              ' avg (stddev) MRR = ' num2str(meanMRR) ' (' num2str(stddevMRR) ')']);
+        this.m_algorithmResults{algorithm_i}.MRR.mean   = meanMRR;
+        this.m_algorithmResults{algorithm_i}.MRR.stddev = stddevMRR;
+    end
+    
+    %% createAverage_macroMRR_testSet
+    
+    function createAverage_macroMRR_testSet(this, multipleRuns, algorithm_i )
+        [mean stddev] = multipleRuns.calcAverage_macroMRR( algorithm_i);
+        algorithmName = AlgorithmTypeToStringConverter.convert( algorithm_i );
+        Logger.log(['Algorithm ' algorithmName ...
+              ' avg (stddev) macro MRR = ' num2str(mean) ' (' num2str(stddev) ')']);
+        this.m_algorithmResults{algorithm_i}.macroMRR.mean   = mean;
+        this.m_algorithmResults{algorithm_i}.macroMRR.stddev = stddev;
     end
     
     %% avgPRBEP_allLabels
@@ -114,6 +122,13 @@ methods
         stddev = this.m_algorithmResults{algorithmType}.MRR.stddev; 
     end
     
+    %% avg_macroMRR_testSet
+    
+    function [mean stddev] = avg_macroMRR_testSet(this, algorithmType)
+        mean   = this.m_algorithmResults{algorithmType}.macroMRR.mean; 
+        stddev = this.m_algorithmResults{algorithmType}.macroMRR.stddev; 
+    end
+        
     %% avgAccuracy_testSet_perAlgorithm
     
     function [mean stddev] = avgAccuracy_testSet_perAlgorithm(this, algorithmType)

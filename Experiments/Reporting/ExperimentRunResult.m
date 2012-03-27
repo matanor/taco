@@ -133,12 +133,14 @@ methods (Static)
         T = [T 'labelled init (1|2)' SEPERATOR];
         T = [T 'optimize_by (P|B|N|M)' SEPERATOR];
         T = [T 'Algorithm' SEPERATOR];
-        T = [T 'avg PRBEP' SEPERATOR];
-        T = [T 'avg accuracy' SEPERATOR];
+        T = [T 'avg PRBEP (stddev)' SEPERATOR];
+        T = [T 'avg accuracy (stddev)' SEPERATOR];
         T = [T 'avg MRR (stddev)' SEPERATOR];
+        T = [T 'avg macro MRR (stddev)' SEPERATOR];
         T = [T 'optimized PRBEP' SEPERATOR];
         T = [T 'optimized accuracy' SEPERATOR];
         T = [T 'optimized MRR' SEPERATOR];
+        T = [T 'optimized macro MRR' SEPERATOR];
         T = [T 'alpha' SEPERATOR];
         T = [T 'beta' SEPERATOR];
         T = [T 'gamma' SEPERATOR];

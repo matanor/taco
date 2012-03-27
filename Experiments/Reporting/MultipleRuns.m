@@ -72,6 +72,18 @@ methods
         meanMRR     = mean(MRR);
         stddevMRR   = sqrt(var(MRR));
     end
+    
+    %% calcAverage_macroMRR
+    
+    function [m stddev] = calcAverage_macroMRR(this, algorithmType)
+        macroMRR = zeros( this.num_runs(), 1);
+        for run_i=1:this.num_runs()
+             singleRun = this.getRun(run_i);
+             macroMRR(run_i) = singleRun.calc_macroMRR_testSet(algorithmType);
+        end
+        m        = mean(macroMRR);
+        stddev   = sqrt(var(macroMRR));
+    end
 
     %% calcAveragePrecisionAndRecall
 

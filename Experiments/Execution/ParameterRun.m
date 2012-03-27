@@ -157,6 +157,8 @@ methods (Static)
             optimizationScores = [scores.avgPRBEP];
         elseif optimizeBy == ParamsManager.OPTIMIZE_BY_MRR
             optimizationScores = [scores.MRR];
+        elseif optimizeBy == ParamsManager.OPTIMIZE_BY_MACRO_MRR
+            optimizationScores = [scores.macroMRR];
         else
             Logger.log(['calcOptimalParams::error. unknown optimization method ' ...
                         num2str(optimizeBy)]);
@@ -168,11 +170,13 @@ methods (Static)
         R.avgAccuracy   = bestRun.accuracy_testSet(algorithmType);
         R.avgPRBEP      = bestRun.calcAveragePRBEP_testSet(algorithmType);
         R.MRR           = bestRun.calcMRR_testSet(algorithmType);
+        R.macroMRR      = bestRun.calc_macroMRR_testSet(algorithmType);
         R.values        = bestRun.getParams( algorithmType );
         Logger.log('Optimal run statistics: ');
         Logger.log(['Accuracy = '         num2str(R.avgAccuracy)]);
         Logger.log(['Average PRBEP = '    num2str(R.avgPRBEP)]);
         Logger.log(['MRR = '              num2str(R.MRR)]);
+        Logger.log(['macro MRR = '        num2str(R.macroMRR)]);
     end
     
     %% evaluateOptimizationRun
@@ -191,6 +195,9 @@ methods (Static)
             case ParamsManager.OPTIMIZE_BY_MRR
                 R.MRR = singleRun.calcMRR_testSet(algorithmType);
                 Logger.log(['MRR = ' num2str(R.MRR)]);
+            case ParamsManager.OPTIMIZE_BY_MACRO_MRR
+                R.macroMRR = singleRun.calc_macroMRR_testSet(algorithmType);
+                Logger.log(['macro MRR = ' num2str(R.macroMRR)]);
             otherwise
                 Logger.log(['evaluateOptimizationRun::error. unknown optimization method ' ...
                         num2str(optimizeBy)]);

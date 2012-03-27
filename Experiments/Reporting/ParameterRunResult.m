@@ -129,11 +129,16 @@ methods
                      .avgMRR_testSet(algorithmType);
         R = [R num2str(avgMRR) ' (' num2str(stddevMRR) ')' SEPERATOR ];
         
+        [avg_macroMRR stddev_macroMRR] = ...
+            this.m_results{optimization_method_i}.avg_macroMRR_testSet(algorithmType);
+        R = [R num2str(avg_macroMRR) ' (' num2str(stddev_macroMRR) ')' SEPERATOR ];
+        
         optimal = this.get_optimalParams(optimization_method_i, algorithmType);
         
         R = [R num2str(optimal.avgPRBEP) SEPERATOR ];
         R = [R num2str(optimal.avgAccuracy) SEPERATOR ];
         R = [R num2str(optimal.MRR) SEPERATOR ];
+        R = [R num2str(optimal.macroMRR) SEPERATOR ];
         
         O = OptimalParamsToStringConverter.convert ...
                     (optimal, algorithmType, EMPTY_CELL, SEPERATOR );

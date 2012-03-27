@@ -87,6 +87,35 @@ classdef EvaluationUtilities
             r = MRR;
         end
         
+        %% calc_macroMRR 
+        % scores - an array of (num_examples X numLabels) with label
+        % scores.
+        % correctLabel - a vector containing the corect label index for
+        % every example
+        % This function first calculates an MRR per class L by looking
+        % only at instances with the true label L. Then,
+        % the macro MRR is the sum of MRR per each class,
+        % divided by the number of classes K.
+        
+        function r = calc_macroMRR( scores, correctLabel )
+            numInstances = size(scores,1);
+            numLabels    = size(scores, 2);
+            MRR = zeros(numLabels,1);
+            numInstancesPerClass = zeros(numLabels,1);
+            for instance_i=1:numInstances
+                instanceScores = scores(instance_i,:).';
+                [~, sortedLabels] = sort(instanceScores, 'descend');
+                instanceCorrectLabel = correctLabel(instance_i);
+                correctLabelRank = find(sortedLabels == instanceCorrectLabel);
+                MRR(instanceCorrectLabel) = ...
+                    MRR(instanceCorrectLabel) + 1/correctLabelRank;
+                numInstancesPerClass(instanceCorrectLabel) = ...
+                    numInstancesPerClass(instanceCorrectLabel) + 1;
+            end
+            MRR = MRR ./ numInstancesPerClass;
+            r = mean(MRR);
+        end
+        
         %% testPRBEP
         
         function testPRBEP()
@@ -101,12 +130,15 @@ classdef EvaluationUtilities
         %% testMRR
         
         function testMRR()
+            rand('twister',sum(100*clock)); %#ok<RAND>
             numInstances = 10;
             numLabels = 4;
             scores = rand(numInstances,numLabels);
             correctLabel = randi(numLabels,numInstances,1);
-            MRR = EvaluationUtilities.calcMRR(scores, correctLabel);
+            MRR         = EvaluationUtilities.calcMRR(scores, correctLabel);
+            macro_MRR   = EvaluationUtilities.calc_macroMRR(scores, correctLabel);
             Logger.log(['MRR = ' num2str(MRR)]);
+            Logger.log(['macro MRR = ' num2str(macro_MRR)]);
         end
 
     end
