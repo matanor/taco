@@ -151,29 +151,34 @@ methods (Static)
                 ( tuneRuns( tuning_run_i ), algorithmType, optimizeBy ); %#ok<AGROW>
         end
         
-        if optimizeBy == ParamsManager.OPTIMIZE_BY_ACCURACY
-            optimizationScores = [scores.avgAccuracy];
-        elseif optimizeBy == ParamsManager.OPTIMIZE_BY_PRBEP
-            optimizationScores = [scores.avgPRBEP];
-        elseif optimizeBy == ParamsManager.OPTIMIZE_BY_MRR
-            optimizationScores = [scores.MRR];
-        elseif optimizeBy == ParamsManager.OPTIMIZE_BY_MACRO_MRR
-            optimizationScores = [scores.macroMRR];
-        else
-            Logger.log(['calcOptimalParams::error. unknown optimization method ' ...
+        switch optimizeBy
+            case ParamsManager.OPTIMIZE_BY_ACCURACY
+                optimizationScores = [scores.accuracy];
+            case ParamsManager.OPTIMIZE_BY_PRBEP
+                optimizationScores = [scores.avgPRBEP];
+            case ParamsManager.OPTIMIZE_BY_MRR
+                optimizationScores = [scores.MRR];
+            case ParamsManager.OPTIMIZE_BY_MACRO_MRR
+                optimizationScores = [scores.macroMRR];
+            case ParamsManager.OPTIMIZE_BY_MACRO_ACCURACY
+                optimizationScores = [scores.macroAccuracy];
+            otherwise
+                Logger.log(['calcOptimalParams::error. unknown optimization method ' ...
                         num2str(optimizeBy)]);
         end
         
         [bestScore,bestRunIndex] = max(optimizationScores);
         Logger.log(['Optimal on run ' num2str(bestRunIndex) ' with value ' num2str(bestScore)]);
         bestRun = tuneRuns( bestRunIndex );
-        R.avgAccuracy   = bestRun.accuracy_testSet(algorithmType);
+        R.accuracy      = bestRun.accuracy_testSet(algorithmType);
+        R.macroAccuracy = bestRun.macroAccuracy_testSet(algorithmType);
         R.avgPRBEP      = bestRun.calcAveragePRBEP_testSet(algorithmType);
         R.MRR           = bestRun.calcMRR_testSet(algorithmType);
         R.macroMRR      = bestRun.calc_macroMRR_testSet(algorithmType);
         R.values        = bestRun.getParams( algorithmType );
         Logger.log('Optimal run statistics: ');
-        Logger.log(['Accuracy = '         num2str(R.avgAccuracy)]);
+        Logger.log(['Accuracy = '         num2str(R.accuracy)]);
+        Logger.log(['macroAccuracy = '    num2str(R.macroAccuracy)]);
         Logger.log(['Average PRBEP = '    num2str(R.avgPRBEP)]);
         Logger.log(['MRR = '              num2str(R.MRR)]);
         Logger.log(['macro MRR = '        num2str(R.macroMRR)]);
@@ -187,8 +192,8 @@ methods (Static)
         Logger.log(paramsString);
         switch optimizeBy
             case ParamsManager.OPTIMIZE_BY_ACCURACY
-                R.avgAccuracy = singleRun.accuracy_testSet(algorithmType);
-                Logger.log(['Accuracy = ' num2str(R.avgAccuracy)]);
+                R.accuracy = singleRun.accuracy_testSet(algorithmType);
+                Logger.log(['Accuracy = ' num2str(R.accuracy)]);
             case ParamsManager.OPTIMIZE_BY_PRBEP
                 R.avgPRBEP = singleRun.calcAveragePRBEP_testSet(algorithmType);
                 Logger.log(['Average PRBEP = ' num2str(R.avgPRBEP)]);
@@ -198,6 +203,9 @@ methods (Static)
             case ParamsManager.OPTIMIZE_BY_MACRO_MRR
                 R.macroMRR = singleRun.calc_macroMRR_testSet(algorithmType);
                 Logger.log(['macro MRR = ' num2str(R.macroMRR)]);
+            case ParamsManager.OPTIMIZE_BY_MACRO_ACCURACY
+                R.macroAccuracy = singleRun.macroAccuracy_testSet(algorithmType);
+                Logger.log(['macro accuracy = ' num2str(R.macroAccuracy)]);
             otherwise
                 Logger.log(['evaluateOptimizationRun::error. unknown optimization method ' ...
                         num2str(optimizeBy)]);

@@ -61,7 +61,7 @@ methods
                     S = OptimalParamsToStringConverter.convert...
                         (optimal, algorithm_i, this.EMPTY_CELL, this.SEPERATOR );
                     S = [S num2str(optimal.avgPRBEP) this.SEPERATOR ]; %#ok<AGROW>
-                    S = [S num2str(optimal.avgAccuracy) ]; %#ok<AGROW>
+                    S = [S num2str(optimal.accuracy) ]; %#ok<AGROW>
                 end
             end
             S = [algorithmName this.SEPERATOR S]; %#ok<AGROW>

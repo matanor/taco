@@ -125,6 +125,10 @@ methods
                           .avgAccuracy_testSet_perAlgorithm(algorithmType);
         R = [R num2str(avgAccuracy) ' (' num2str(stddevAccuracy) ')' SEPERATOR ];
         
+        [avgMacroAccuracy stddevMacroAccuracy] ...
+            = this.m_results{optimization_method_i}.avg_macroAccuracy_testSet_perAlgorithm(algorithmType);
+        R = [R num2str(avgMacroAccuracy ) ' (' num2str(stddevMacroAccuracy) ')' SEPERATOR ];
+        
         [avgMRR stddevMRR] = this.m_results{optimization_method_i} ...
                      .avgMRR_testSet(algorithmType);
         R = [R num2str(avgMRR) ' (' num2str(stddevMRR) ')' SEPERATOR ];
@@ -136,7 +140,8 @@ methods
         optimal = this.get_optimalParams(optimization_method_i, algorithmType);
         
         R = [R num2str(optimal.avgPRBEP) SEPERATOR ];
-        R = [R num2str(optimal.avgAccuracy) SEPERATOR ];
+        R = [R num2str(optimal.accuracy) SEPERATOR ];
+        R = [R num2str(optimal.macroAccuracy) SEPERATOR ];
         R = [R num2str(optimal.MRR) SEPERATOR ];
         R = [R num2str(optimal.macroMRR) SEPERATOR ];
         

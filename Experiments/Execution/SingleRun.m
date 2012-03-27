@@ -38,6 +38,9 @@ classdef SingleRun < handle
     end
     
     methods (Access=public)
+        
+        %% Constructor
+        
         function this = SingleRun...
                 (correctLabels, constructionParams, trunsductionSet) % Constructor
             this.correctLabels          = correctLabels;
@@ -85,7 +88,7 @@ classdef SingleRun < handle
             R = algorithmResults.getParams();
         end
         
-        %% numIterations
+        %% numLabels
         
         function R = numLabels(this)
             R = length(unique(this.correctLabels));
@@ -123,7 +126,7 @@ classdef SingleRun < handle
             this.m_algorithmsCollection.setRun( algorithmType );
         end
         
-        %% Return prediction (multi-class) for unlabeled vertices
+        %% unlabeled_prediction
         
         function r = unlabeled_prediction(this, algorithmType)
             algorithmResults = this.getAlgorithmResults( algorithmType );
@@ -132,7 +135,7 @@ classdef SingleRun < handle
             r( this.labeled() ) = [];
         end
         
-        %% Return prediction (multi-class) for test set
+        %% testSet_prediciton
         
         function r = testSet_prediciton(this, algorithmType)
             algorithmResults = this.getAlgorithmResults( algorithmType );
@@ -141,7 +144,7 @@ classdef SingleRun < handle
             r( this.trainSet() ) = [];            
         end
         
-        %% Return score matrix (multi-class) for unlabeled vertices
+        %% unlabeled_scoreMatrix
         
         function r = unlabeled_scoreMatrix(this, algorithmType)
             algorithmResults = this.getAlgorithmResults( algorithmType );
@@ -150,8 +153,7 @@ classdef SingleRun < handle
             r( this.labeled(), : ) = [];
         end
         
-        %% Return score matrix (multi-class) for unlabeled vertices
-        %  in test set
+        %% unlabeled_scoreMatrix_testSet
         
         function r = unlabeled_scoreMatrix_testSet(this, algorithmType)
             algorithmResults = this.getAlgorithmResults( algorithmType );
@@ -238,8 +240,24 @@ classdef SingleRun < handle
             numCorrect = testSetSize - numMistakes;
             r = numCorrect / testSetSize;
         end
+        
+        %% macroAccuracy_testSet
+        
+        function R = macroAccuracy_testSet(this, algorithmType)
+           testSet_prediction      = this.testSet_prediciton(algorithmType);
+           correctLabels_testSet   = this.testSetCorrectLabels();
+           numLabels = this.numLabels();
+           accuracyPerLabel = zeros(numLabels,1);
+           for label_i=1:numLabels
+               predictionPerLabel = testSet_prediction( correctLabels_testSet == label_i );
+               numCorrect = sum( predictionPerLabel == label_i );
+               numInstancesPerClass = sum( correctLabels_testSet == label_i );
+               accuracyPerLabel(label_i) = numCorrect / numInstancesPerClass;
+           end
+           R = mean(accuracyPerLabel);
+        end
        
-        %% Return binary prediction for unlabeled vertices
+        %% unlabeled_binary_prediction
                 
         function r = unlabeled_binary_prediction(this, algorithmType)
             algorithmResults = this.getAlgorithmResults( algorithmType );
@@ -248,7 +266,7 @@ classdef SingleRun < handle
             r( this.labeled() ) = [];
         end
         
-        %% Return final confidence for unlabeled vertices
+        %% unlabeled_confidence
         
         function r = unlabeled_confidence(this, algorithmType)
             algorithmResults = this.getAlgorithmResults( algorithmType );
@@ -257,7 +275,7 @@ classdef SingleRun < handle
             r( this.labeled() ) = [];
         end
         
-        %% calculate margin for unlabeled vertices
+        %% unlabeled_margin
         
         function r = unlabeled_margin(this, algorithmType)
             r = this.unlabeled_binary_prediction(algorithmType) .* ...

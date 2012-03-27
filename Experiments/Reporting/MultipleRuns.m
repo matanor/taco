@@ -127,6 +127,20 @@ methods
         stddevAccuracy  = sqrt(var(accuracyPerRun));
     end
     
+    %% calcAverage_macroAccuracy_testSet
+    
+    function [m stddev] ...
+            = calcAverage_macroAccuracy_testSet(this, algorithmType)
+        scorePerRun = zeros(this.num_runs(), 1);
+        for run_i=1:this.num_runs()
+            singleRun = this.getRun(run_i);
+            scorePerRun (run_i) = singleRun.macroAccuracy_testSet(algorithmType);
+            Logger.log(['run ' num2str(run_i) ' macro accuracy = ' num2str(scorePerRun(run_i))]);
+        end
+        m       = mean(scorePerRun);
+        stddev  = sqrt(var(scorePerRun));
+    end
+    
 end
         
 methods (Access = private)        

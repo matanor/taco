@@ -10,10 +10,11 @@ methods
     
     function create( this, multipleRuns )
         for algorithm_i=multipleRuns.availableResultsAlgorithmRange()
-            this.createAveragePRBEP(multipleRuns, algorithm_i);
-            this.createAverageAccuracy_testSet(multipleRuns, algorithm_i);
-            this.createAverageMRR_testSet(multipleRuns, algorithm_i);
-            this.createAverage_macroMRR_testSet(multipleRuns, algorithm_i);
+            this.createAveragePRBEP                 (multipleRuns, algorithm_i);
+            this.createAverageAccuracy_testSet      (multipleRuns, algorithm_i);
+            this.createAverage_macroAccuracy_testSet(multipleRuns, algorithm_i);
+            this.createAverageMRR_testSet           (multipleRuns, algorithm_i);
+            this.createAverage_macroMRR_testSet     (multipleRuns, algorithm_i);
         end
     end
     
@@ -47,6 +48,18 @@ methods
         this.m_algorithmResults{algorithm_i}.accuracy.stddev = stddevAccuracy;
     end
     
+    %% createAverage_macroAccuracy_testSet
+    
+    function createAverage_macroAccuracy_testSet( this, multipleRuns, algorithm_i )
+        [m stddev] = multipleRuns.calcAverage_macroAccuracy_testSet(algorithm_i);
+        algorithmName = AlgorithmTypeToStringConverter.convert( algorithm_i );
+        Logger.log(['Algorithm ' algorithmName ...
+              ' avg (stddev) macro accuracy = ' ...
+              num2str(m) ' (' num2str(stddev) ')']);
+        this.m_algorithmResults{algorithm_i}.macroAccuracy.mean   = m;
+        this.m_algorithmResults{algorithm_i}.macroAccuracy.stddev = stddev;
+    end
+
     %% createAverageMRR_testSet
     
     function createAverageMRR_testSet(this, multipleRuns, algorithm_i)
@@ -136,6 +149,13 @@ methods
         stddev = this.m_algorithmResults{algorithmType}.accuracy.stddev; 
     end
     
+    %% avg_macroAccuracy_testSet_perAlgorithm
+    
+    function [mean stddev] = avg_macroAccuracy_testSet_perAlgorithm(this, algorithmType)
+        mean   = this.m_algorithmResults{algorithmType}.macroAccuracy.mean;
+        stddev = this.m_algorithmResults{algorithmType}.macroAccuracy.stddev; 
+    end
+        
     %% avgAccuracy_testSet_allAlgorithms
     
     function R = avgAccuracy_testSet_allAlgorithms(this)
