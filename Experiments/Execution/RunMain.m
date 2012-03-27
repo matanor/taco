@@ -10,7 +10,7 @@ methods (Static)
         paramsManager = ParamsManager(isOnOdin);
         
         if paramsManager.REAL_RANDOMIZATION
-            rand('twister',sum(100*clock)) %#ok<RAND>
+            rand('twister',sum(100*clock)); %#ok<RAND>
         end
 
         %% what algorithms we want to run in the simulation
