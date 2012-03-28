@@ -127,7 +127,7 @@ methods (Static)
                         (['PlotOptimization.' num2str(parameter_run_i) '.' algorithmName '.mat']);
                     job = RunMain.runAsync_plotSingleResults...
                         ( jobFileFullPath, jobNames, outputManager, descriptionFormat);
-                    plottingJobs = [plottingJobs job]; %#ok<AGROW>
+                    plottingJobs = [plottingJobs;job]; %#ok<AGROW>
                 end
                 optimizationMethods = parameterRun.optimizationMethodsCollection();
                 for optimization_method_i=optimizationMethods
@@ -141,7 +141,7 @@ methods (Static)
                         (['PlotEvaluation.' num2str(parameter_run_i) '.' optimizationMethodName '.mat']);
                     job = RunMain.runAsync_plotSingleResults...
                         ( jobFileFullPath, jobNames, outputManager, descriptionFormat);
-                    plottingJobs = [plottingJobs job]; %#ok<AGROW>
+                    plottingJobs = [plottingJobs;job]; %#ok<AGROW>
                     
                     outputManager.moveUpOneDirectory();
                 end
