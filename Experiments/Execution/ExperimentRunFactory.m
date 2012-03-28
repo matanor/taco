@@ -38,6 +38,7 @@ methods (Access = public)
         numEvaluationOptions   = length(parameterValues_allOptions);
         progressParams = ProgressManager(numConstructionStructs, numEvaluationOptions);
         
+        allOptimizationJobs = [];
         for construction_i=1:numConstructionStructs
             this.m_outputManager.startExperimentRun(construction_i);
             constructionParams = constructionParams_allOptions( construction_i );
@@ -59,8 +60,9 @@ methods (Access = public)
                 ExperimentRunFactory.displayParameterValues( parameterValues, constructionParams);
                 parametersRun = experimentRun.createParameterRun(parameterValues);
 
-                this.runOptimizationJobs_allAlgorithms...
+                optimizationJobs = this.createOptimizationJobs_allAlgorithms...
                     ( parametersRun, progressParams, algorithmsToRun);
+                allOptimizationJobs = [allOptimizationJobs;optimizationJobs]; %#ok<AGROW>
                   
                 experimentRun.addParameterRun( parametersRun );
                 this.m_outputManager.moveUpOneDirectory();
@@ -68,6 +70,9 @@ methods (Access = public)
             experimentCollection = [experimentCollection; experimentRun ]; %#ok<AGROW>
             this.m_outputManager.moveUpOneDirectory();
         end
+        
+        Logger.log('**** Running Optimization *****');
+        JobManager.executeJobs(allOptimizationJobs);
         
         this.runAllEvaluations( experimentCollection, progressParams, algorithmsToRun );
         
@@ -147,16 +152,17 @@ methods (Access = public)
         parametersRun.set_optimalParams(optimalParams);
     end
 
-    %% runOptimizationJobs_allAlgorithms
+    %% createOptimizationJobs_allAlgorithms
     
-    function runOptimizationJobs_allAlgorithms...
+    function R = createOptimizationJobs_allAlgorithms...
             (this, parametersRun, progressParams, algorithmsToRun)
-        Logger.log('******** Optimizing ********');
-                
+        allOptimizationJobs = [];
         for algorithm_i=algorithmsToRun.algorithmsRange()
-            this.runOptimizationJobs_oneAlgorithm....
+            algorithmOptimizationJobs = this.createOptimizationJobs_oneAlgorithm....
                     ( parametersRun, progressParams, algorithm_i);
+            allOptimizationJobs = [allOptimizationJobs;algorithmOptimizationJobs]; %#ok<AGROW>
         end
+        R = allOptimizationJobs;
     end
     
     %% searchAndSaveOptimalParams
@@ -215,9 +221,9 @@ methods (Access = public)
     end
     
     
-    %% runOptimizationJobs_oneAlgorithm
+    %% createOptimizationJobs_oneAlgorithm
     
-    function runOptimizationJobs_oneAlgorithm...
+    function R = createOptimizationJobs_oneAlgorithm...
                 ( this, parametersRun, progressParams, algorithmType )
         % get all optimization options for this algorithm
         optimizationParams_allOptions = ...
@@ -227,6 +233,7 @@ methods (Access = public)
             % only one option in optimization options
             algorithmName           = AlgorithmTypeToStringConverter.convert( algorithmType );
             Logger.log([algorithmName ': Only 1 optimization option. Skipping optimization jobs.']);
+            R = [];
             return;
         end
         
@@ -237,15 +244,16 @@ methods (Access = public)
         % run optimization jobs
         optimization_set_i = 1; % currently optimizing on only 1 trunsduction set.
         singleRunFactory     = parametersRun.createOptimizationRunFactory( optimization_set_i );
-        optimizationJobNames = this.runOptionsCollection...
+        [optimizationJobNames optimizationJobs] = this.createOptionsCollection...
                 (singleRunFactory, optimizationParams_allOptions, ...
                  progressParams  , algorithmType);
         parametersRun.setParameterTuningRunsJobNames(algorithmType, optimizationJobNames);
+        R = optimizationJobs;
     end
 
-    %% runOptionsCollection
+    %% createOptionsCollection
     
-    function R = runOptionsCollection...
+    function [jobNames jobs] = createOptionsCollection...
             (this, singleRunFactory, optionsCollection,...
              progressParams  , algorithmType)
         ticID = tic;
@@ -274,11 +282,9 @@ methods (Access = public)
             optionsJobs = [optionsJobs; job]; %#ok<AGROW>
         end
         
-        JobManager.executeJobs( optionsJobs );
-        Logger.log('all options collection runs are finished');
-        
         toc(ticID);
-        R = optionsJobNames;
+        jobNames = optionsJobNames;
+        jobs = optionsJobs;
     end
     
     %% runAndSaveSingleRun
