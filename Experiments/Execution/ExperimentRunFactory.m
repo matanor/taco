@@ -82,6 +82,7 @@ methods (Access = public)
     %% runAllEvaluations
     
     function runAllEvaluations( this, experimentCollection, progressParams, algorithmsToRun )
+        allEvaluationJobs = [];
         numExperiments = numel(experimentCollection);
         for construction_i=1:numExperiments
             this.m_outputManager.startExperimentRun(construction_i);
@@ -98,12 +99,17 @@ methods (Access = public)
                 parametersRun = experimentRun.getParameterRun(parameters_run_i);
                 
                 this.searchForOptimalParams( parametersRun, algorithmsToRun );
-                this.runEvaluations( parametersRun, progressParams, algorithmsToRun);
+                evaluationJobs = this.createEvaluationRuns( parametersRun, progressParams, algorithmsToRun);
+                allEvaluationJobs = [allEvaluationJobs;evaluationJobs]; %#ok<AGROW>
                   
                 this.m_outputManager.moveUpOneDirectory();
             end
             this.m_outputManager.moveUpOneDirectory();
         end
+        
+        Logger.log('******** Running Evaluations ********');
+        JobManager.executeJobs(allEvaluationJobs);
+        Logger.log('all evaluation runs are finished');
     end
     
     %% searchForOptimalParams
@@ -183,11 +189,10 @@ methods (Access = public)
         end
     end
     
-    %% runEvaluations
+    %% createEvaluationRuns
     
-    function runEvaluations(this, parametersRun,   progressParams, ...
+    function R = createEvaluationRuns(this, parametersRun,   progressParams, ...
                             algorithmsToRun)
-        Logger.log('******** Running Evaluations ********');
         numEvaluationRuns = parametersRun.numEvaluationRuns();
         progressParams.set_numEvaluationRuns( numEvaluationRuns );
         optimizeByMethods = parametersRun.optimizationMethodsCollection();
@@ -215,9 +220,9 @@ methods (Access = public)
             this.m_outputManager.moveUpOneDirectory();
             evaluationJobNames{optimization_method_i} = evaluationJobNamesPerMethod; %#ok<AGROW>
         end
-        JobManager.executeJobs(evaluationJobs);
-        Logger.log('all evaluation runs are finished');
+        
         parametersRun.setEvaluationRunsJobNames(evaluationJobNames);
+        R = evaluationJobs;
     end
     
     
