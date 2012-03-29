@@ -58,6 +58,14 @@ methods (Access = public)
         else
             R = this.m_graph.get_NN();
         end
+        degreePerVertex = sum(R ~=0,2);
+        degree.mean = mean(degreePerVertex);
+        degree.max = max(degreePerVertex);
+        degree.min = min(degreePerVertex);
+        Logger.log(['Graph Properties:'...
+                    ' avg degree = ' num2str(degree.mean) ...
+                    ' min degree = ' num2str(degree.min) ...
+                    ' max degree = ' num2str(degree.max) ]);
     end
 
     %% runAlgorithm
