@@ -46,6 +46,14 @@ methods (Access = public)
         save(outputFileFullPath, 'trunsductionSets');
     end
     
+    %% loadTrunsductionSets
+    
+    function loadTrunsductionSets(this, fileFullPath)
+        Logger.log(['Loading trunsduction sets from ' fileFullPath '''']);
+        fileData = load(fileFullPath);
+        this.m_trunsductionSets = fileData.trunsductionSets;
+    end
+    
     %% createParameterRun
     
     function R = createParameterRun(this, parameterValues)
