@@ -98,12 +98,12 @@ methods
     function makeSymetric( this )
         this.m_w_nn_symetric = this.m_w_nn;
         this.m_w_nn = [];
-        w_size = size(this.m_w_nn,1);
+        w_size = size(this.m_w_nn_symetric,1);
         for row_i=1:w_size
             for  col_i=1:w_size
-                value = this.m_w_nn(row_i, col_i);
+                value = this.m_w_nn_symetric(row_i, col_i);
                 if ( value ~= 0)
-                    sym_value = this.m_w_nn( col_i, row_i );
+                    sym_value = this.m_w_nn_symetric( col_i, row_i );
                     if (sym_value == 0)
                         this.m_w_nn_symetric( col_i, row_i ) = value;
                     end
