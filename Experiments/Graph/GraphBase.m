@@ -30,6 +30,74 @@ methods
         this.load(this.m_fileName);
     end
     
+    %% save_edgeFactored
+    
+    function save_edgeFactored(this, outputFileFullPath)
+        outputFile = fopen(outputFileFullPath, 'w');
+        numVertices = this.numVertices();
+        for vertex_i=1:numVertices
+            for vertex_j=(vertex_i+1):numVertices
+                edgeWeight = this.m_weights(vertex_i,vertex_j);
+                vname1 = this.vertexName(vertex_i);
+                vname2 = this.vertexName(vertex_j);
+                fprintf(outputFile, '%s %s %s\n', vname1, vname2, num2str(edgeWeight));
+            end
+        end
+        fclose(outputFile);
+    end
+    
+    %% save_nodeFactored
+    %   each line is in the format:
+    %   source,node_1,sim_1,...,node_n,sim_n
+    %   for example, this is a square graph with some weights:
+    %         0.5
+    %       1 --- 2
+    %   0.6 |     | 0.7
+    %       3 --- 4
+    %          1
+    %   in node factored format:
+    %   V1,V2,0.5,V3,0.6
+    %   V2,V4,0.7
+    %   V3,V4,1
+    
+    function save_nodeFactored(this, outputFileFullPath)
+        outputFile = fopen(outputFileFullPath, 'w');
+        numVertices = this.numVertices();
+        SEPERATOR = ',';
+        for vertex_i=1:numVertices
+            line = this.vertexName(vertex_i);
+            for vertex_j=(vertex_i+1):numVertices
+                edgeWeight = this.m_weights(vertex_i,vertex_j);
+                line = [line                       SEPERATOR ...
+                        this.vertexName(vertex_j)  SEPERATOR ...
+                        num2str(edgeWeight) ]; %#ok<AGROW>
+            end
+            line = [line '\n']; %#ok<AGROW>
+            fprintf(outputFile, line);
+        end
+        fclose(outputFile);
+    end
+    
+    %% save_correctLabels
+    
+    function save_correctLabels(this, outputFileFullPath)
+        numVertices = this.numVertices();
+        this.save_correctLabels_specificRange(outputFileFullPath, 1:numVertices);
+    end
+    
+    %% save_correctLabels_specificRange
+    
+    function save_correctLabels_specificRange(this, outputFileFullPath, range)
+        outputFile = fopen(outputFileFullPath, 'w');
+        for vertex_i=range
+            correctLabel = this.m_correctLabels(vertex_i);
+            correctLabelName = ['L' num2str(correctLabel) ];
+            vertexName = this.vertexName(vertex_i);
+            fprintf(outputFile,'%s %s 1.0\n', vertexName, correctLabelName);
+        end
+        fclose(outputFile);
+    end
+    
     %% checkWeightsAndLabels
     
     function checkWeightsAndLabels(this)
@@ -99,6 +167,12 @@ methods
     
     function R = correctLabelsForVertices(this, vertices)
         R = this.m_correctLabels(vertices);
+    end
+end
+
+methods (Static)
+    function S = vertexName(vertex_i)
+        S = ['V' num2str(vertex_i)];
     end
 end
     
