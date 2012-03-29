@@ -195,8 +195,8 @@ classdef MAD < GraphTrunsductionBase
                 entropy = - sum( transitions .* log2(transitions) );
                 % natural logarithm and no exp is done in junto_1_0_0
                 % in Vertex.java::CalculateRWProbabilities
-                % we follow the paper (not sure it matters much)
-                cv = log2(beta) / log2( beta + exp( entropy) ) ;
+                % we follow the paper - use the exp (not sure it matters much)
+                cv = log(beta) / log( beta + exp( entropy) ) ;
 %                 cv = log(beta) / log( beta + entropy ) ;
                 isLabeled = ismember( vertex_i, labeledVertices );
                 dv = isLabeled * (1-cv) * sqrt( entropy ) ;
