@@ -106,6 +106,7 @@ methods
         maxSum = max(sumPerClass);
         multiplyByFactors = maxSum ./ sumPerClass;
         numVertices = this.numVertices();
+        Logger.log(['multiplyByFactors = ' num2str(multiplyByFactors)]);
         multiplyByMatrix = repmat(multiplyByFactors, numVertices, 1);
         Y = Y .* multiplyByMatrix;
         
