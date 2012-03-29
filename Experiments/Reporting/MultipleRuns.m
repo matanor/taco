@@ -107,10 +107,12 @@ methods
             end
         end
         
-        exactResult.mean       = mean(exactPRBEP).';
-        exactResult.stddev     = sqrt(var(exactPRBEP)).'; 
-        estimatedResult.mean   = mean(estimatedPRBEP).';
-        estimatedResult.stddev = sqrt(var(estimatedPRBEP)).'; 
+        exactResult.mean       = mean(exactPRBEP, 1).';
+        % var(X,w,dim) takes the variance along the dimension dim of X. 
+        % Pass in 0 for w to use the default normalization by N – 1, or 1 to use N
+        exactResult.stddev     = sqrt(var(exactPRBEP,0,1)).'; 
+        estimatedResult.mean   = mean(estimatedPRBEP, 1).';
+        estimatedResult.stddev = sqrt(var(estimatedPRBEP,0,1)).'; 
     end
     
     %% calcAverageAccuracy_testSet
