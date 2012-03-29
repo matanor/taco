@@ -1,0 +1,195 @@
+29-Mar-2012 11:59:58. Loading file 'C:\technion\theses\Experiments\WebKB\data\From Amar\webkb_amar.mat'
+29-Mar-2012 11:59:59. checkWeightsAndLabels:: Warning.Labels: 4199. Vertices: 4204
+29-Mar-2012 11:59:59. Loading trunsduction sets from C:\technion\theses\Matlab\Test_Data\TrunsductionSets.mat'
+29-Mar-2012 11:59:59. Parameter run values. numLabeled = 48 numFolds = 4 balanced = 0 numEvaluationRuns = 1  makeSymetric = 1 maxIterations = 11 useGraphHeuristics = 1 labeledInitMode = 1 numEvaluationRuns = 1 optimizeByCollection = 1 
+29-Mar-2012 11:59:59. on experiment 1 out of 1. parameter run 1 out of 1. optimization run 1 out of 2
+29-Mar-2012 11:59:59. optimizationSingleRunName = C:/technion/theses/Experiments/WebKB/results/2012_03_29_1_webkb_compare_junto/Experiment_run_1/Parameters_run_1/Optimization.1.1.1.MAD.mat
+29-Mar-2012 11:59:59. get_wnnGraph. K = 1000 makeSymetric = 1
+29-Mar-2012 12:00:06. Graph Properties: avg degree = 1339.9218min degree = 1000max degree = 3674
+29-Mar-2012 12:00:06. classPriorNormalization
+29-Mar-2012 12:00:06. multiplyByFactors = 2.1818         2.4           8           1
+29-Mar-2012 12:00:06. Running MAD. useGraphHeuristics = 1 mu1 = 1 mu2 = 1 mu3 = 1 maximum iterations = 11
+29-Mar-2012 12:00:06. numVertices = 4196
+29-Mar-2012 12:00:06. Calculating probabilities...
+29-Mar-2012 12:00:07. done
+29-Mar-2012 12:00:07. size(Y) = 4196     4
+29-Mar-2012 12:00:07. Calculating M(v)...
+29-Mar-2012 12:00:08. done
+29-Mar-2012 12:00:08. #Iteration = 2 iteration_diff = Inf
+29-Mar-2012 12:00:26. #Iteration = 4 iteration_diff = 33.032
+29-Mar-2012 12:00:44. #Iteration = 6 iteration_diff = 19.7078
+29-Mar-2012 12:01:02. #Iteration = 8 iteration_diff = 12.3366
+29-Mar-2012 12:01:20. #Iteration = 10 iteration_diff = 7.7868
+Elapsed time is 91.336623 seconds.
+29-Mar-2012 12:01:38. on experiment 1 out of 1. parameter run 1 out of 1. optimization run 2 out of 2
+29-Mar-2012 12:01:38. optimizationSingleRunName = C:/technion/theses/Experiments/WebKB/results/2012_03_29_1_webkb_compare_junto/Experiment_run_1/Parameters_run_1/Optimization.1.1.2.MAD.mat
+29-Mar-2012 12:01:38. get_wnnGraph. K = 1000 makeSymetric = 1
+29-Mar-2012 12:01:38. Graph Properties: avg degree = 1339.9218min degree = 1000max degree = 3674
+29-Mar-2012 12:01:38. classPriorNormalization
+29-Mar-2012 12:01:38. multiplyByFactors = 2.1818         2.4           8           1
+29-Mar-2012 12:01:38. Running MAD. useGraphHeuristics = 1 mu1 = 10 mu2 = 1 mu3 = 1 maximum iterations = 11
+29-Mar-2012 12:01:38. numVertices = 4196
+29-Mar-2012 12:01:38. Calculating probabilities...
+29-Mar-2012 12:01:39. done
+29-Mar-2012 12:01:39. size(Y) = 4196     4
+29-Mar-2012 12:01:39. Calculating M(v)...
+29-Mar-2012 12:01:39. done
+29-Mar-2012 12:01:39. #Iteration = 2 iteration_diff = Inf
+29-Mar-2012 12:01:57. #Iteration = 4 iteration_diff = 32.8021
+29-Mar-2012 12:02:14. #Iteration = 6 iteration_diff = 19.3895
+29-Mar-2012 12:02:32. #Iteration = 8 iteration_diff = 11.9979
+29-Mar-2012 12:02:49. #Iteration = 10 iteration_diff = 7.486
+Elapsed time is 89.233244 seconds.
+Elapsed time is 187.596082 seconds.
+29-Mar-2012 12:03:07. **** Running Optimization *****
+29-Mar-2012 12:03:07. Starting 2 jobs
+29-Mar-2012 12:03:07. job Optimization.1.1.1.MAD has finished
+29-Mar-2012 12:03:07. job Optimization.1.1.2.MAD has finished
+29-Mar-2012 12:03:07. Started job (indices):
+29-Mar-2012 12:03:07. 1  2
+29-Mar-2012 12:03:07. size(runningJobs) = 0  0
+29-Mar-2012 12:03:07. size(jobsCollection) = 2  1
+29-Mar-2012 12:03:07. **** Status check **** timeout (min) = 10 max jobs = 75
+29-Mar-2012 12:03:07. job Optimization.1.1.1.MAD has finished
+29-Mar-2012 12:03:07. job Optimization.1.1.2.MAD has finished
+29-Mar-2012 12:03:07. on experiment 1 out of 1. parameter run 1 out of 1
+29-Mar-2012 12:03:07. ****** Searching for optimal parameter *****
+29-Mar-2012 12:03:07. Optimization run 1 out of 2
+29-Mar-2012 12:03:07. K = 1000 mu1 = 1 mu2 = 1 mu3 = 1 makeSymetric = 1 maxIterations = 11 useGraphHeuristics = 1 labeledInitMode = 1 numEvaluationRuns = 1 optimizeByCollection = 1 
+29-Mar-2012 12:03:07. Accuracy = 0.45472
+29-Mar-2012 12:03:07. Optimization run 2 out of 2
+29-Mar-2012 12:03:07. K = 1000 mu1 = 10 mu2 = 1 mu3 = 1 makeSymetric = 1 maxIterations = 11 useGraphHeuristics = 1 labeledInitMode = 1 numEvaluationRuns = 1 optimizeByCollection = 1 
+29-Mar-2012 12:03:07. Accuracy = 0.44836
+29-Mar-2012 12:03:07. Optimal on run 1 with value 0.45472
+29-Mar-2012 12:03:09. calcAveragePRBEP_testSet: 0.56661
+29-Mar-2012 12:03:09. Optimal run statistics: 
+29-Mar-2012 12:03:09. Accuracy = 0.45472
+29-Mar-2012 12:03:09. macroAccuracy = 0.44562
+29-Mar-2012 12:03:09. Average PRBEP = 0.56661
+29-Mar-2012 12:03:09. MRR = 0.67559
+29-Mar-2012 12:03:09. macro MRR = 0.66187
+29-Mar-2012 12:03:09. algorithm = MAD evaluation = accuracy optimal: K = 1000 mu1 = 1 mu2 = 1 mu3 = 1 makeSymetric = 1 maxIterations = 11 useGraphHeuristics = 1 labeledInitMode = 1 numEvaluationRuns = 1 optimizeByCollection = 1 
+29-Mar-2012 12:03:09. Starting 1 jobs
+29-Mar-2012 12:03:09. job EvaluateOptimization.MAD.accuracy has finished
+29-Mar-2012 12:03:09. Started job (indices):
+29-Mar-2012 12:03:09. 1
+29-Mar-2012 12:03:09. size(runningJobs) = 0  0
+29-Mar-2012 12:03:09. size(jobsCollection) = 1  1
+29-Mar-2012 12:03:09. **** Status check **** timeout (min) = 10 max jobs = 75
+29-Mar-2012 12:03:09. job EvaluateOptimization.MAD.accuracy has finished
+29-Mar-2012 12:03:09. algorithm = MAD evaluation = accuracy optimal: K = 1000 mu1 = 1 mu2 = 1 mu3 = 1 makeSymetric = 1 maxIterations = 11 useGraphHeuristics = 1 labeledInitMode = 1 numEvaluationRuns = 1 optimizeByCollection = 1 
+29-Mar-2012 12:03:09. on experiment 1 out of 1. parameter run  1 out of 1. accuracy. evaluation run 1 out of 1
+29-Mar-2012 12:03:09. evaluationSingleRunName = C:/technion/theses/Experiments/WebKB/results/2012_03_29_1_webkb_compare_junto/Experiment_run_1/Parameters_run_1/accuracy/Evaluation.1.1.1.accuracy.mat
+29-Mar-2012 12:03:09. get_wnnGraph. K = 1000 makeSymetric = 1
+29-Mar-2012 12:03:09. Graph Properties: avg degree = 1339.9218min degree = 1000max degree = 3674
+29-Mar-2012 12:03:09. classPriorNormalization
+29-Mar-2012 12:03:09. multiplyByFactors = 1.7273         1.9       2.375           1
+29-Mar-2012 12:03:09. Running MAD. useGraphHeuristics = 1 mu1 = 1 mu2 = 1 mu3 = 1 maximum iterations = 11
+29-Mar-2012 12:03:09. numVertices = 4196
+29-Mar-2012 12:03:09. Calculating probabilities...
+29-Mar-2012 12:03:10. done
+29-Mar-2012 12:03:10. size(Y) = 4196     4
+29-Mar-2012 12:03:10. Calculating M(v)...
+29-Mar-2012 12:03:11. done
+29-Mar-2012 12:03:11. #Iteration = 2 iteration_diff = Inf
+29-Mar-2012 12:03:28. #Iteration = 4 iteration_diff = 33.0309
+29-Mar-2012 12:03:46. #Iteration = 6 iteration_diff = 19.7283
+29-Mar-2012 12:04:03. #Iteration = 8 iteration_diff = 12.3411
+29-Mar-2012 12:04:21. #Iteration = 10 iteration_diff = 7.7843
+Elapsed time is 89.222251 seconds.
+29-Mar-2012 12:04:38. ******** Running Evaluations ********
+29-Mar-2012 12:04:38. Starting 1 jobs
+29-Mar-2012 12:04:38. job Evaluation.1.1.1.accuracy has finished
+29-Mar-2012 12:04:38. Started job (indices):
+29-Mar-2012 12:04:38. 1
+29-Mar-2012 12:04:38. size(runningJobs) = 0  0
+29-Mar-2012 12:04:38. size(jobsCollection) = 1  1
+29-Mar-2012 12:04:38. **** Status check **** timeout (min) = 10 max jobs = 75
+29-Mar-2012 12:04:38. job Evaluation.1.1.1.accuracy has finished
+29-Mar-2012 12:04:38. all evaluation runs are finished
+29-Mar-2012 12:04:41. **** Multiple Runs Summary ****
+29-Mar-2012 12:04:41. experiment ID = 1
+29-Mar-2012 12:04:41. parameters run index = 1
+29-Mar-2012 12:04:41. optimized by = accuracy
+29-Mar-2012 12:04:41. algorithmName =  MAD
+29-Mar-2012 12:04:41. MultipleRuns::calcAveragePrecisionAndRecall. run_i =  1
+29-Mar-2012 12:04:42. prbep (estimated) for class 1 = 0.54058 (0.54057)
+29-Mar-2012 12:04:42. prbep (estimated) for class 2 = 0.38518 (0.43799)
+29-Mar-2012 12:04:42. prbep (estimated) for class 3 = 0.22 (0.25446)
+29-Mar-2012 12:04:43. prbep (estimated) for class 4 = 0.57699 (0.63699)
+29-Mar-2012 12:04:43. averagePRBEP
+29-Mar-2012 12:04:43. 0.54058     0.38518        0.22     0.57699
+29-Mar-2012 12:04:43. estimatedAveragePRBEP
+29-Mar-2012 12:04:43. 0.54057     0.43799     0.25446     0.63699
+29-Mar-2012 12:04:43. run 1 accuracy = 0.52018
+29-Mar-2012 12:04:43. Algorithm MAD avg (stddev) accuracy = 0.52018 (0)
+29-Mar-2012 12:04:43. run 1 macro accuracy = 0.45749
+29-Mar-2012 12:04:43. Algorithm MAD avg (stddev) macro accuracy = 0.45749 (0)
+29-Mar-2012 12:04:43. Algorithm MAD avg (stddev) MRR = 0.71221 (0)
+29-Mar-2012 12:04:43. Algorithm MAD avg (stddev) macro MRR = 0.66448 (0)
+29-Mar-2012 12:04:43. ***** Results Summary *****
+29-Mar-2012 12:04:43. graph (M|A),balanced (Y|N),heuristics (Y|N),labelled init (1|2),optimize_by (P|B|N|M),Algorithm,avg PRBEP (stddev),avg accuracy (stddev),avg macro accuracy (stddev),avg MRR (stddev),avg macro MRR (stddev),optimized PRBEP,optimized accuracy,optimized macro accuracy,optimized MRR,optimized macro MRR,alpha,beta,gamma,K,mu1,mu2,mu3,am_v,am_mu,am_alpha,
+29-Mar-2012 12:04:43. webkb_amar,0,1,1,accuracy,MAD,0.43069 (0.16324),0.52018 (0),0.45749 (0),0.71221 (0),0.66448 (0),0.56661,0.45472,0.44562,0.67559,0.66187,,,,1000,1,1,1,,,,
+29-Mar-2012 12:04:43. **********************************
+29-Mar-2012 12:04:43. ,,avg PRBEP,webkb_amar,1 runs,optimized (accuracy),unbalanced,labeled init mode 1
+29-Mar-2012 12:04:43. ,No Heuristics,,,,With Heuristics,,,,
+29-Mar-2012 12:04:43. ,CSSLMC,CSSLMCF,MAD,AM,CSSLMC,CSSLMCF,MAD,AM,paper
+29-Mar-2012 12:04:43. 1,0,0,0,0,0,0,0.54058,0
+29-Mar-2012 12:04:43. 2,0,0,0,0,0,0,0.38518,0
+29-Mar-2012 12:04:43. 3,0,0,0,0,0,0,0.22,0
+29-Mar-2012 12:04:43. 4,0,0,0,0,0,0,0.57699,0
+29-Mar-2012 12:04:43. 0,0,0,0,0,0,0,0.43069,0
+29-Mar-2012 12:04:43. 0,0,0,0,0,0,0,0.52018,0
+29-Mar-2012 12:04:43. ,,,,,,,,
+29-Mar-2012 12:04:43. ,,est PRBEP,webkb_amar,1 runs,optimized (accuracy),unbalanced,labeled init mode 1
+29-Mar-2012 12:04:43. ,No Heuristics,,,,With Heuristics,,,,
+29-Mar-2012 12:04:43. ,CSSLMC,CSSLMCF,MAD,AM,CSSLMC,CSSLMCF,MAD,AM,paper
+29-Mar-2012 12:04:43. 1,0,0,0,0,0,0,0.54057,0
+29-Mar-2012 12:04:43. 2,0,0,0,0,0,0,0.43799,0
+29-Mar-2012 12:04:43. 3,0,0,0,0,0,0,0.25446,0
+29-Mar-2012 12:04:43. 4,0,0,0,0,0,0,0.63699,0
+29-Mar-2012 12:04:43. 0,0,0,0,0,0,0,0.4675,0
+29-Mar-2012 12:04:43. 0,0,0,0,0,0,0,0.52018,0
+29-Mar-2012 12:04:43. ,,,,,,,,
+29-Mar-2012 12:04:43. ,,optimal,No Heuristics,
+29-Mar-2012 12:04:43. ,alpha,beta,gamma,K,mu1,mu2,mu3,am_v,am_mu,am_alpha,optimal prbep,optimal accuracy
+29-Mar-2012 12:04:43. CSSLMC,
+29-Mar-2012 12:04:43. CSSLMCF,
+29-Mar-2012 12:04:43. MAD,
+29-Mar-2012 12:04:43. AM,
+29-Mar-2012 12:04:43. ,,,,,,,,
+29-Mar-2012 12:04:43. ,,optimal,With Heuristics,
+29-Mar-2012 12:04:43. ,alpha,beta,gamma,K,mu1,mu2,mu3,am_v,am_mu,am_alpha,optimal prbep,optimal accuracy
+29-Mar-2012 12:04:43. CSSLMC,
+29-Mar-2012 12:04:43. CSSLMCF,
+29-Mar-2012 12:04:43. MAD,,,,1000,1,1,1,,,,0.56661,0.45472
+29-Mar-2012 12:04:43. AM,
+29-Mar-2012 12:04:43. **** Single Run Results ****
+29-Mar-2012 12:04:43. experiment ID = 1 of 1
+29-Mar-2012 12:04:43. parameters run index = 1 of 1
+29-Mar-2012 12:04:43. algorithm = MAD
+29-Mar-2012 12:04:44. Algorithm = MAD K = 1000 mu1 = 1 mu2 = 1 mu3 = 1 makeSymetric = 1 maxIterations = 11 useGraphHeuristics = 1 labeledInitMode = 1 numEvaluationRuns = 1 optimizeByCollection = 1  test set size = 3147
+29-Mar-2012 12:04:44. prbep (estimated) for class 1 = 0.44523 (0.39402)
+29-Mar-2012 12:04:45. prbep (estimated) for class 2 = 0.40094 (0.45434)
+29-Mar-2012 12:04:46. prbep (estimated) for class 3 = 0.30133 (0.38288)
+29-Mar-2012 12:04:46. prbep (estimated) for class 4 = 0.56661 (0.55414)
+29-Mar-2012 12:04:47. Algorithm = MAD K = 1000 mu1 = 10 mu2 = 1 mu3 = 1 makeSymetric = 1 maxIterations = 11 useGraphHeuristics = 1 labeledInitMode = 1 numEvaluationRuns = 1 optimizeByCollection = 1  test set size = 3147
+29-Mar-2012 12:04:48. prbep (estimated) for class 1 = 0.44381 (0.38083)
+29-Mar-2012 12:04:48. prbep (estimated) for class 2 = 0.39273 (0.44697)
+29-Mar-2012 12:04:49. prbep (estimated) for class 3 = 0.30667 (0.38062)
+29-Mar-2012 12:04:49. prbep (estimated) for class 4 = 0.57401 (0.55162)
+29-Mar-2012 12:04:50. Algorithm = MAD K = 1000 mu1 = 1 mu2 = 1 mu3 = 1 makeSymetric = 1 maxIterations = 11 useGraphHeuristics = 1 labeledInitMode = 1 numEvaluationRuns = 1 optimizeByCollection = 1  test set size = 3147
+29-Mar-2012 12:04:50. prbep (estimated) for class 1 = 0.54058 (0.54057)
+29-Mar-2012 12:04:51. prbep (estimated) for class 2 = 0.38518 (0.43799)
+29-Mar-2012 12:04:52. prbep (estimated) for class 3 = 0.22 (0.25446)
+29-Mar-2012 12:04:52. prbep (estimated) for class 4 = 0.57699 (0.63699)
+29-Mar-2012 12:04:53. Starting 2 jobs
+29-Mar-2012 12:04:53. job PlotOptimization.1.MAD has finished
+29-Mar-2012 12:04:53. job PlotEvaluation.1.accuracy has finished
+29-Mar-2012 12:04:53. Started job (indices):
+29-Mar-2012 12:04:53. 1  2
+29-Mar-2012 12:04:53. size(runningJobs) = 0  0
+29-Mar-2012 12:04:53. size(jobsCollection) = 2  1
+29-Mar-2012 12:04:53. **** Status check **** timeout (min) = 10 max jobs = 75
+29-Mar-2012 12:04:53. job PlotOptimization.1.MAD has finished
+29-Mar-2012 12:04:53. job PlotEvaluation.1.accuracy has finished

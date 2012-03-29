@@ -1,0 +1,22 @@
+29mar2012
+This is a test summary for Junto Vs matlab run on the webkb graph from amar.
+Preprocesing:
+The webkb_amar.mat file was converted to junto format (seperate text files for graph
+and correct labels).
+The webkb_test_TrunsductionSets.mat file was converted to junto seed and test file.
+Specifically the m_optimizationSets first item (out of 1) was converted to be
+the transduction set used for the Junto run.
+
+This test was run on Technion Desktop computer, Matlab 2011a.
+
+Results:
+********
+Matlab and Junto were found to be identical. Junto used 10 iterations, and Matlab used
+11 iterations (the first iteration in matlab is just initialization).
+Accuracy was compared on junto result (their noted as precision)
+against matlab accuracy result on the OPTIMIZATION RUN with all parameters set to 1.
+This two runs are run on exactly the same transduction sets, so the should produce
+the same results.
+Also compared transition probabilities for a few vertices, and results were found
+to be identical.
+
