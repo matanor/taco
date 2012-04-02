@@ -75,10 +75,14 @@ methods (Access = public)
         if isOnOdin
          fileNames = [ {'/u/matanorb/experiments/webkb/data/Rapid_Miner_Result/webkb_constructed.mat' } ];
 %            fileNames = [ {'/u/matanorb/experiments/sentiment/data/from_yoav/sentiment_10k.mat' } ];
+%            fileNames = [ {'/u/matanorb/experiments/sentiment/data/from_yoav/sentiment_5k.mat' } ];
 %          fileNames = [ {'/u/matanorb/experiments/webkb/data/from_amar/webkb_amar.mat' } ];
         else
-%             fileNames = [ {'C:/technion/theses/Experiments/sentiment_analysis_from_yoav/sentiment_10k.mat' } ];
-            fileNames = [ {'C:\technion\theses\Experiments\WebKB\data\Rapid_Miner_Result\webkb_constructed.mat'}];
+%             fileNames = [ {'C:/technion/theses/Experiments/sentiment_analysis_from_yoav/Data/sentiment_10k.mat' } ];
+%            fileNames = [ {'C:/technion/theses/Experiments/sentiment_analysis_from_yoav/Data/sentiment_5k.mat' } ];
+%           fileNames = [ {'C:/technion/theses/Experiments/sentiment_analysis_from_yoav/Data/sentiment_5k_by_removal.mat' } ];
+             fileNames = [ {'C:\technion\theses\Experiments\WebKB\data\Rapid_Miner_Result\webkb_constructed.mat'}];
+%             fileNames = [ {'C:\technion\theses\Experiments\WebKB\data\From Amar\webkb_amar.mat'}];
         end
         this = this.createParameter( 'fileName', [1] , isString, fileNames );
         
@@ -122,13 +126,14 @@ methods (Access = public)
             paperOprimizationRange = [1e-8 1e-4 1e-2 1 10 1e2 1e3];        
             this = this.createParameter( 'mu2', paperOprimizationRange, isString, [] );  
             this = this.createParameter( 'mu3', paperOprimizationRange, isString, [] );
+%             mad_k_paper_range = [10,50,100,500,1000,2000];
             this = this.createParameter...
-                ( 'mad_K',     [10,50,100,500,1000,2000], isString,[]); % NO all vertices option
+                ( 'mad_K',   [1000]  , isString,[]); % NO all vertices option
         else
             this = this.createParameter( 'mu2', [1 10], isString, [] );     
             this = this.createParameter( 'mu3', [1], isString, [] );
             this = this.createParameter...
-                ( 'mad_K',     [500 1000], isString,[]); % NO all vertices option
+                ( 'mad_K',     [1000], isString,[]); % NO all vertices option
         end
         
         this.m_defaultParamsMAD.K = 1000;
@@ -142,8 +147,9 @@ methods (Access = public)
             this = this.createParameter...
                 ( 'am_mu',    [1e-8 1e-4 0.01 0.1 1 10 100], isString,[]);
             this = this.createParameter( 'am_alpha', [2], isString,[]);
+            am_k_range_paper = [2,10,50,100,250,500,1000,2000]; % NO all vertices option
             this = this.createParameter...
-                ( 'am_K',     [2,10,50,100,250,500,1000,2000], isString,[]); % NO all vertices option
+                ( 'am_K',     am_k_range_paper, isString,[]); 
         else
             this = this.createParameter( 'am_v',     [1e-4], isString,[]);
             this = this.createParameter( 'am_mu',    [1e-2], isString,[]);
