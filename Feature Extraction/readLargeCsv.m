@@ -1,7 +1,7 @@
-function result = readLargeCsv()
+function result = readLargeCsv(fileName)
 
 tic;
-fid=fopen('tfidf.csv','rt');
+fid=fopen(fileName,'rt');
 
 curLine=fgetl(fid); %read one line at a time
 numTokens = length(strfind(curLine, ','))+1;
