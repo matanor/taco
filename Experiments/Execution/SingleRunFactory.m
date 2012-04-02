@@ -44,6 +44,8 @@ methods (Access = public)
         for algorithm_i=algorithmsToRun.algorithmsRange()
             this.runAlgorithm( singleRun, algorithm_i, algorithmParams{algorithm_i} );
         end
+        
+        singleRun.createCachedResults();
                 
     end
     
