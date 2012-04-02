@@ -174,6 +174,7 @@ classdef SingleRun < handle
         %% createCachedResults
         
         function createCachedResults(this)
+            Logger.log('createCachedResults');
             numLabels = this.numLabels();
             algorithmRange = this.availableResultsAlgorithmRange();
             for algorithm_i=algorithmRange
