@@ -205,8 +205,9 @@ classdef SingleRun < handle
             for label_i=1:numLabels
                 [prbep,~,~] = this.calcPRBEP_testSet(algorithmType, label_i);
                 labelsPRBEP(label_i) = prbep;
+                clear prbep;
             end
-            R = mean(prbep);
+            R = mean(labelsPRBEP);
             Logger.log(['calcAveragePRBEP_testSet: ' num2str(R)]);
         end
         
