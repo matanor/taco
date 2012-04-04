@@ -141,11 +141,12 @@ methods (Static)
                 pause(sleepIntervalInSeconds);
             end
             config = configManager.read();
+            maxJobs = config.maxJobs;
 
             finished_jobs = [];
             Logger.log(['**** Status check ****' ...
                   ' timeout (min) = ' num2str(idleTimoutInMinutes)...
-                  ' max jobs = '      num2str(config.maxJobs)]);
+                  ' max jobs = '      num2str(maxJobs)]);
             for job_i=1:numRunningJobs
                 job = runningJobs(job_i);
                 jobStatus = job.checkJobStatus();
