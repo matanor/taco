@@ -49,7 +49,8 @@ end
 
 properties (Constant)
     SAVE_ALL_ITERATIONS_IN_RESULT = 0;
-    REAL_RANDOMIZATION = 1;
+    REAL_RANDOMIZATION = 0;
+    USE_MEM_QUEUE = 0;
 end
 
 properties (Constant)
@@ -72,17 +73,35 @@ methods (Access = public)
         optimize = ~isTesting;
         
         isString = 1;
+        webkb_constructed.odin    = '/u/matanorb/experiments/webkb/data/Rapid_Miner_Result/webkb_constructed.mat';
+        webkb_amar.odin           = '/u/matanorb/experiments/webkb/data/from_amar/webkb_amar.mat';
+        webkb_html.odin           = '/u/matanorb/experiments/webkb/data/With_Html/webkb_with_html.mat';
+        sentiment_5k.odin         = '/u/matanorb/experiments/sentiment/data/from_yoav/sentiment_5k.mat';
+        sentiment_10k.odin        = '/u/matanorb/experiments/sentiment/data/from_yoav/sentiment_10k.mat';
+        twentyNG_4715.odin        = '/u/matanorb/experiments/20NG/data/twentyNG_4715.mat';
+        webkb_constructed.desktop = 'C:/technion/theses/Experiments/WebKB/data/Rapid_Miner_Result/webkb_constructed.mat';
+        webkb_amar.desktop        = 'C:/technion/theses/Experiments/WebKB/data/From Amar/webkb_amar.mat';
+        webkb_html.desktop        = 'C:/technion/theses/Experiments/WebKB/data/Constructed_With_Html/webkb_with_html.mat';
+        sentiment_5k.desktop      = 'C:/technion/theses/Experiments/sentiment_analysis_from_yoav/Data/sentiment_5k.mat';
+        sentiment_10k.desktop     = 'C:/technion/theses/Experiments/sentiment_analysis_from_yoav/Data/sentiment_10k.mat';
+        twentyNG_4715.desktop     = 'C:/technion/theses/Experiments/20news/20news-4715/twentyNG_4715.mat';
+
         if isOnOdin
-         fileNames = [ {'/u/matanorb/experiments/webkb/data/Rapid_Miner_Result/webkb_constructed.mat' } ];
-%            fileNames = [ {'/u/matanorb/experiments/sentiment/data/from_yoav/sentiment_10k.mat' } ];
-%            fileNames = [ {'/u/matanorb/experiments/sentiment/data/from_yoav/sentiment_5k.mat' } ];
-%          fileNames = [ {'/u/matanorb/experiments/webkb/data/from_amar/webkb_amar.mat' } ];
+           fileNames = [ {webkb_constructed.odin} ...
+                         ];
+%                          {webkb_amar.odin} ...
+%                          {webkb_html.odin} ...
+%                          {sentiment_5k.odin} ...
+%                          {sentiment_10k.odin} ...
+%                          {twentyNG_4715.odin} ];
         else
-%             fileNames = [ {'C:/technion/theses/Experiments/sentiment_analysis_from_yoav/Data/sentiment_10k.mat' } ];
-%            fileNames = [ {'C:/technion/theses/Experiments/sentiment_analysis_from_yoav/Data/sentiment_5k.mat' } ];
-%           fileNames = [ {'C:/technion/theses/Experiments/sentiment_analysis_from_yoav/Data/sentiment_5k_by_removal.mat' } ];
-             fileNames = [ {'C:\technion\theses\Experiments\WebKB\data\Rapid_Miner_Result\webkb_constructed.mat'}];
-%             fileNames = [ {'C:\technion\theses\Experiments\WebKB\data\From Amar\webkb_amar.mat'}];
+           fileNames = [ {webkb_constructed.desktop} ...
+                         {webkb_amar.desktop} ...
+                         ];
+%                          {webkb_html.desktop} ...
+%                          {sentiment_5k.desktop} ...
+%                          {sentiment_10k.desktop} ...
+%                          {twentyNG_4715.desktop} ];
         end
         this = this.createParameter( 'fileName', [1] , isString, fileNames );
         
@@ -130,7 +149,7 @@ methods (Access = public)
             this = this.createParameter...
                 ( 'mad_K',   [1000]  , isString,[]); % NO all vertices option
         else
-            this = this.createParameter( 'mu2', [1 10], isString, [] );     
+            this = this.createParameter( 'mu2', [1], isString, [] );     
             this = this.createParameter( 'mu3', [1], isString, [] );
             this = this.createParameter...
                 ( 'mad_K',     [1000], isString,[]); % NO all vertices option
@@ -149,7 +168,7 @@ methods (Access = public)
             this = this.createParameter( 'am_alpha', [2], isString,[]);
             am_k_range_paper = [2,10,50,100,250,500,1000,2000]; % NO all vertices option
             this = this.createParameter...
-                ( 'am_K',     am_k_range_paper, isString,[]); 
+                ( 'am_K',     [1000], isString,[]); 
         else
             this = this.createParameter( 'am_v',     [1e-4], isString,[]);
             this = this.createParameter( 'am_mu',    [1e-2], isString,[]);
@@ -166,8 +185,8 @@ methods (Access = public)
         
         %numIterations.range = [5 10 25 50 100];
         if isTesting
-            this = this.createParameter( 'maxIterations', [1], isString, [] );    
-            this = this.createParameter( 'numEvaluationRuns', [2], isString, [] );
+            this = this.createParameter( 'maxIterations', [11], isString, [] );    
+            this = this.createParameter( 'numEvaluationRuns', [1], isString, [] );
         else
             this = this.createParameter( 'maxIterations',     [10], isString, [] );    
             this = this.createParameter( 'numEvaluationRuns', [20], isString, [] );
@@ -195,19 +214,14 @@ methods (Access = public)
         end
         
         if isTesting
-            this = this.createParameter( 'balanced', [1], isString, [] );
+            this = this.createParameter( 'balanced', [0], isString, [] );
         else
             this = this.createParameter( 'balanced', [0 1], isString, [] );
         end
         
         if isTesting
             this = this.createParameter( 'optimizeByCollection', ...
-                [ParamsManager.OPTIMIZE_BY_ACCURACY ...
-                 ParamsManager.OPTIMIZE_BY_PRBEP ... 
-                 ParamsManager.OPTIMIZE_ALL_1 ...
-                 ParamsManager.OPTIMIZE_BY_MRR ...
-                 ParamsManager.OPTIMIZE_BY_MACRO_MRR...
-                 ParamsManager.OPTIMIZE_BY_MACRO_ACCURACY], isString, [] );
+                [ParamsManager.OPTIMIZE_BY_ACCURACY], isString, [] );
         else
             this = this.createParameter( 'optimizeByCollection', ...
                 [ParamsManager.OPTIMIZE_BY_ACCURACY ...
