@@ -46,13 +46,12 @@ methods
     function R = createTrunsductionSet(this)
         isBalanced      = this.m_constructionParams.balanced;
         numFolds        = this.m_constructionParams.numFolds;
-        classToLabelMap = this.m_constructionParams.classToLabelMap;
         numLabeled      = this.m_constructionParams.numLabeled;
         
         splitter = Splitter(this.m_graph);
         trunsductionSet = splitter.create(isBalanced, numFolds);
         trunsductionSet.selectLabeled(this.m_graph, isBalanced, ...
-                                      classToLabelMap, numLabeled);
+                                      numLabeled);
         R = trunsductionSet;
     end
     

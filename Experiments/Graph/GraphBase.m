@@ -151,10 +151,16 @@ methods
         this.m_weights = [];
     end
     
-    %% availabelLabels
+    %% availableLabels
     
-    function R = availabelLabels(this)
+    function R = availableLabels(this)
         R = unique(this.m_correctLabels).';
+    end
+    
+    %% numAvailableLabels
+    
+    function R = numAvailableLabels(this)
+        R = length( this.availableLabels() );
     end
     
     %% verticesForLabel

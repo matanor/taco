@@ -15,24 +15,30 @@ methods
     
     %% select
     
-    function R = select( this, selectBalanced, vertices , classToLabelMap, ...
-                         numRequired, numFolds)
+    function R = select( this, selectBalanced, fromVertices , ...
+                         numRequired)
         if (selectBalanced)
+            numAvailableLabels = this.m_graph.numAvailableLabels();
+            numLabeledPerClass = numRequired / numAvailableLabels;
+            if numLabeledPerClass ~= floor(numLabeledPerClass)
+                Logger.log(['LabeledSelector.select::Warning. ' ...
+                            'numLabeledPerClass (' num2str(numLabeledPerClass) ...
+                            ') is not an integer, setting to ' ...
+                            num2str(floor(numLabeledPerClass))]);
+                numLabeledPerClass = floor(numLabeledPerClass);
+            end
             R = this.selectLabelsUniformly...
-                (   vertices, classToLabelMap,...
-                    numRequired / numFolds);
+                (   fromVertices, numLabeledPerClass);
         else
             R = this.selectLabeled_atLeastOnePerLabel...
-                (   vertices, ...
-                    classToLabelMap, ...
-                    numRequired); 
+                (   fromVertices, numRequired); 
         end
     end
     
     %% selectLabeled_atLeastOnePerLabel
     
     function labeled = selectLabeled_atLeastOnePerLabel...
-            ( this, vertices, classToLabelMap, numRequired )
+            ( this, vertices, numRequired )
         % 
         labeled = zeros( numRequired, 1);
         selected_i = 1;
@@ -41,10 +47,9 @@ methods
         vertices_correctLabel = this.m_graph.correctLabelsForVertices( vertices );
         
         % select at least one labeled vertex from each class.
-        numClasses = size(classToLabelMap,1);
-        for class_i=1:numClasses
-            labelValue = classToLabelMap(class_i, GraphLoader.LABEL_VALUE);
-            verticesForCurrentLabel = vertices(vertices_correctLabel == labelValue);
+        availableLabelsRange = this.m_graph.availableLabels();
+        for label_i=availableLabelsRange
+            verticesForCurrentLabel = vertices(vertices_correctLabel == label_i);
             numVerticesForCurrentLabel = length(verticesForCurrentLabel);
             labeledVertexPosition = unidrnd(numVerticesForCurrentLabel);
             labeledVertex = verticesForCurrentLabel(labeledVertexPosition);
@@ -66,23 +71,20 @@ methods
     end
     
     %% selectLabelsUniformly
+    % Select labeled vertices, the same amount of labled vertices for
+    % each class
+    % Result: R is a column vector containing index of labeled
+    % vertices.    
     
-    function R = selectLabelsUniformly...
-            (this, vertices, classToLabelMap, numLabeledPerClass)
-        %% Select labeled vertices, the same amount of labled vertices for
-        %  each class
-        %  Result: R is a column vector containing index of labeled
-        %  vertices.
-                
+    function R = selectLabelsUniformly(this, vertices, numLabeledPerClass)
         % get correct labels for the vertices we select from.
         vertices_correctLabel = this.m_graph.correctLabelsForVertices( vertices );
         
-        numRequiredClasses = size(classToLabelMap, 1);
+        availableLabelsRange = this.m_graph.availableLabels();
         labeled = [];
-        for class_i = 1:numRequiredClasses
-            labelValue = classToLabelMap(class_i, GraphLoader.LABEL_VALUE);
+        for label_i = availableLabelsRange
             selected_indices = LabeledSelector.randomSelectWithValue...
-                (vertices_correctLabel, numLabeledPerClass, labelValue);
+                (vertices_correctLabel, numLabeledPerClass, label_i);
             labeled = [labeled; vertices(selected_indices).']; %#ok<AGROW>
         end
         R = labeled;

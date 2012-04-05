@@ -55,7 +55,7 @@ methods
         labeledInitMode = this.checkIfInitModeMathcesAlgorithm(labeledInitMode);
         
         numVertices = this.numVertices();
-        numLabels = length( graph.availabelLabels() );
+        numLabels = length( graph.availableLabels() );
         labeledVertices_indices         = this.labeledSet();
         labeledVertices_correctLabels   = ...
             graph.correctLabelsForVertices(labeledVertices_indices);

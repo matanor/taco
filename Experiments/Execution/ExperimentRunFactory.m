@@ -19,15 +19,6 @@ methods (Access = public)
     function R = run(this, algorithmsToRun)
 
         % define the classes we use
-
-%         classToLabelMap = [ 1  1;
-%                             4 -1 ];
-                        
-        classToLabelMap = [ 1  1;
-                            2  2
-                            3  3
-                            4  4];
-              
         %
         constructionParams_allOptions = this.m_paramsManager.constructionParams_allOptions();
         parameterValues_allOptions    = this.m_paramsManager.parameterValues_allOptions();
@@ -42,7 +33,6 @@ methods (Access = public)
         for construction_i=1:numConstructionStructs
             this.m_outputManager.startExperimentRun(construction_i);
             constructionParams = constructionParams_allOptions( construction_i );
-            constructionParams.classToLabelMap = classToLabelMap;
 
             Logger.log(['File Name = ' constructionParams.fileName]);
             experimentRun = ExperimentRun(constructionParams);

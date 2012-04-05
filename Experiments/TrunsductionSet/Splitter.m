@@ -33,10 +33,10 @@ methods
     %% splitBalanced
     
     function R = splitBalanced(this, numFolds)
-        availabelLabels = this.m_graph.availabelLabels();
+        availableLabels = this.m_graph.availableLabels();
         folds = [];
         %allDiscarded = [];
-        for currentLabel = availabelLabels;
+        for currentLabel = availableLabels;
             verticesForCurrentLabel = this.m_graph.verticesForLabel( currentLabel );
             foldsPerLabel = Splitter.randomSplit...
                 ( verticesForCurrentLabel, numFolds );
