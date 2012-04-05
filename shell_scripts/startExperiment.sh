@@ -1,6 +1,6 @@
 
 outputDir=/u/matanorb/experiments/webkb/results
-folderName=2012_03_29_01_webkb_fixedSymetry_no_random_seed
+folderName=2012_04_05_01_sentiment_no_random_seed_fixed_labeled_selection
 logFile=$outputDir/$folderName/matlab.log
 codeRoot=/u/matanorb/matlab_async
 workingDirectory=$codeRoot/Experiments

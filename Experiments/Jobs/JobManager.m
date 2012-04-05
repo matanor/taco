@@ -18,7 +18,12 @@ methods (Static)
         errorFile   = outputManager.createFileNameAtCurrentFolder([fileName '.error.txt']);
         logFile     = JobManager.logFileFullPath( fileFullPath );
         asyncCodeFolder = '/Experiments/async';
-        command = ['qsub -N ' runName ' -wd ' codeRoot asyncCodeFolder ' -q all.q -b y -o ' ...
+        if ParamsManager.USE_MEM_QUEUE
+            queueName = 'mem.q';
+        else
+            queueName = 'all.q';
+        end
+        command = ['qsub -N ' runName ' -wd ' codeRoot asyncCodeFolder ' -q ' queueName ' -b y -o ' ...
                    outputFile ' -e ' errorFile ' "matlab -nodesktop -r "\""' functionName '(''' ...
                    fileFullPath ''',''' codeRoot ''')"\"" -logfile ' logFile '"' ];
         

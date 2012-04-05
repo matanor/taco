@@ -16,9 +16,9 @@ methods (Static)
         %% what algorithms we want to run in the simulation
         algorithmsToRun = AlgorithmsCollection;
         algorithmsToRun.setRun(SingleRun.MAD);
-        algorithmsToRun.setRun(SingleRun.CSSLMC);
-        algorithmsToRun.setRun(SingleRun.CSSLMCF);
-        algorithmsToRun.setRun(SingleRun.AM);
+%         algorithmsToRun.setRun(SingleRun.CSSLMC);
+%         algorithmsToRun.setRun(SingleRun.CSSLMCF);
+%         algorithmsToRun.setRun(SingleRun.AM);
         
         %% allocate a multiple runs object per each parameter combination
         %  and run all experiments with all the parameter combinations
