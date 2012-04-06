@@ -49,8 +49,10 @@ methods
     
     %% startExperimentRun
     
-    function startExperimentRun(this, experiment_run_i)
-        this.stepIntoFolder(['Experiment_run_' num2str(experiment_run_i)]);
+    function startExperimentRun(this, experiment_run_i, constructionParams)
+        [~, name, ~]  = fileparts(constructionParams.fileName);
+        this.stepIntoFolder(['Experiment_run_' num2str(experiment_run_i)...
+                             '_' name '_' num2str(constructionParams.numLabeled)]);
     end
     
     %% startParametersRun

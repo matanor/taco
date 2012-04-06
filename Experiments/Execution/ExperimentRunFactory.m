@@ -31,8 +31,8 @@ methods (Access = public)
         
         allOptimizationJobs = [];
         for construction_i=1:numConstructionStructs
-            this.m_outputManager.startExperimentRun(construction_i);
             constructionParams = constructionParams_allOptions( construction_i );
+            this.m_outputManager.startExperimentRun(construction_i, constructionParams);
 
             Logger.log(['File Name = ' constructionParams.fileName]);
             experimentRun = ExperimentRun(constructionParams);
@@ -75,8 +75,10 @@ methods (Access = public)
         allEvaluationJobs = [];
         numExperiments = numel(experimentCollection);
         for construction_i=1:numExperiments
-            this.m_outputManager.startExperimentRun(construction_i);
-            experimentRun = experimentCollection(construction_i);            
+            experimentRun = experimentCollection(construction_i);
+            this.m_outputManager.startExperimentRun...
+                (construction_i, experimentRun.get_constructionParams());
+            
             progressParams.set_currentExperiment( construction_i );
             
             numParameterRuns = experimentRun.numParameterRuns();
