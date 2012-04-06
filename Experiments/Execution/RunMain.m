@@ -108,10 +108,12 @@ methods (Static)
         plottingJobs = [];
         
         for experimentID = experimentRange
-            outputManager.startExperimentRun(experimentID);
             Logger.log(['experiment ID = ' num2str(experimentID) ...
                   ' of ' num2str(numExperiments)]);
             experimentRun = experimentRuns(experimentID);
+            outputManager.startExperimentRun...
+                (experimentID, experimentRun.get_constructionParams());
+            
             numParameterRuns = experimentRun.numParameterRuns();
             for parameter_run_i=1:numParameterRuns
                 outputManager.startParametersRun(parameter_run_i);
