@@ -13,6 +13,7 @@ echo startDirectory = $startDirectory
 echo outputDir = $outputDir
 echo resultsDirectory = $resultsDirectory
 echo folderName = $folderName
+echo logFile = $logFile
 
 mkdir resultsDirectory
 cd $workingDirectory
