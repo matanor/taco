@@ -1,4 +1,4 @@
-function runOnOdin(folderName, codeRoot)
+function runOnOdin(resultsDirectory, codeRoot)
 %RUNONODIN Summary of this function goes here
 %   Detailed explanation goes here
     disp('runOnOdin');
@@ -12,10 +12,9 @@ function runOnOdin(folderName, codeRoot)
     configManager = ConfigManager.get();
     configManager.createWithDefaultsIfMissing();
 
-    resultsDir = '/u/matanorb/experiments/webkb/results/';
     isOnOdin = 1;
     outputManager = OutputManager;
-    outputManager.set_currentFolder( [resultsDir folderName]);
+    outputManager.set_currentFolder( resultsDirectory );
     outputManager.m_codeRoot        = codeRoot;
     RunMain.run(outputManager, isOnOdin);
 
