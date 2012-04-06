@@ -126,7 +126,7 @@ methods (Static)
             R = map(key);
         else
             % a new feature
-            newMappedNumber = map.Count + 1;
+            newMappedNumber = uint32(map.Count) + 1;
             map(key) = newMappedNumber; %#ok<NASGU>
             R = newMappedNumber ;
         end
