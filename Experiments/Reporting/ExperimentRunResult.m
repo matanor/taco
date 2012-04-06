@@ -128,7 +128,7 @@ methods (Static)
     function printBigTableTitle()
         SEPERATOR = ExcelTablePrinter.SEPERATOR;
         T = ['graph (M|A)' SEPERATOR];
-        T = ['num labeled' SEPERATOR];
+        T = [T 'num labeled' SEPERATOR];
         T = [T 'balanced (Y|N)' SEPERATOR];
         T = [T 'heuristics (Y|N)' SEPERATOR];
         T = [T 'labelled init (1|2)' SEPERATOR];
