@@ -81,6 +81,7 @@ methods (Access = public)
         twentyNG_4715.odin        = '/u/matanorb/experiments/20NG/data/twentyNG_4715.mat';
         enronFarmer.odin          = '/u/matanorb/experiments/enron/farmer-d.graph.mat';
         enronkaminski.odin        = '/u/matanorb/experiments/enron/kaminski-v.graph.mat';
+        reuters.odin              = '/u/matanorb/experiments/reuters/reuters_4_topics.graph.mat';
         webkb_constructed.desktop = 'C:/technion/theses/Experiments/WebKB/data/Rapid_Miner_Result/webkb_constructed.mat';
         webkb_amar.desktop        = 'C:/technion/theses/Experiments/WebKB/data/From Amar/webkb_amar.mat';
         webkb_html.desktop        = 'C:/technion/theses/Experiments/WebKB/data/Constructed_With_Html/webkb_with_html.mat';
@@ -89,6 +90,7 @@ methods (Access = public)
         twentyNG_4715.desktop     = 'C:/technion/theses/Experiments/20news/20news-4715/twentyNG_4715.mat';
         enronFarmer.desktop       = 'C:/technion/theses/Experiments/enron/farmer-d.graph.mat';
         enronkaminski.desktop     = 'C:/technion/theses/Experiments/enron/kaminski-v.graph.mat';
+        reuters.desktop           = 'C:/technion/theses/Experiments/reuters/reuters_4_topics.graph.mat';
 
         if isOnOdin
            fileNames = [ {webkb_constructed.odin} ...
