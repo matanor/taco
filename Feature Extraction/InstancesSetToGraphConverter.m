@@ -23,7 +23,11 @@ methods (Static)
         labels = instancesSet.labels();
         graph.labels = labels;
         
-        graph.name = instancesSet.name();
+        if use_tfidf
+            graph.name = [instancesSet.name() '.tfidf'];
+        else
+            graph.name = instancesSet.name();
+        end
     end
 end
     
