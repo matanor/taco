@@ -73,7 +73,7 @@ methods (Access = public)
         numDocumentsPerFeature = sum(this.m_instances ~=0,1); % row vector
         numWordsPerInstance = sum(this.m_instances,2); % column vector
         numFeatures = this.numFeatures();
-        this.m_tfidf = zeros(numDocuments,numFeatures);
+        this.m_tfidf = sparse(numDocuments,numFeatures);
         for feature_i=1:numFeatures
             for instance_i=1:numDocuments
                 tf = this.m_instances(instance_i,feature_i) ./ ...
