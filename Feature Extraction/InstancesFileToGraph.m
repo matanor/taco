@@ -26,18 +26,25 @@ methods (Static)
 %         R{dataset_i} = 'C:\technion\theses\Experiments\20news\From Koby\all.instances';
 %         dataset_i = dataset_i + 1;
 
-%         R(dataset_i).fileName = [rootDir 'amazon/all.instances'];
-%         R(dataset_i).maxInstances = DefaultFormatReader.READ_ALL_INSTANCES;
-%         dataset_i = dataset_i + 1;
-%         
-%         R(dataset_i).fileName = [rootDir 'amazon/books_dvd_music.instances'];
-%         R(dataset_i).maxInstances = 7000;
-%         dataset_i = dataset_i + 1;
-%         
-%         R(dataset_i).fileName = [rootDir 'reuters\reuters_4_topics.instances'];
-%         R(dataset_i).maxInstances = 4000;
-%         dataset_i = dataset_i + 1;
+        R(dataset_i).fileName = [rootDir 'amazon/all.instances'];
+        R(dataset_i).maxInstances = DefaultFormatReader.READ_ALL_INSTANCES;
+        dataset_i = dataset_i + 1;
         
+        R(dataset_i).fileName = [rootDir 'amazon/books_dvd_music.instances'];
+        R(dataset_i).maxInstances = 7000;
+        dataset_i = dataset_i + 1;
+        
+        R(dataset_i).fileName = [rootDir 'reuters/reuters_4_topics.instances'];
+        R(dataset_i).maxInstances = 4000;
+        dataset_i = dataset_i + 1;
+        
+    end
+    
+    %% runOnAllTextDatasets_desktop
+    
+    function runOnAllTextDatasets_desktop()
+        onOdin = 0;
+        InstancesFileToGraph.runOnAllTextDatasets( onOdin );
     end
     
     %% runOnAllTextDatasets_odin
@@ -100,6 +107,8 @@ methods (Static)
         instancesSet = inputData.instancesSet;
         
         instancesSet.create_tfidf();
+        
+        save(instancesFileName, 'instancesSet');
         
         use_tfidf = 1;
         graph = InstancesSetToGraphConverter.convert...

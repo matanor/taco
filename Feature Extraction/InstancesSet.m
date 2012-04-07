@@ -29,6 +29,8 @@ methods (Access = public)
         R = this.m_instances;
     end
     
+    %% tfidf
+    
     function R = tfidf(this)
         R = this.m_tfidf;
     end
@@ -78,7 +80,7 @@ methods (Access = public)
                           numWordsPerInstance(instance_i); 
                 idf = log( numDocuments ./ ...
                            numDocumentsPerFeature(feature_i));
-                this.m_tfidf = tf * idf;
+                this.m_tfidf(instance_i,feature_i) = tf * idf;
                 clear tf idf;
             end
             if mod(feature_i,1000) == 0
