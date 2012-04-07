@@ -102,7 +102,6 @@ methods (Access = public)
 %                          {twentyNG_4715} ];
         else
            fileNames = [ {webkb_constructed} ...
-                         {webkb_amar} ...
                          ];
 %                          {webkb_html} ...
 %                          {sentiment_5k} ...
@@ -181,7 +180,7 @@ methods (Access = public)
             this = this.createParameter( 'am_v',     [1e-4], isString,[]);
             this = this.createParameter( 'am_mu',    [1e-2], isString,[]);
             this = this.createParameter( 'am_alpha', [2], isString,[]);
-            this = this.createParameter( 'am_K',     [250 500], isString,[]);
+            this = this.createParameter( 'am_K',     [1000], isString,[]);
         end
         
         this.m_defaultParamsAM.K = 1000;
@@ -193,7 +192,7 @@ methods (Access = public)
         
         %numIterations.range = [5 10 25 50 100];
         if isTesting
-            this = this.createParameter( 'maxIterations', [11], isString, [] );    
+            this = this.createParameter( 'maxIterations', [1], isString, [] );    
             this = this.createParameter( 'numEvaluationRuns', [1], isString, [] );
         else
             this = this.createParameter( 'maxIterations',     [10], isString, [] );    
