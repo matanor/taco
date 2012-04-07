@@ -89,12 +89,14 @@ methods (Static)
         labelMappingFileName = [path '/' name '.labels.mapping.txt'];
         instancesSet.writeLabelMapping(labelMappingFileName);
         instancesFileName = [path '/' name '.mat'];
+        Logger.log(['Saving instances to ''' instancesFileName '''']);
         save(instancesFileName, 'instancesSet');
         
         use_tfidf = 0;
         graph = InstancesSetToGraphConverter.convert...
             ( instancesSet, use_tfidf  ); %#ok<NASGU>
         graphFileName = [path '/' name '.graph.mat'];
+        Logger.log(['Saving graph to ''' graphFileName '''']);
         save(graphFileName, 'graph');       
     end
     
@@ -103,6 +105,7 @@ methods (Static)
     function createGraphUsingTfidf(fileName)
         [path, name, ~]  = fileparts(fileName);
         instancesFileName = [path '/' name '.mat'];
+        Logger.log(['Loading instances from ''' instancesFileName '''']);
         inputData = load(instancesFileName);
         instancesSet = inputData.instancesSet;
         
@@ -114,6 +117,7 @@ methods (Static)
         graph = InstancesSetToGraphConverter.convert...
             ( instancesSet, use_tfidf  ); %#ok<NASGU>
         graphFileName = [path '/' name '.tfidf.graph.mat'];
+        Logger.log(['Saving tfidf graph to ''' graphFileName '''']);
         save(graphFileName, 'graph');
     end
 end
