@@ -6,11 +6,14 @@ methods (Static)
     
     %% textDataSets
     
-    function R = textDataSets()
+    function R = textDataSets(isOnOdin)
         dataset_i = 1;
         
-        rootDir = 'C:/technion/theses/Experiments/';
-%         rootDir = '/u/matanorb/experiments/';
+        if isOnOdin
+            rootDir = '/u/matanorb/experiments/';
+        else
+            rootDir = 'C:/technion/theses/Experiments/';            
+        end
         
         R(dataset_i).fileName = [rootDir 'enron/farmer-d.instances'];
         R(dataset_i).maxInstances = DefaultFormatReader.READ_ALL_INSTANCES;
@@ -37,10 +40,18 @@ methods (Static)
         
     end
     
+    %% runOnAllTextDatasets_odin
+    
+    function runOnAllTextDatasets_odin()
+        onOdin = 1;
+        InstancesFileToGraph.runOnAllTextDatasets( onOdin );
+    end
+    
     %% runOnAllTextDatasets
     
-    function runOnAllTextDatasets()
-        InstancesFileToGraph.runOnDatasets( InstancesFileToGraph.textDataSets);
+    function runOnAllTextDatasets(isOnOdin)
+        InstancesFileToGraph.runOnDatasets...
+            ( InstancesFileToGraph.textDataSets(isOnOdin));
     end
     
     %% runOnDatasets
