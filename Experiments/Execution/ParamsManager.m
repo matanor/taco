@@ -73,41 +73,41 @@ methods (Access = public)
         optimize = ~isTesting;
         
         isString = 1;
-        webkb_constructed.odin    = '/u/matanorb/experiments/webkb/data/Rapid_Miner_Result/webkb_constructed.mat';
-        webkb_amar.odin           = '/u/matanorb/experiments/webkb/data/from_amar/webkb_amar.mat';
-        webkb_html.odin           = '/u/matanorb/experiments/webkb/data/With_Html/webkb_with_html.mat';
-        sentiment_5k.odin         = '/u/matanorb/experiments/sentiment/data/from_yoav/sentiment_5k.mat';
-        sentiment_10k.odin        = '/u/matanorb/experiments/sentiment/data/from_yoav/sentiment_10k.mat';
-        twentyNG_4715.odin        = '/u/matanorb/experiments/20NG/data/twentyNG_4715.mat';
-        enronFarmer.odin          = '/u/matanorb/experiments/enron/farmer-d.graph.mat';
-        enronkaminski.odin        = '/u/matanorb/experiments/enron/kaminski-v.graph.mat';
-        reuters.odin              = '/u/matanorb/experiments/reuters/reuters_4_topics.graph.mat';
-        webkb_constructed.desktop = 'C:/technion/theses/Experiments/WebKB/data/Rapid_Miner_Result/webkb_constructed.mat';
-        webkb_amar.desktop        = 'C:/technion/theses/Experiments/WebKB/data/From Amar/webkb_amar.mat';
-        webkb_html.desktop        = 'C:/technion/theses/Experiments/WebKB/data/Constructed_With_Html/webkb_with_html.mat';
-        sentiment_5k.desktop      = 'C:/technion/theses/Experiments/sentiment_analysis_from_yoav/Data/sentiment_5k.mat';
-        sentiment_10k.desktop     = 'C:/technion/theses/Experiments/sentiment_analysis_from_yoav/Data/sentiment_10k.mat';
-        twentyNG_4715.desktop     = 'C:/technion/theses/Experiments/20news/20news-4715/twentyNG_4715.mat';
-        enronFarmer.desktop       = 'C:/technion/theses/Experiments/enron/farmer-d.graph.mat';
-        enronkaminski.desktop     = 'C:/technion/theses/Experiments/enron/kaminski-v.graph.mat';
-        reuters.desktop           = 'C:/technion/theses/Experiments/reuters/reuters_4_topics.graph.mat';
+        
+        if isOnOdin
+            rootDir = '/u/matanorb/experiments/';
+        else
+            rootDir = 'C:/technion/theses/Experiments/';            
+        end
+        
+        webkb_constructed    = [ rootDir 'webkb/data/Rapid_Miner_Result/webkb_constructed.mat'];
+        webkb_amar           = [ rootDir 'webkb/data/from_amar/webkb_amar.mat'];
+        webkb_html           = [ rootDir 'webkb/data/With_Html/webkb_with_html.mat'];
+        sentiment_5k         = [ rootDir 'sentiment/data/from_yoav/sentiment_5k.mat'];
+        sentiment_10k        = [ rootDir 'sentiment/data/from_yoav/sentiment_10k.mat'];
+        twentyNG_4715        = [ rootDir '20NG/data/twentyNG_4715.mat'];
+        enronFarmer          = [ rootDir 'enron/farmer-d.graph.mat'];
+        enronKaminski        = [ rootDir 'enron/kaminski-v.graph.mat'];
+        amazon3              = [ rootDir 'amazon/books_dvd_music.graph.mat'];
+        amazon7              = [ rootDir 'amazon/all.graph.mat'];
+        reuters              = [ rootDir 'reuters/reuters_4_topics.graph.mat'];
 
         if isOnOdin
-           fileNames = [ {webkb_constructed.odin} ...
+           fileNames = [ {webkb_constructed} ...
                          ];
-%                          {webkb_amar.odin} ...
-%                          {webkb_html.odin} ...
-%                          {sentiment_5k.odin} ...
-%                          {sentiment_10k.odin} ...
-%                          {twentyNG_4715.odin} ];
+%                          {webkb_amar} ...
+%                          {webkb_html} ...
+%                          {sentiment_5k} ...
+%                          {sentiment_10k} ...
+%                          {twentyNG_4715} ];
         else
-           fileNames = [ {webkb_constructed.desktop} ...
-                         {webkb_amar.desktop} ...
+           fileNames = [ {webkb_constructed} ...
+                         {webkb_amar} ...
                          ];
-%                          {webkb_html.desktop} ...
-%                          {sentiment_5k.desktop} ...
-%                          {sentiment_10k.desktop} ...
-%                          {twentyNG_4715.desktop} ];
+%                          {webkb_html} ...
+%                          {sentiment_5k} ...
+%                          {sentiment_10k} ...
+%                          {twentyNG_4715} ];
         end
         fileNamesRange = 1:length(fileNames);
         this = this.createParameter( 'fileName', fileNamesRange , ...
