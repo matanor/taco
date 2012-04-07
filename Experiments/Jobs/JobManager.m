@@ -123,7 +123,7 @@ methods (Static)
         config = configManager.read();
         
         sleepIntervalInSeconds = 30;
-        finished = 0;
+        finished = isempty(jobsCollection);
         
         maxJobs = config.maxJobs;
         runningJobs = [];
