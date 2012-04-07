@@ -15,7 +15,7 @@ echo resultsDirectory = $resultsDirectory
 echo folderName = $folderName
 echo logFile = $logFile
 
-mkdir resultsDirectory
+mkdir $resultsDirectory
 cd $workingDirectory
 echo currentDirectory = "$(pwd)"
 echo "matlab -nodesktop -r "\""runOnOdin('$resultsDirectory','$codeRoot')"\"" "
