@@ -10,6 +10,7 @@ methods (Static)
         dataset_i = 1;
         
         rootDir = 'C:/technion/theses/Experiments/';
+%         rootDir = '/u/matanorb/experiments/';
         
         R(dataset_i).fileName = [rootDir 'enron/farmer-d.instances'];
         R(dataset_i).maxInstances = DefaultFormatReader.READ_ALL_INSTANCES;
@@ -22,11 +23,11 @@ methods (Static)
 %         R{dataset_i} = 'C:\technion\theses\Experiments\20news\From Koby\all.instances';
 %         dataset_i = dataset_i + 1;
 
-%         R(dataset_i).fileName = [rootDir 'sentiment/all.instances'];
+%         R(dataset_i).fileName = [rootDir 'amazon/all.instances'];
 %         R(dataset_i).maxInstances = DefaultFormatReader.READ_ALL_INSTANCES;
 %         dataset_i = dataset_i + 1;
 %         
-%         R(dataset_i).fileName = [rootDir 'sentiment/books_dvd_music.instances'];
+%         R(dataset_i).fileName = [rootDir 'amazon/books_dvd_music.instances'];
 %         R(dataset_i).maxInstances = 7000;
 %         dataset_i = dataset_i + 1;
 %         
@@ -50,14 +51,16 @@ methods (Static)
             currentDataset = datasets(dataset_i);
             Logger.log(['File Name = '''   currentDataset.fileName '''']);
             Logger.log(['Max instances = ' num2str(currentDataset.maxInstances) ]);
-            InstancesFileToGraph.runOnSingleDataset...
-            ( currentDataset.fileName, currentDataset.maxInstances );
+%             InstancesFileToGraph.readInstancesAndCreateGraph...
+%                 ( currentDataset.fileName, currentDataset.maxInstances );
+            InstancesFileToGraph.createGraphUsingTfidf...
+                ( currentDataset.fileName );
         end
     end
     
-    %% runOnSingleDataset
+    %% readInstancesAndCreateGraph
     
-    function runOnSingleDataset(fileName, maxInstances)
+    function readInstancesAndCreateGraph(fileName, maxInstances)
         reader = DefaultFormatReader(fileName);
         [path, name, ~]  = fileparts(fileName);
         reader.init();
@@ -70,8 +73,27 @@ methods (Static)
         instancesFileName = [path '/' name '.mat'];
         save(instancesFileName, 'instancesSet');
         
-        graph = InstancesSetToGraphConverter.convert( instancesSet ); %#ok<NASGU>
+        use_tfidf = 0;
+        graph = InstancesSetToGraphConverter.convert...
+            ( instancesSet, use_tfidf  ); %#ok<NASGU>
         graphFileName = [path '/' name '.graph.mat'];
+        save(graphFileName, 'graph');       
+    end
+    
+    %% createGraphUsingTfidf
+    
+    function createGraphUsingTfidf(fileName)
+        [path, name, ~]  = fileparts(fileName);
+        instancesFileName = [path '/' name '.mat'];
+        inputData = load(instancesFileName);
+        instancesSet = inputData.instancesSet;
+        
+        instancesSet.create_tfidf();
+        
+        use_tfidf = 1;
+        graph = InstancesSetToGraphConverter.convert...
+            ( instancesSet, use_tfidf  ); %#ok<NASGU>
+        graphFileName = [path '/' name '.tfidf.graph.mat'];
         save(graphFileName, 'graph');
     end
 end

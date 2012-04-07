@@ -6,6 +6,7 @@ properties (Access = public)
     m_stringToFeatureNumberMap;
     m_stringToLabelNumberMap;
     m_instances;
+    m_tfidf;
     m_labels;
     m_name;
 end
@@ -19,12 +20,17 @@ methods (Access = public)
         this.m_stringToLabelNumberMap = containers.Map;
         this.m_instances = sparse(1);
         this.m_labels = [];
+        this.m_tfidf = sparse(1);
     end
     
     %% instances
     
     function R = instances(this)
         R = this.m_instances;
+    end
+    
+    function R = tfidf(this)
+        R = this.m_tfidf;
     end
     
     %% labels
@@ -55,6 +61,32 @@ methods (Access = public)
     
     function R = numInstances(this)
         R = size(this.m_instances,1);
+    end
+    
+    %% create_tfidf
+    
+    function create_tfidf(this)
+        Logger.log('Creating tfidf features...');
+        numDocuments = this.numInstances();
+        numDocumentsPerFeature = sum(this.m_instances ~=0,1); % row vector
+        numWordsPerInstance = sum(this.m_instances,2); % column vector
+        numFeatures = this.numFeatures();
+        this.m_tfidf = zeros(numDocuments,numFeatures);
+        for feature_i=1:numFeatures
+            for instance_i=1:numDocuments
+                tf = this.m_instances(instance_i,feature_i) ./ ...
+                          numWordsPerInstance(instance_i); 
+                idf = log( numDocuments ./ ...
+                           numDocumentsPerFeature(feature_i));
+                this.m_tfidf = tf * idf;
+                clear tf idf;
+            end
+            if mod(feature_i,1000) == 0
+                Logger.log(['Progress: ' num2str(feature_i) ...
+                            ' features, out of ' num2str(numFeatures)]);
+            end
+        end
+        Logger.log('Finished tfidf features.');
     end
     
     %% labelNameToLabelNumber

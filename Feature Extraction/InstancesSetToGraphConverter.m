@@ -6,8 +6,14 @@ properties
 end
     
 methods (Static)
-    function graph = convert(instancesSet)
-        instances = instancesSet.instances();
+    function graph = convert(instancesSet, use_tfidf)
+        Logger.log(['Converting instances to graph. ' ...
+                    'use_tfidf = ' num2str(use_tfidf)]);
+        if use_tfidf
+            instances = instancesSet.tfidf();
+        else
+            instances = instancesSet.instances();
+        end
         norm_l2 = full(sqrt(sum(instances.^2,2)));
         norm_ij = norm_l2 * norm_l2.';
         weights = (instances  * instances.') ./ norm_ij;
