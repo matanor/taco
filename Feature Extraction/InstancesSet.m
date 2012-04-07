@@ -76,12 +76,14 @@ methods (Access = public)
         this.m_tfidf = sparse(numDocuments,numFeatures);
         for feature_i=1:numFeatures
             for instance_i=1:numDocuments
-                tf = this.m_instances(instance_i,feature_i) ./ ...
-                          numWordsPerInstance(instance_i); 
-                idf = log( numDocuments ./ ...
-                           numDocumentsPerFeature(feature_i));
-                this.m_tfidf(instance_i,feature_i) = tf * idf;
-                clear tf idf;
+                if this.m_instances(instance_i,feature_i) ~=0
+                    tf = this.m_instances(instance_i,feature_i) ./ ...
+                              numWordsPerInstance(instance_i); 
+                    idf = log( numDocuments ./ ...
+                               numDocumentsPerFeature(feature_i));
+                    this.m_tfidf(instance_i,feature_i) = tf * idf;
+                    clear tf idf;
+                end
             end
             if mod(feature_i,1000) == 0
                 Logger.log(['Progress: ' num2str(feature_i) ...
