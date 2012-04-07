@@ -70,24 +70,24 @@ methods (Access = public)
     function create_tfidf(this)
         Logger.log('Creating tfidf features...');
         numDocuments = this.numInstances();
-        numDocumentsPerFeature = sum(this.m_instances ~=0,1); % row vector
-        numWordsPerInstance = sum(this.m_instances,2); % column vector
+        numDocumentsPerFeature = full(sum(this.m_instances ~=0,1)); % row vector
+        numWordsPerInstance = full(sum(this.m_instances,2)); % column vector
         numFeatures = this.numFeatures();
         this.m_tfidf = sparse(numDocuments,numFeatures);
-        for feature_i=1:numFeatures
-            for instance_i=1:numDocuments
-                if this.m_instances(instance_i,feature_i) ~=0
-                    tf = this.m_instances(instance_i,feature_i) ./ ...
-                              numWordsPerInstance(instance_i); 
-                    idf = log( numDocuments ./ ...
-                               numDocumentsPerFeature(feature_i));
-                    this.m_tfidf(instance_i,feature_i) = tf * idf;
-                    clear tf idf;
-                end
-            end
-            if mod(feature_i,1000) == 0
-                Logger.log(['Progress: ' num2str(feature_i) ...
-                            ' features, out of ' num2str(numFeatures)]);
+        [documentsRange,featuresRange,valuesRange] = find(this.m_instances);
+        numElements = length(documentsRange);
+        for element_i=1:numElements
+            instance_i   = documentsRange(element_i);
+            feature_i    = featuresRange(element_i);
+            featureValue = valuesRange(element_i);
+            tf = featureValue ./ numWordsPerInstance(instance_i); 
+            idf = log( numDocuments ./ ...
+                       numDocumentsPerFeature(feature_i));
+            this.m_tfidf(instance_i,feature_i) = tf * idf;
+            clear tf idf;
+            if mod(element_i,1000) == 0
+                Logger.log(['Progress: ' num2str(element_i) ...
+                            ' elements, out of ' num2str(numElements)]);
             end
         end
         Logger.log('Finished tfidf features.');
