@@ -61,12 +61,12 @@ methods (Static)
     
     function plotResults(experimentRuns, outputManager)
         if ParamsManager.ASYNC_RUNS == 0 
-            RunMain.plotEvaluationSummary(experimentRuns);
+            RunMain.plotEvaluationSummary(experimentRuns, outputManager);
         else
         	experimentRuns = RunMain.clearGraphs( experimentRuns );
             fileFullPath = outputManager.createFileNameAtCurrentFolder...
                 ('EvaluationSummary.mat');
-            save(fileFullPath, 'experimentRuns');
+            save(fileFullPath, 'experimentRuns', 'outputManager');
             job = JobManager.createJob(fileFullPath, 'asyncEvaluationSummary', outputManager);
             JobManager.executeJobs( job );
         end
@@ -78,18 +78,21 @@ methods (Static)
     
     %% plotEvaluationSummary
     
-    function plotEvaluationSummary(experimentRuns)
+    function plotEvaluationSummary(experimentRuns, outputManager)
         
         numExperiments = length(experimentRuns);
         experimentRange = 1:numExperiments;
         Logger.log('**** Multiple Runs Summary ****');
         
+        bigTableOutputFileName = outputManager.createFileNameAtCurrentFolder...
+                                                ('BigTableSummary.txt');
         resultsSummary = ResultsSummary;
         for experimentID = experimentRange
             Logger.log(['experiment ID = ' num2str(experimentID) ]);
             experimentRun = experimentRuns(experimentID);
             experimentRunResults = ExperimentRunResult;
             experimentRunResults.create(experimentRun)
+            experimentRunResults.set_bigTableOutputFileName(bigTableOutputFileName);
             resultsSummary.add(experimentRunResults);
         end
         resultsSummary.printSummary();

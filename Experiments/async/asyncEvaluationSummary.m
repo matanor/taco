@@ -3,8 +3,9 @@ function asyncEvaluationSummary(fileFullPath, codeRoot)
 
     runData = load(fileFullPath);
     experimentRuns  = runData.experimentRuns;
+    outputManager   = runData.outputManager;
     
-    RunMain.plotEvaluationSummary(experimentRuns);
+    RunMain.plotEvaluationSummary(experimentRuns, outputManager);
     
     JobManager.signalJobIsFinished( fileFullPath );
 end

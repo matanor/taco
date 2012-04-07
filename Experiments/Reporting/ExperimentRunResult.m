@@ -4,6 +4,7 @@ classdef ExperimentRunResult < handle
     
     properties
         m_resultCollection;
+        m_bigTableOutputFileName;
     end
     
 methods
@@ -19,6 +20,12 @@ methods
             parameterRunResult.create(parameterRun, constructionParams );
             this.addParameterRunResult(parameterRunResult);
         end
+    end
+    
+    %% set_bigTableOutputFileName
+    
+    function set_bigTableOutputFileName(this, value)
+        this.m_bigTableOutputFileName = value;
     end
     
     %% addParameterRunResult
@@ -38,14 +45,20 @@ methods
     %% printBigTableSummary
     
     function printBigTableSummary(this)
-        this.printBigTableTitle();
+        outputFileID = fopen(this.m_bigTableOutputFileName,'a');
+        title = this.createBigTableTitle();
+        Logger.log(title);
+        fprintf(outputFileID, '%s\n', title);
         for parameter_run_i=1:this.numParameterRuns()
             parameterRunResult = this.m_resultCollection(parameter_run_i);
             lines = parameterRunResult.toString_all();
             for line_i=1:length(lines)
-                Logger.log( lines{line_i} );
+                lineContents = lines{line_i};
+                Logger.log( lineContents );
+                fprintf(outputFileID, '%s\n', lineContents);
             end
         end
+        fclose(outputFileID);
     end
     
     %% printSmallTablesSummary
@@ -123,9 +136,9 @@ methods (Static)
         end
     end
     
-    %% printBigTableTitle
+    %% createBigTableTitle
     
-    function printBigTableTitle()
+    function R = createBigTableTitle()
         SEPERATOR = ExcelTablePrinter.SEPERATOR;
         T = ['graph (M|A)' SEPERATOR];
         T = [T 'num labeled' SEPERATOR];
@@ -155,7 +168,7 @@ methods (Static)
         T = [T 'am_mu'      SEPERATOR];
         T = [T 'am_alpha'   SEPERATOR];
 
-        Logger.log(T);
+        R = T;
     end
    
 end
