@@ -69,7 +69,7 @@ methods
                 finished = 1;
             end
             if mod(line_i,1000) == 0
-                Logger.log(['Read ' num2str(line_i) 'lines.']);
+                Logger.log(['Read ' num2str(line_i) ' lines.']);
             end
         end
     end
