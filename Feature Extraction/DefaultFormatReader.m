@@ -68,7 +68,7 @@ methods
                             num2str(maxInstances) '. finished.']);
                 finished = 1;
             end
-            if mod(line_i,1000) == 0
+            if mod(line_i,100) == 0
                 Logger.log(['Read ' num2str(line_i) ' lines.']);
             end
         end
