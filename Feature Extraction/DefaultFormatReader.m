@@ -77,12 +77,22 @@ methods
     %% processSingleLine
     
     function processSingleLine(this, line, line_i)
-        entries = textscan(line,'%s','delimiter',' ');
-        entries = entries{1};
-        numEntries = numel(entries);
-        for entry_i=1:numEntries
-            singleEntry = entries{entry_i};
-            this.processEntry(line_i, singleEntry );
+        try
+            entries = textscan(line,'%s','delimiter',' ');
+            entries = entries{1};
+            numEntries = numel(entries);
+            for entry_i=1:numEntries
+                singleEntry = entries{entry_i};
+                try
+                    this.processEntry(line_i, singleEntry );
+                catch innerException
+                    Logger.log(['Error in entry ' num2str(entry_i) ]);
+                    throw(innerException);
+                end
+            end
+        catch exception
+            Logger.log(['Error in line ' num2str(line_i) ]);
+            throw(exception);
         end
     end
     
