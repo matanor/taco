@@ -101,6 +101,11 @@ methods
     function processEntry(this, instance_i, entry)
         parts = textscan(entry,'%s','delimiter',':');
         parts = parts{1};
+        if length(parts) < 2
+            Logger.log(['Error reading in instance ' num2str(instance_i)...
+                       ' entry = ''' entry '''. skipping..']);
+            return;
+        end
         entryType = parts{1};
         entryValue = parts{2};
         switch entryType
