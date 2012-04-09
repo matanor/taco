@@ -80,17 +80,24 @@ methods (Access = public)
             rootDir = 'C:/technion/theses/Experiments/';            
         end
         
+        useTFIDF = 1;
+        if useTFIDF
+            tfidf = '.tfidf';
+        else
+            tfidf = [];
+        end
+        
         webkb_constructed    = [ rootDir 'webkb/data/Rapid_Miner_Result/webkb_constructed.mat'];
         webkb_amar           = [ rootDir 'webkb/data/from_amar/webkb_amar.mat'];
         webkb_html           = [ rootDir 'webkb/data/With_Html/webkb_with_html.mat'];
         sentiment_5k         = [ rootDir 'sentiment/data/from_yoav/sentiment_5k.mat'];
         sentiment_10k        = [ rootDir 'sentiment/data/from_yoav/sentiment_10k.mat'];
         twentyNG_4715        = [ rootDir '20NG/data/twentyNG_4715.mat'];
-        enronFarmer          = [ rootDir 'enron/farmer-d.graph.mat'];
-        enronKaminski        = [ rootDir 'enron/kaminski-v.graph.mat'];
+        enronFarmer          = [ rootDir 'enron/farmer-d' tfidf '.graph.mat'];
+        enronKaminski        = [ rootDir 'enron/kaminski-v' tfidf '.graph.mat'];
         amazon3              = [ rootDir 'amazon/books_dvd_music.graph.mat'];
         amazon7              = [ rootDir 'amazon/all.graph.mat'];
-        reuters              = [ rootDir 'reuters/reuters_4_topics.graph.mat'];
+        reuters              = [ rootDir 'reuters/reuters_4_topics' tfidf '.graph.mat'];
 
         if isOnOdin
            fileNames = [ {webkb_constructed} ...
@@ -152,7 +159,7 @@ methods (Access = public)
             paperOprimizationRange = [1e-8 1e-4 1e-2 1 10 1e2 1e3];        
             this = this.createParameter( 'mu2', paperOprimizationRange, isString, [] );  
             this = this.createParameter( 'mu3', paperOprimizationRange, isString, [] );
-%             mad_k_paper_range = [10,50,100,500,1000,2000];
+            mad_k_paper_range = [10,50,100,500,1000,2000];
             this = this.createParameter...
                 ( 'mad_K',   [1000]  , isString,[]); % NO all vertices option
         else
