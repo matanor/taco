@@ -12,6 +12,7 @@ methods (Access=public)
         beta                = this.m_beta;
         num_iterations      = this.m_num_iterations;
         gamma               = this.m_labeledConfidence;
+        isUsingL2Regularization = this.m_isUsingL2Regularization;
 
         this.displayParams(CSSLMC.name());
         
@@ -62,7 +63,7 @@ methods (Access=public)
                     C = sum( neighbours.weights .* neighbours_mu ./ neighbours_v ) ...
                         + isLabeled * (y_i_l / gamma) ;
                     D = sum( neighbours.weights ./ neighbours_v ) ...
-                        + isLabeled / gamma + 1;
+                        + isLabeled / gamma + isUsingL2Regularization * 1;
 
                     new_mu =    (B + prev_v(vertex_i,label_i) * C) / ...
                                 (ni + prev_v(vertex_i,label_i) * D);

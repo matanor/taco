@@ -13,6 +13,7 @@ classdef CSSLMCF < CSSLBase
         beta                = this.m_beta;
         num_iterations      = this.m_num_iterations;
         gamma               = this.m_labeledConfidence;
+        isUsingL2Regularization = this.m_isUsingL2Regularization;
         
         num_vertices = this.numVertices();
         num_labels   = this.numLabels();
@@ -78,6 +79,8 @@ classdef CSSLMCF < CSSLBase
                     K_i_j = covariance * neighbour_mu;
                     sum_K_i_j = sum_K_i_j + K_i_j;
                 end
+                
+                Q_i = Q_i + isUsingL2Regularization * eye(size(Q_i));
                 
                 y_i       = this.priorVector( vertex_i );
                 new_mu = ( Q_i + P_i ) \ ( sum_K_i_j + P_i * y_i );

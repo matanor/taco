@@ -116,6 +116,7 @@ methods
         R = [R num2str(this.m_constructionParams.balanced) SEPERATOR ];
         R = [R num2str(this.m_parameterValues.useGraphHeuristics) SEPERATOR ];
         R = [R num2str(this.m_parameterValues.labeledInitMode) SEPERATOR ];
+        R = [R num2str(this.m_parameterValues.isUsingL2Regularization) SEPERATOR ];
         optimizationMethodName = OptimizationMethodToStringConverter.convert( optimization_method_i );
         R = [R optimizationMethodName SEPERATOR ];
         algorithmName = AlgorithmTypeToStringConverter.convert(algorithmType);
