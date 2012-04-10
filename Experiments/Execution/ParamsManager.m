@@ -220,9 +220,9 @@ methods (Access = public)
         % 0 means all instances
         this = this.createParameter( 'numInstancesPerClass', [0], isString, [] );    
         if isTesting
-            this = this.createParameter( 'useGraphHeuristics', [1], isString, [] );
+            this = this.createParameter( 'useGraphHeuristics', [0], isString, [] );
         else 
-            this = this.createParameter( 'useGraphHeuristics', [0 1], isString, [] );
+            this = this.createParameter( 'useGraphHeuristics', [0], isString, [] );
         end
         
         if isTesting
