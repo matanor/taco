@@ -94,8 +94,16 @@ methods
     
     %% trunsductionSetsFileName
     
-    function r = trunsductionSetsFileName(this)
-        r = this.createFileNameAtCurrentFolder('TrunsductionSets.mat');
+    function r = trunsductionSetsFileName(this, constructionParams)
+        [path, name, ~] = fileparts(constructionParams.fileName);
+        numLabeledStr = num2str(constructionParams.numLabeled);
+        if constructionParams.balanced 
+            isBalancedStr = 'balanced';
+        else
+            isBalancedStr = 'unbalanced';
+        end
+        trunsductionFileName = [path '/' name '_TrunsSet_' isBalancedStr '_' numLabeledStr '.mat'];
+        r = trunsductionFileName;
     end
     
     %% evaluteOptimizationJobName

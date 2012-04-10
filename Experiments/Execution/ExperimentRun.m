@@ -31,8 +31,12 @@ methods (Access = public)
     
     function constructGraph(this)
         this.m_graph.load                    ( this.m_constructionParams.fileName );
-        this.m_graph.removeExtraSplitVertices( this.m_constructionParams.numFolds);
-        
+        this.m_graph.removeExtraSplitVertices( this.m_constructionParams.numFolds);        
+    end
+    
+    %% createTrunstuctionSets
+    
+    function createTrunstuctionSets(this)
         trunsductionSetsFactory = ...
             ExperimentTrunsductionSetsFactory( this.m_constructionParams, this.m_graph );
         this.m_trunsductionSets = trunsductionSetsFactory.create();

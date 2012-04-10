@@ -21,6 +21,7 @@ methods
         R = ExperimentTrunsductionSets;
         this.createOptimizationSets ( R, 1);
         this.createEvaluationSets   ( R, this.m_constructionParams.numEvaluationRuns);
+        R.setCorrectLabels( this.m_graph.correctLabels() );
     end
     
     %% createOptimizationSets

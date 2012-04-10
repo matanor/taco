@@ -94,11 +94,11 @@ methods (Access = public)
         sentiment_5k         = [ rootDir 'sentiment/data/from_yoav/sentiment_5k.mat'];
         sentiment_10k        = [ rootDir 'sentiment/data/from_yoav/sentiment_10k.mat'];
         twentyNG_4715        = [ rootDir '20NG/data/twentyNG_4715.mat'];
-        enronFarmer          = [ rootDir 'enron/farmer-d' tfidf '.graph.mat'];
-        enronKaminski        = [ rootDir 'enron/kaminski-v' tfidf '.graph.mat'];
-        amazon3              = [ rootDir 'amazon/books_dvd_music.graph.mat'];
-        amazon7              = [ rootDir 'amazon/all.graph.mat'];
-        reuters              = [ rootDir 'reuters/reuters_4_topics' tfidf '.graph.mat'];
+        enronFarmer          = [ rootDir 'enron/farmer/farmer-d'        tfidf '.graph.mat'];
+        enronKaminski        = [ rootDir 'enron/kaminski/kaminski-v'    tfidf '.graph.mat'];
+        amazon3              = [ rootDir 'amazon/books_dvd_music/books_dvd_music.graph.mat'];
+        amazon7              = [ rootDir 'amazon/all/all.graph.mat'];
+        reuters              = [ rootDir 'reuters/reuters_4_topics'     tfidf '.graph.mat'];
 
         if isOnOdin
            fileNames = [ {webkb_constructed} ...

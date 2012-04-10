@@ -5,6 +5,7 @@ classdef ExperimentTrunsductionSets < handle
 properties
     m_optimizationSets;
     m_evaluationSets;
+    m_correctLabels;
 end
     
 methods
@@ -32,10 +33,10 @@ methods
         R = this.m_optimizationSets(set_i);
     end
     
-    %% evalutionSet
+    %% setCorrectLabels
     
-    function R = evalutionSet(this, set_i)
-        R = this.m_evaluationSets(set_i);
+    function setCorrectLabels(this, value)
+        this.m_correctLabels = value;
     end
     
 end
