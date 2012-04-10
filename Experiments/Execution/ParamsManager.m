@@ -151,9 +151,9 @@ methods (Access = public)
         end
         
         if isTesting
-            this = this.createParameter( 'isUsingL2Regularization', [0 1], isString, [] );
+            this = this.createParameter( 'isUsingL2Regularization', [0], isString, [] );
         else 
-            this = this.createParameter( 'isUsingL2Regularization', [0 1], isString, [] );
+            this = this.createParameter( 'isUsingL2Regularization', [0], isString, [] );
         end
         
         this.m_defaultParamsCSSL.K = 1000;
@@ -220,9 +220,9 @@ methods (Access = public)
         % 0 means all instances
         this = this.createParameter( 'numInstancesPerClass', [0], isString, [] );    
         if isTesting
-            this = this.createParameter( 'useGraphHeuristics', [0], isString, [] );
+            this = this.createParameter( 'useGraphHeuristics', [1], isString, [] );
         else 
-            this = this.createParameter( 'useGraphHeuristics', [0], isString, [] );
+            this = this.createParameter( 'useGraphHeuristics', [0 1], isString, [] );
         end
         
         if isTesting
