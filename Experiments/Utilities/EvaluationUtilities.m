@@ -3,7 +3,8 @@ classdef EvaluationUtilities
     %   Detailed explanation goes here
     
     methods (Static)
-        function [PRBEP precision recall] = calcPRBEP( Y_scores_l, Y_l )
+        function [PRBEP precision recall minDifference] = ...
+                calcPRBEP( Y_scores_l, Y_l )
         %%
         %   Y_scores_l  - classifier scores for each example for class l.
         %   Y_l         - correct labeling of examples to class l (binary)
@@ -25,13 +26,19 @@ classdef EvaluationUtilities
                 i = i + 1;
                 difference = abs(precision - recall);
                 if difference < minDifference
-                    PRBEP = precision;  % found a better point where the recall 
+                    PRBEP_precision = precision;
+                    PRBEP_recall = recall;
+                    %PRBEP = precision;  % found a better point where the recall 
                                     % and precision are close.
                     minDifference = difference;
                 end
             end
             if (minDifference ~= 0)
-                Logger.log(['Precision recall difference = ' num2str(minDifference)]);
+                Logger.log(['EvaluationUtilities::calcPRBEP. ' ...
+                            'Precision recall difference = ' num2str(minDifference)]);
+                PRBEP = (PRBEP_precision + PRBEP_recall) / 2;
+            else
+                PRBEP = PRBEP_precision;
             end
             precision = p_i;
             recall = r_i;

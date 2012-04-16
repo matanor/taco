@@ -218,8 +218,13 @@ classdef SingleRun < handle
             correctLabels_testSet = this.testSetCorrectLabels();
             scoreForLabel   = scoreMatrix(:,labelIndex);
             isCurrentLabel = (correctLabels_testSet == labelIndex);
-            [prbep precision recall] = EvaluationUtilities.calcPRBEP...
+            [prbep precision recall difference] = EvaluationUtilities.calcPRBEP...
                 (scoreForLabel, isCurrentLabel );
+            if (difference ~=0 )
+                Logger.log(['SingleRun::calcPRBEP_testSet. ' ...
+                            'algorithm = ' AlgorithmTypeToStringConverter.convert(algorithmType) ...
+                            ' label index = ' num2str(labelIndex)]);
+            end
         end
         
         %% calcMRR_testSet
