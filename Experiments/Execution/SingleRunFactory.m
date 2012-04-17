@@ -107,14 +107,14 @@ methods (Static)
                 algorithm.m_labeledConfidence       = params.labeledConfidence;
                 algorithm.m_useGraphHeuristics      = params.useGraphHeuristics;
                 algorithm.m_isUsingL2Regularization = params.isUsingL2Regularization;
-                algorithm.m_isUsingSecondOrder      = parmas.isUsingSecondOrder;
+                algorithm.m_isUsingSecondOrder      = params.isUsingSecondOrder;
             case SingleRun.CSSLMCF
                 algorithm.m_alpha                   = params.alpha;
                 algorithm.m_beta                    = params.beta;
                 algorithm.m_labeledConfidence       = params.labeledConfidence;
                 algorithm.m_useGraphHeuristics      = params.useGraphHeuristics;
                 algorithm.m_isUsingL2Regularization = params.isUsingL2Regularization;
-                algorithm.m_isUsingSecondOrder      = parmas.isUsingSecondOrder;
+                algorithm.m_isUsingSecondOrder      = params.isUsingSecondOrder;
             case SingleRun.MAD
                 algorithm.m_mu1                 = params.mu1;
                 algorithm.m_mu2                 = params.mu2;
