@@ -14,6 +14,7 @@ classdef CSSLMCF < CSSLBase
         num_iterations      = this.m_num_iterations;
         gamma               = this.m_labeledConfidence;
         isUsingL2Regularization = this.m_isUsingL2Regularization;
+        isUsingSecondOrder  = this.m_isUsingSecondOrder;
         
         num_vertices = this.numVertices();
         num_labels   = this.numLabels();
@@ -21,9 +22,13 @@ classdef CSSLMCF < CSSLBase
 
         result.mu     = zeros( num_vertices, num_labels, num_iterations );
         result.sigma  = ones ( num_labels, num_labels, num_vertices, num_iterations );
-        first_iteration = 1;
         for vertex_i=1:num_vertices
-            result.sigma(:,:,vertex_i,first_iteration) = eye( num_labels );
+            for iteration_i=1:num_iterations
+                result.sigma(:,:,vertex_i,iteration_i) = eye( num_labels );
+            end
+        end
+        if 0 == isUsingSecondOrder
+            result.sigma = result.sigma * (beta/alpha);
         end
 
         inv_gamma = diag( zeros(1,num_labels) + 1 / gamma );
@@ -88,28 +93,30 @@ classdef CSSLMCF < CSSLBase
                 result.mu( vertex_i, :, iter_i) = new_mu.';
             end
 
-            for vertex_i=1:num_vertices
-                isLabeled = this.injectionProbability(vertex_i);
-                
-                neighbours      = getNeighbours( this.m_W, vertex_i);
-                num_neighbours  = length( neighbours.weights);
-                mu_i            = prev_mu( vertex_i, : ).';
-                
-                R_i = zeros( num_labels, num_labels );
-                for neighbour_i=1:num_neighbours
-                    neighbour_id     = neighbours.indices(neighbour_i);
-                    neighbour_weight = neighbours.weights(neighbour_i);
-                    neighbour_mu     = prev_mu( neighbour_id, : ).';
-                    mu_diff = mu_i - neighbour_mu;
-                    R_i = R_i + neighbour_weight * (mu_diff * mu_diff.');
+            if isUsingSecondOrder
+                for vertex_i=1:num_vertices
+                    isLabeled = this.injectionProbability(vertex_i);
+
+                    neighbours      = getNeighbours( this.m_W, vertex_i);
+                    num_neighbours  = length( neighbours.weights);
+                    mu_i            = prev_mu( vertex_i, : ).';
+
+                    R_i = zeros( num_labels, num_labels );
+                    for neighbour_i=1:num_neighbours
+                        neighbour_id     = neighbours.indices(neighbour_i);
+                        neighbour_weight = neighbours.weights(neighbour_i);
+                        neighbour_mu     = prev_mu( neighbour_id, : ).';
+                        mu_diff = mu_i - neighbour_mu;
+                        R_i = R_i + neighbour_weight * (mu_diff * mu_diff.');
+                    end
+
+                    y_i       = this.priorVector( vertex_i );
+                    mu_diff_y = mu_i - y_i;
+
+                    R_i = R_i + 0.5 * isLabeled * (mu_diff_y * mu_diff_y.');
+                    new_sigma_i = CSSLMCF.solveQuadratic( - (beta/alpha), - (1/alpha) * R_i);
+                    result.sigma( :,:, vertex_i, iter_i) = new_sigma_i;
                 end
-                
-                y_i       = this.priorVector( vertex_i );
-                mu_diff_y = mu_i - y_i;
-                
-                R_i = R_i + 0.5 * isLabeled * (mu_diff_y * mu_diff_y.');
-                new_sigma_i = CSSLMCF.solveQuadratic( - (beta/alpha), - (1/alpha) * R_i);
-                result.sigma( :,:, vertex_i, iter_i) = new_sigma_i;
             end
             
             current_mu     = result.mu( :, :, iter_i) ;

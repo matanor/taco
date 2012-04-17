@@ -147,6 +147,7 @@ methods (Static)
         T = [T 'heuristics (Y|N)' SEPERATOR];
         T = [T 'labelled init (1|2)' SEPERATOR];
         T = [T 'Reg L2 (Y|N)' SEPERATOR];
+        T = [T '2nd Ord (Y|N)' SEPERATOR];
         T = [T 'optimize_by (P|B|N|M)' SEPERATOR];
         T = [T 'Algorithm' SEPERATOR];
         T = [T 'avg PRBEP (stddev)' SEPERATOR];

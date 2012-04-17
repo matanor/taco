@@ -13,6 +13,7 @@ methods (Access=public)
         num_iterations      = this.m_num_iterations;
         gamma               = this.m_labeledConfidence;
         isUsingL2Regularization = this.m_isUsingL2Regularization;
+        isUsingSecondOrder  = this.m_isUsingSecondOrder;
 
         this.displayParams(CSSLMC.name());
         
@@ -21,6 +22,9 @@ methods (Access=public)
 
         iteration.mu = zeros( num_vertices, num_labels, num_iterations );
         iteration.v  = ones ( num_vertices, num_labels, num_iterations );
+        if 0 == isUsingSecondOrder
+            iteration.v = (beta / alpha ) * iteration.v;
+        end
         
         this.prepareGraph();
         
@@ -71,27 +75,29 @@ methods (Access=public)
                 end
             end
 
-            for vertex_i=1:num_vertices
-                
-                for label_i=1:num_labels
-                    y_i_l     = this.priorLabelScore( vertex_i, label_i );
-                    isLabeled = this.injectionProbability(vertex_i);
+            if isUsingSecondOrder
+                for vertex_i=1:num_vertices
 
-                    neighbours = getNeighbours( this.m_W, vertex_i);
+                    for label_i=1:num_labels
+                        y_i_l     = this.priorLabelScore( vertex_i, label_i );
+                        isLabeled = this.injectionProbability(vertex_i);
 
-                    mu_i = prev_mu(vertex_i,label_i);
-                    neighbours_mu = prev_mu( neighbours.indices, label_i );
-                    A = sum ( neighbours.weights .* ...
-                        (mu_i  - neighbours_mu).^2 )...
-                        + isLabeled * 0.5 *  (mu_i -y_i_l)^2;
+                        neighbours = getNeighbours( this.m_W, vertex_i);
 
-                    new_v = (beta + sqrt( beta^2 + 4 * alpha * A))...
-                            / (2 * alpha);
-                    iteration.v(vertex_i, label_i, iter_i) = new_v ;
+                        mu_i = prev_mu(vertex_i,label_i);
+                        neighbours_mu = prev_mu( neighbours.indices, label_i );
+                        A = sum ( neighbours.weights .* ...
+                            (mu_i  - neighbours_mu).^2 )...
+                            + isLabeled * 0.5 *  (mu_i -y_i_l)^2;
+
+                        new_v = (beta + sqrt( beta^2 + 4 * alpha * A))...
+                                / (2 * alpha);
+                        iteration.v(vertex_i, label_i, iter_i) = new_v ;
+                    end
+
+                        %(beta + sqrt( beta^2 + 4 * alpha * A)) / (2 * alpha);
+                        % matan changed 5.12.11 from 4 to 2.
                 end
-
-                    %(beta + sqrt( beta^2 + 4 * alpha * A)) / (2 * alpha);
-                    % matan changed 5.12.11 from 4 to 2.
             end
             
             current_mu = iteration.mu( :, :, iter_i) ;

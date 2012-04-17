@@ -8,6 +8,7 @@ properties (GetAccess = public, SetAccess = private)
     m_beta;
     m_labeledConfidence;
     m_isUsingL2Regularization;
+    m_isUsingSecondOrder;
     m_mu1;
     m_mu2;
     m_mu3;
@@ -157,6 +158,12 @@ methods (Access = public)
             this = this.createParameter( 'isUsingL2Regularization', [0], isString, [] );
         end
         
+        if isTesting
+            this = this.createParameter( 'isUsingSecondOrder', [1], isString, [] );
+        else 
+            this = this.createParameter( 'isUsingSecondOrder', [1], isString, [] );
+        end
+        
         this.m_defaultParamsCSSL.K = 1000;
         this.m_defaultParamsCSSL.alpha = 1;
         this.m_defaultParamsCSSL.beta = 1;
@@ -278,7 +285,8 @@ methods (Access = public)
     function R = evaluationParamsProperties(this)
         R = [ this.m_makeSymetric,       this.m_maxIterations, ...
               this.m_useGraphHeuristics, this.m_labeledInitMode, ...
-              this.m_numEvaluationRuns,  this.m_isUsingL2Regularization];
+              this.m_numEvaluationRuns,  this.m_isUsingL2Regularization...
+              this.m_isUsingSecondOrder];
     end   
     
     %% constructionParamsProperties
