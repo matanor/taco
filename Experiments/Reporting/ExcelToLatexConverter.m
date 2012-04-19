@@ -28,6 +28,7 @@ methods (Access = public)
         this.createMaps();
         this.trimValues();
         this.createTables();
+        this.createGraphs();
         this.clearAll();
     end
     
@@ -40,117 +41,243 @@ methods (Access = public)
         this.m_header = [];
     end
     
+    %% 
+    
+    function createGraphs(this)
+        graph.key = 'graph';
+        graph.value = {'webkb_constructed'};
+        graph.shouldMatch = 1;
+        
+        balanced.key = 'balanced';
+        balanced.value = {'0'};
+        balanced.shouldMatch = 1;
+        
+        labeled_init.key = 'labelled init';
+        labeled_init.value = {'1'};
+        labeled_init.shouldMatch = 1;
+        
+        searchProperties = [graph balanced labeled_init];
+        
+        optimize_by.key = 'optimize_by';
+        optimize_by.value = { 'PRBEP' };
+        optimize_by.shouldMatch = 1;
+    end
+    
     %% createTables
     
     function createTables(this)
         graph.key = 'graph';
-        graphNames = {'webkb_constructed', 'reuters_4_topics.tfidf.graph', ...
-                      'farmer-d.tfidf.graph', 'kaminski-v.tfidf.graph' };
+        graphNames = { {'webkb_constructed'} };
+                       %{'reuters_4_topics.tfidf.graph'}, ...
+                       %{'farmer-d.tfidf.graph'}, ...
+                       %{'kaminski-v.tfidf.graph'}, ...
+                       %{'books_dvd_music.tfidf.graph'} };
+                      %{'twentyNG_4715'}, {'sentiment_5k'}};
         graph.shouldMatch = 1;
         balanced.key = 'balanced';
-        balanced.value = '0';
+        balanced.value = {'0'};
         balanced.shouldMatch = 1;
         num_labeled.key = 'num labeled';
-        num_labeled.value = '48';
+        num_labeled.value = {'48'};
         num_labeled.shouldMatch = 1;
         labeled_init.key = 'labelled init';
-        labeled_init.value = '2';
-        labeled_init.shouldMatch = 1;
-        optimize_by.key = 'optimize_by';
-        %optimize_by.value = 'PRBEP';
-        optimize_by.value = 'macroACC';
-        optimize_by.shouldMatch = 1;
-        searchProperties = [balanced num_labeled labeled_init optimize_by];
         
+        labeled_init.shouldMatch = 1;
+%         optimize_by.key = 'optimize_by';
+%         optimize_by.shouldMatch = 1;
+        
+        table_i = 1;
+        
+        %optimize_by.value = { 'PRBEP' };
+        labeled_init.value = {'1'};
+        searchProperties{table_i} = [balanced num_labeled labeled_init];
+        table_i = table_i + 1;
+
+        %optimize_by.value = { 'macroACC' };
+%         searchProperties{table_i} = [balanced num_labeled labeled_init];
+%         table_i = table_i + 1;
+
+%         optimize_by.value = { 'PRBEP' };
+%         labeled_init.value = {'2'};
+%         searchProperties{table_i} = [balanced num_labeled labeled_init optimize_by];
+%         table_i = table_i + 1;
+% 
+%         optimize_by.value = { 'macroACC' };
+%         searchProperties{table_i} = [balanced num_labeled labeled_init optimize_by];
+%         table_i = table_i + 1;
+
         outputFileName = [this.inputFileName() '.tex'];
         outputFileID = fopen(outputFileName, 'w+');
-        this.startTable( outputFileID );
         
-        for graph_i = 1:length(graphNames)
-            graph.value = graphNames{graph_i};
-            this.printOneDataset(outputFileID, graph.value, [graph searchProperties]);
+        for table_i=1:length(searchProperties)
+            this.startTable( outputFileID );
+        
+            for graph_i = 1:length(graphNames)
+                graph.value = graphNames{graph_i};
+                this.printOneDataset(outputFileID, graph.value{1}, ...
+                    [graph searchProperties{table_i}]);
+            end
+            this.endTable( outputFileID, graph.value{1}, ...
+                [graph searchProperties{table_i}] );
         end
-        this.endTable( outputFileID, graph.value, num_labeled.value, ...
-                    labeled_init.value, optimize_by.value );
         fclose(outputFileID);
     end
     
+    %% findAlgorithms
+    
+    function R = findAlgorithms(this, searchProperties)
+        
+        heuristics.key = 'heuristics';
+        heuristics.value = {'0'};
+        heuristics.shouldMatch = 1;
+        
+        algorithm.key = 'Algorithm';
+        algorithm.shouldMatch = 1;
+        
+        algorithm.value = {CSSLMC.name()};
+        diag = this.findEntries([searchProperties heuristics algorithm]);
+        assert( length(diag) == 1);
+        diag = diag {1};
+        
+%         algorithm.value = {CSSLMCF.name()};
+%         full = this.findEntries([searchProperties heuristics algorithm]);
+%         assert( length(full) == 1);
+%         full = full {1};
+        
+        algorithm.value = {AM.name()};
+        am = this.findEntries([searchProperties heuristics algorithm]);
+        assert( length(am) == 1);
+        am = am{1};
+        
+        heuristics.value = {'1'};
+        
+        algorithm.value = {MAD.name()};
+        mad = this.findEntries([searchProperties heuristics algorithm]);
+        assert( length(mad) == 1);
+        mad = mad{1};
+        
+        R.diag = diag;
+        R.am = am;
+        R.mad = mad;
+    end
+    
+    %% printOneDataset
+    
+    function printOneDataset(this, outputFile, dataSetName, ...
+                             searchProperties )
+        optimize_by.key = 'optimize_by';
+        optimize_by.shouldMatch = 1;
+        
+        Logger.log( ['printOneDataset. data set name = ' dataSetName] );
+
+        optimize_by.value = { 'PRBEP' };
+        PRBEP = this.findAlgorithms([searchProperties optimize_by]);
+        
+        optimize_by.value = { 'macroACC' };
+        macroAcc = this.findAlgorithms([searchProperties optimize_by]);
+        
+        trimPosition = find(~isletter(dataSetName));
+        if (~isempty(trimPosition))
+            dataSetName = dataSetName(1:(trimPosition-1));
+        end
+        numLabeled = [PRBEP.diag('num labeled') ' labeled' ];
+        
+        lineFormat = ['%s    & %s  & %s & %s & %s & %s & %s & %s \\\\ \\cline{2-8}\n'];
+
+        key = 'avg PRBEP';
+        metricName = 'PRBEP';
+        this.printLine(outputFile, lineFormat, key, [], PRBEP, macroAcc, metricName );
+        
+        key = 'avg accuracy';    
+        metricName = 'ACC';
+        this.printLine(outputFile, lineFormat, key, ['\' dataSetName], PRBEP, macroAcc, metricName );
+        
+        key = 'avg macro accuracy'; 
+        metricName = 'M-ACC';
+        this.printLine(outputFile, lineFormat, key, numLabeled, PRBEP, macroAcc, metricName );
+        
+        key = 'avg MRR'; 
+        metricName = 'MRR';
+        this.printLine(outputFile, lineFormat, key, [], PRBEP, macroAcc, metricName );
+        
+        key = 'avg macro MRR'; 
+        metricName = 'M-MRR';
+        this.printLine(outputFile, lineFormat, key, [], PRBEP, macroAcc, metricName );
+    end
+    
+    %% printLine
+    
+    function printLine(this, outputFile, lineFormat, ...
+                       key, linePrefix, PRBEP, macroAcc, metricName)
+        optimizePRBEP_results    = this.metricToString(key, PRBEP);
+        optimizeMacroAcc_results = this.metricToString(key, macroAcc);
+        fprintf(outputFile, lineFormat, ...
+                            linePrefix, metricName, ...
+                            optimizePRBEP_results{1}, ...
+                            optimizePRBEP_results{2}, ...
+                            optimizePRBEP_results{3}, ...
+                            optimizeMacroAcc_results{1},...
+                            optimizeMacroAcc_results{2},...
+                            optimizeMacroAcc_results{3}...
+                            );
+    end
+    
+    %% metricToString
+    
+    function R = metricToString(~, key, algorithms)
+        stringValues = {    algorithms.mad(key);
+                            algorithms.am(key);
+                            algorithms.diag(key) };
+        numeriaclValues = 100 * str2num(char(stringValues));
+        [~, maxPosition] = max(numeriaclValues);
+        stringValues = cellstr(num2str(numeriaclValues, '%.2f'));
+        stringValues{maxPosition} = ['\textbf{' stringValues{maxPosition} '}'];
+        R = stringValues;
+    end
+        
     %% startTable
     
     function startTable(~, outputFile)
         fprintf(outputFile, '\\begin{table}\n');
         fprintf(outputFile, '\\centering\n');
-        fprintf(outputFile, '\\begin{tabular}{ | c | c | c | c | c | c | }\n');
+        fprintf(outputFile, '\\begin{tabular}{ | c | c || c | c | c || c | c | c | }\n');
         fprintf(outputFile, '\\hline\n');
-        fprintf(outputFile, '      &        & diag    & full  & AM    & MAD \\\\ \\hline\n');
+        fprintf(outputFile, '\\multicolumn{2}{|c||}{}  & \\multicolumn{3}{|c||}{Optimized by} & \\multicolumn{3}{|c|}{Optimized by} \\\\\n');
+        fprintf(outputFile, '\\multicolumn{2}{|c||}{}  & \\multicolumn{3}{|c||}{PRBEP}        & \\multicolumn{3}{|c|}{M-ACC} \\\\ \\cline{3-8}\n');
+        fprintf(outputFile, '\\multicolumn{2}{|c||}{}  & MAD & AM  & \\algorithmName           & MAD & AM  & \\algorithmName \\\\ \\hline\n');
     end
     
     %% endTable
     
-    function endTable(~, outputFile, dataSetName, numLabeled, ...
-                           labeledInit, optimizedBy)
-        fprintf(outputFile, '\\hline\n');
-        fprintf(outputFile, '\\end{tabular}\n');
-        caption = ['results ' ...
-                   ' using $\numLabeled=' numLabeled '$, '...
-                   ' prior init mode ' labeledInit ...
-                   ' and optimized by ' optimizedBy ...
-                   ];
-                   
-        fprintf(outputFile, '\\caption{%s}\n', caption);
-        fprintf(outputFile, '\\label{tab:table%s}\n',dataSetName );
-        fprintf(outputFile, '\\end{table}\n');
-    end
-    
-    %% printOneDataset
-    
-    function printOneDataset(this, outputFile, dataSetName, searchProperties )
-
+    function endTable(this, outputFile, dataSetName, searchProperties )
+        
         algorithm.key = 'Algorithm';
         algorithm.shouldMatch = 1;
 
         heuristics.key = 'heuristics';
-        heuristics.value = '0';
+        heuristics.value = {'0'};
         heuristics.shouldMatch = 1;
         
-        algorithm.value = CSSLMC.name();
-        diag = this.findEntries([searchProperties heuristics algorithm]);
+        optimize_by.key = 'optimize_by';
+        optimize_by.shouldMatch = 1;
+        optimize_by.value = { 'PRBEP' };
+        
+        algorithm.value = {CSSLMC.name()};
+        diag = this.findEntries([searchProperties optimize_by ...
+                                 heuristics algorithm]);
+        assert( length(diag) == 1);
         diag = diag {1};
-        
-        algorithm.value = CSSLMCF.name();
-        full = this.findEntries([searchProperties heuristics algorithm]);
-        full = full {1};
-        
-        algorithm.value = AM.name();
-        am = this.findEntries([searchProperties heuristics algorithm]);
-        am = am{1};
-        
-        heuristics.value = '1';
-        
-        algorithm.value = MAD.name();
-        mad = this.findEntries([searchProperties heuristics algorithm]);
-        mad = mad{1};
-        
-        key = 'avg PRBEP';
-        fprintf(outputFile, '%s    & PRBEP  & %.2f      & %.2f    & %.2f    & %.2f  \\\\ \\hline\n', ...
-                            dataSetName, 100 * str2num(diag(key)), 100 * str2num(full(key))...
-                            , 100 * str2num(am(key)), 100 * str2num(mad(key)));
-        key = 'avg accuracy';                
-        fprintf(outputFile, '      & ACC    & %.2f      & %.2f    & %.2f    & %.2f  \\\\ \\hline\n', ...
-                            100 * str2num(diag(key)), 100 * str2num(full(key))...
-                            , 100 * str2num(am(key)), 100 * str2num(mad(key)));
-        key = 'avg macro accuracy'; 
-        fprintf(outputFile, '      & M-ACC  & %.2f      & %.2f    & %.2f    & %.2f  \\\\ \\hline\n', ...
-                            100 * str2num(diag(key)), 100 * str2num(full(key))...
-                            , 100 * str2num(am(key)), 100 * str2num(mad(key)));
-        key = 'avg MRR'; 
-        fprintf(outputFile, '      & MRR    & %.2f      & %.2f    & %.2f    & %.2f  \\\\ \\hline\n', ...
-                            100 * str2num(diag(key)), 100 * str2num(full(key))...
-                            , 100 * str2num(am(key)), 100 * str2num(mad(key)));
-        key = 'avg macro MRR'; 
-        fprintf(outputFile, '      & M-MRR  & %.2f      & %.2f    & %.2f    & %.2f  \\\\ \\hline\n', ...
-                              100 * str2num(diag(key)), 100 * str2num(full(key))...
-                            , 100 * str2num(am(key)), 100 * str2num(mad(key)));
+
+        fprintf(outputFile, '\\hline\n');
+        fprintf(outputFile, '\\end{tabular}\n');
+        caption = ['results ' ...
+                   ' prior init mode ' diag('labelled init') ...
+                   ' balanced ' diag('balanced')
+                   ];
+                   
+        fprintf(outputFile, '\\caption{%s}\n', caption);
+        fprintf(outputFile, '\\label{tab:table_multiple_datasets}\n' );
+        fprintf(outputFile, '\\end{table}\n');
     end
     
     %% findEntries
@@ -163,13 +290,21 @@ methods (Access = public)
 
         for result_i=1:length(this.m_resultMaps)
             map = this.m_resultMaps{result_i};
+            isMatch = 1;
             for key_i = 1:length(searchKeys)
-                key             = searchKeys{key_i};
-                expectedValue   = searchValues{key_i};
-                isMatch = 1;
-                if strcmp(map(key), expectedValue) ~= shouldMatch(key_i)
+                key                  = searchKeys{key_i};
+                possibleSearchValues = searchValues{key_i};
+                foundValue = 0;
+                for value_i=1:length(possibleSearchValues);
+                    expectedValue   = possibleSearchValues{value_i};
+                    if strcmp(map(key), expectedValue) == shouldMatch(key_i)
+                        foundValue = 1;
+                        break;
+                    end
+                end
+                if 0 == foundValue
                     isMatch = 0;
-                    break
+                    break;
                 end
             end
             if isMatch
@@ -270,15 +405,15 @@ methods (Access = public)
             end
         end
     end
+
 end
 
 methods (Static)
     function run()
         this = ExcelToLatexConverter();
-        fileName = ['C:\technion\theses\Experiments\results\' ...
-                    '2012_04_10_03_webkb_enron_reuters_no_L2_truns_sets_from_file_48_96\' ...
+        fileName = ['C:\technion\theses\Experiments\results\For Paper\' ...
                     'BigTableSummary.txt'];
-
+        this.clearAll();
         this.convert(fileName);
     end
 end
