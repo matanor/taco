@@ -108,6 +108,9 @@ methods
         end
         
         exactResult.mean       = mean(exactPRBEP, 1).';
+        exactResult.meanPerRun = mean(exactPRBEP, 2);
+        Logger.log('Mean Per Run');
+        Logger.log(num2str(exactResult.meanPerRun.'));
         % var(X,w,dim) takes the variance along the dimension dim of X. 
         % Pass in 0 for w to use the default normalization by N – 1, or 1 to use N
         exactResult.stddev     = sqrt(var(exactPRBEP,0,1)).'; 

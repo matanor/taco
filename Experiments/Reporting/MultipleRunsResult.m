@@ -91,7 +91,7 @@ methods
             R.stddev = sqrt(var(algResult.estimatedPRBEP_perLabel.mean));
         else
             R.mean   = mean(    algResult.exactPRBEP_perLabel.mean);
-            R.stddev = sqrt(var(algResult.exactPRBEP_perLabel.mean));
+            R.stddev = sqrt(var(algResult.exactPRBEP_perLabel.meanPerRun));
         end 
     end
     
