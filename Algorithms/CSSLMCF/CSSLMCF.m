@@ -113,7 +113,7 @@ classdef CSSLMCF < CSSLBase
                     y_i       = this.priorVector( vertex_i );
                     mu_diff_y = mu_i - y_i;
 
-                    R_i = R_i + 0.5 * isLabeled * (mu_diff_y * mu_diff_y.');
+                    R_i = 0.5 * (R_i + isLabeled * (mu_diff_y * mu_diff_y.'));
                     new_sigma_i = CSSLMCF.solveQuadratic( - (beta/alpha), - (1/alpha) * R_i);
                     result.sigma( :,:, vertex_i, iter_i) = new_sigma_i;
                 end
