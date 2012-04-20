@@ -27,8 +27,8 @@ methods (Access = public)
         this.trimHeaders();
         this.createMaps();
         this.trimValues();
+%         this.createGraphs();
         this.createTables();
-        this.createGraphs();
         this.clearAll();
     end
     
@@ -58,27 +58,136 @@ methods (Access = public)
         
         searchProperties = [graph balanced labeled_init];
         
+        outputFileName = [this.inputFileName() '.figs.tex'];
+        figuresFileID  = fopen(outputFileName, 'a+');
+        
+        fprintf(figuresFileID,'\\begin{figure}[t]\n');
+        fprintf(figuresFileID,'\\label{fig:webkb_num_labeled_comare}\n');
+        fprintf(figuresFileID,'\\centering\n');
+
         optimize_by.key = 'optimize_by';
-        optimize_by.value = { 'PRBEP' };
         optimize_by.shouldMatch = 1;
+
+        optimizeByForFileName = 'opt_PRBEP';
+        optimize_by.value = { 'PRBEP' };
+        
+        presentedKey = 'avg PRBEP';
+        presentedKeyFileName = 'PRBEP';
+        presentedKeyLabelY = 'macro-averaged PRBEP';
+        
+        fprintf(figuresFileID,'\\mbox{\n');
+        
+        this.createSingleFigure(figuresFileID, [searchProperties optimize_by], presentedKey, ...
+            presentedKeyFileName, presentedKeyLabelY, optimizeByForFileName);
+
+        fprintf(figuresFileID,'\\quad\n');
+                
+        presentedKey = 'avg macro accuracy';
+        presentedKeyFileName = 'M-ACC';
+        presentedKeyLabelY = 'macro-averaged accuracy (M-ACC)';
+        
+        this.createSingleFigure(figuresFileID, [searchProperties optimize_by], presentedKey, ...
+            presentedKeyFileName, presentedKeyLabelY, optimizeByForFileName);
+
+        fprintf(figuresFileID,'}\\\\\n');
+        fprintf(figuresFileID,'\\mbox{\n');
+
+        optimizeByForFileName = 'opt_M-ACC';
+        optimize_by.value = { 'macroACC' };
+        
+        presentedKey = 'avg PRBEP';
+        presentedKeyFileName = 'PRBEP';
+        presentedKeyLabelY = 'macro-averaged PRBEP';
+
+        this.createSingleFigure(figuresFileID, [searchProperties optimize_by], presentedKey, ...
+            presentedKeyFileName, presentedKeyLabelY, optimizeByForFileName);
+        
+        fprintf(figuresFileID,'\\quad\n');
+        
+        presentedKey = 'avg macro accuracy';
+        presentedKeyFileName = 'M-ACC';
+        presentedKeyLabelY = 'macro-averaged accuracy (M-ACC)';
+        
+        this.createSingleFigure(figuresFileID, [searchProperties optimize_by], presentedKey, ...
+            presentedKeyFileName, presentedKeyLabelY, optimizeByForFileName);
+        
+        fprintf(figuresFileID,'}\n');
+
+        fprintf(figuresFileID,'\\caption{Caption}\n');
+        fprintf(figuresFileID,'\\vspace{-15pt}\n');
+        fprintf(figuresFileID,'\\end{figure}\n');
+
+        fclose(figuresFileID);
+    end
+       
+    function createSingleFigure(this, figuresFileID, searchProperties, presentedKey, ...
+                                presentedKeyFileName, presentedKeyLabelY,...
+                                optimizeByForFileName)
+        num_labeled.key = 'num labeled';
+        num_labeled.shouldMatch = 1;
+
+        numLabeledRange = {'24', '48', '96', '192', '500'};
+        numAlgorithms = 3;
+        barSource = zeros(length(numLabeledRange), numAlgorithms);
+        for numLabeled_i=1:length(numLabeledRange)
+            num_labeled.value = numLabeledRange(numLabeled_i);
+            algorithms = this.findAlgorithms([searchProperties num_labeled]);
+            barSource(numLabeled_i , 1) = str2num(algorithms.mad( presentedKey ));
+            barSource(numLabeled_i , 2) = str2num(algorithms.am( presentedKey )) ;
+            barSource(numLabeled_i , 3) = str2num(algorithms.diag( presentedKey )) ;
+        end
+        
+        % num options * num_algorithm
+        h = figure;
+        barSource = barSource * 100;
+        grid on;
+        bar(barSource,'hist');
+        set(gca,'XTickLabel',numLabeledRange);
+        legend('MAD','AM','CSSL', 'Location', 'EastOutside');
+        xlabel('Number of Labeled Examples');
+        highLimitY = max(barSource(:)) * 1.05;
+        lowLimitY  = min(barSource(:)) * 0.9;
+        set(gca,'YLim',[lowLimitY highLimitY]);
+        %set(gca,'XTick',[]); % empty vector
+        set(gca,'XGrid','off','YGrid','on')
+        ylabel(presentedKeyLabelY);
+        directory = 'C:\technion\theses\Tex\SSL\GraphSSL_Confidence_Paper\';
+        fileName = ['compare_num_labelled_' optimizeByForFileName '_' presentedKeyFileName] ;
+        fileFullPath = [ directory fileName '.pdf'];
+        saveas(h, fileFullPath ); 
+        close(h);
+        
+        x = find(optimizeByForFileName=='_');
+        if ~isempty(x)
+            optimizeByForFileName = optimizeByForFileName(x+1:end);
+        end
+        caption = ['optimized by ' optimizeByForFileName];
+
+        fprintf(figuresFileID,'\\subfigure[%s]\n', caption);
+        fprintf(figuresFileID,'{\\label{fig:%s}\n', fileName); 
+        fprintf(figuresFileID,'\\includegraphics[width=65mm,angle=0,trim = 15mm 65mm 20mm 65mm, clip]{%s}\n',...
+                                fileName);
+        fprintf(figuresFileID,'}\n');
     end
     
     %% createTables
     
     function createTables(this)
         graph.key = 'graph';
-        graphNames = { {'webkb_constructed'} };
-                       %{'reuters_4_topics.tfidf.graph'}, ...
-                       %{'farmer-d.tfidf.graph'}, ...
-                       %{'kaminski-v.tfidf.graph'}, ...
-                       %{'books_dvd_music.tfidf.graph'} };
-                      %{'twentyNG_4715'}, {'sentiment_5k'}};
+        graphNames = { {'webkb_constructed'} , ...
+                       {'twentyNG_4715'}, ...
+                       {'sentiment_5k'} ...
+                       {'reuters_4_topics.tfidf.graph'}, ...
+                       {'farmer-d.tfidf.graph'}, ...
+                       {'kaminski-v.tfidf.graph'}, ...
+                       {'books_dvd_music.tfidf.graph'} ...
+                       };
         graph.shouldMatch = 1;
         balanced.key = 'balanced';
         balanced.value = {'0'};
         balanced.shouldMatch = 1;
         num_labeled.key = 'num labeled';
-        num_labeled.value = {'48'};
+        num_labeled.value = { '48', '35' };
         num_labeled.shouldMatch = 1;
         labeled_init.key = 'labelled init';
         
@@ -182,33 +291,42 @@ methods (Access = public)
         end
         numLabeled = [PRBEP.diag('num labeled') ' labeled' ];
         
-        lineFormat = ['%s    & %s  & %s & %s & %s & %s & %s & %s \\\\ \\cline{2-8}\n'];
+        lineFormat = ['%s    & %s  & %s & %s & %s & %s & %s & %s \\\\ \\cline{%s-8}\n'];
 
         key = 'avg PRBEP';
         metricName = 'PRBEP';
-        this.printLine(outputFile, lineFormat, key, [], PRBEP, macroAcc, metricName );
+        columnStartHorzLine = '2';
+        %fprintf(outputFile, '\\\\ \\hline\n');
+        this.printLine(outputFile, lineFormat, key, [], ...
+                        PRBEP, macroAcc, metricName, columnStartHorzLine );
         
         key = 'avg accuracy';    
         metricName = 'ACC';
-        this.printLine(outputFile, lineFormat, key, ['\' dataSetName], PRBEP, macroAcc, metricName );
+        this.printLine(outputFile, lineFormat, key, ['\' dataSetName],...
+                        PRBEP, macroAcc, metricName, columnStartHorzLine );
         
         key = 'avg macro accuracy'; 
         metricName = 'M-ACC';
-        this.printLine(outputFile, lineFormat, key, numLabeled, PRBEP, macroAcc, metricName );
+        this.printLine(outputFile, lineFormat, key, numLabeled, ...
+                        PRBEP, macroAcc, metricName, columnStartHorzLine );
         
         key = 'avg MRR'; 
         metricName = 'MRR';
-        this.printLine(outputFile, lineFormat, key, [], PRBEP, macroAcc, metricName );
+        this.printLine(outputFile, lineFormat, key, [],...
+                        PRBEP, macroAcc, metricName, columnStartHorzLine );
         
         key = 'avg macro MRR'; 
         metricName = 'M-MRR';
-        this.printLine(outputFile, lineFormat, key, [], PRBEP, macroAcc, metricName );
+        columnStartHorzLine = '1';
+        this.printLine(outputFile, lineFormat, key, [],...
+                        PRBEP, macroAcc, metricName, columnStartHorzLine );
     end
     
     %% printLine
     
     function printLine(this, outputFile, lineFormat, ...
-                       key, linePrefix, PRBEP, macroAcc, metricName)
+                       key, linePrefix, PRBEP, macroAcc, metricName,...
+                       columnStartHorzLine)
         optimizePRBEP_results    = this.metricToString(key, PRBEP);
         optimizeMacroAcc_results = this.metricToString(key, macroAcc);
         fprintf(outputFile, lineFormat, ...
@@ -218,7 +336,8 @@ methods (Access = public)
                             optimizePRBEP_results{3}, ...
                             optimizeMacroAcc_results{1},...
                             optimizeMacroAcc_results{2},...
-                            optimizeMacroAcc_results{3}...
+                            optimizeMacroAcc_results{3},...
+                            columnStartHorzLine ...
                             );
     end
     
