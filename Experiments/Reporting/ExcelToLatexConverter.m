@@ -62,7 +62,6 @@ methods (Access = public)
         figuresFileID  = fopen(outputFileName, 'a+');
         
         fprintf(figuresFileID,'\\begin{figure}[t]\n');
-        fprintf(figuresFileID,'\\label{fig:webkb_num_labeled_comare}\n');
         fprintf(figuresFileID,'\\centering\n');
 
         optimize_by.key = 'optimize_by';
@@ -76,6 +75,7 @@ methods (Access = public)
         presentedKeyLabelY = 'macro-averaged PRBEP';
         
         fprintf(figuresFileID,'\\mbox{\n');
+        % 1 %%%%%%%%%%%%%%%%%%
         
         this.createSingleFigure(figuresFileID, [searchProperties optimize_by], presentedKey, ...
             presentedKeyFileName, presentedKeyLabelY, optimizeByForFileName);
@@ -86,6 +86,8 @@ methods (Access = public)
         presentedKeyFileName = 'M-ACC';
         presentedKeyLabelY = 'macro-averaged accuracy (M-ACC)';
         
+        % 2 %%%%%%%%%%%%%%%%%%
+        
         this.createSingleFigure(figuresFileID, [searchProperties optimize_by], presentedKey, ...
             presentedKeyFileName, presentedKeyLabelY, optimizeByForFileName);
 
@@ -94,19 +96,23 @@ methods (Access = public)
 
         optimizeByForFileName = 'opt_M-ACC';
         optimize_by.value = { 'macroACC' };
-        
-        presentedKey = 'avg PRBEP';
-        presentedKeyFileName = 'PRBEP';
-        presentedKeyLabelY = 'macro-averaged PRBEP';
 
+        presentedKey = 'avg macro accuracy';
+        presentedKeyFileName = 'M-ACC';
+        presentedKeyLabelY = 'macro-averaged accuracy (M-ACC)';
+
+        % 3 %%%%%%%%%%%%%%%%%%
+                
         this.createSingleFigure(figuresFileID, [searchProperties optimize_by], presentedKey, ...
             presentedKeyFileName, presentedKeyLabelY, optimizeByForFileName);
         
         fprintf(figuresFileID,'\\quad\n');
-        
-        presentedKey = 'avg macro accuracy';
-        presentedKeyFileName = 'M-ACC';
-        presentedKeyLabelY = 'macro-averaged accuracy (M-ACC)';
+
+        presentedKey = 'avg PRBEP';
+        presentedKeyFileName = 'PRBEP';
+        presentedKeyLabelY = 'macro-averaged PRBEP';
+
+        % 4 %%%%%%%%%%%%%%%%%%
         
         this.createSingleFigure(figuresFileID, [searchProperties optimize_by], presentedKey, ...
             presentedKeyFileName, presentedKeyLabelY, optimizeByForFileName);
@@ -114,6 +120,7 @@ methods (Access = public)
         fprintf(figuresFileID,'}\n');
 
         fprintf(figuresFileID,'\\caption{Caption}\n');
+        fprintf(figuresFileID,'\\label{fig:webkb_num_labeled_comare}\n');
         fprintf(figuresFileID,'\\vspace{-15pt}\n');
         fprintf(figuresFileID,'\\end{figure}\n');
 
@@ -165,7 +172,7 @@ methods (Access = public)
 
         fprintf(figuresFileID,'\\subfigure[%s]\n', caption);
         fprintf(figuresFileID,'{\\label{fig:%s}\n', fileName); 
-        fprintf(figuresFileID,'\\includegraphics[width=65mm,angle=0,trim = 15mm 65mm 20mm 65mm, clip]{%s}\n',...
+        fprintf(figuresFileID,'\\includegraphics[width=55mm,angle=0,trim = 15mm 65mm 20mm 65mm, clip]{%s}\n',...
                                 fileName);
         fprintf(figuresFileID,'}\n');
     end
@@ -174,7 +181,8 @@ methods (Access = public)
     
     function createTables(this)
         graph.key = 'graph';
-        graphNames = { {'webkb_constructed'} , ...
+        graphNames = { ...
+                       {'webkb_constructed'} , ...
                        {'twentyNG_4715'}, ...
                        {'sentiment_5k'} ...
                        {'reuters_4_topics.tfidf.graph'}, ...
@@ -182,12 +190,20 @@ methods (Access = public)
                        {'kaminski-v.tfidf.graph'}, ...
                        {'books_dvd_music.tfidf.graph'} ...
                        };
+        numLabeledPerGraph = { '48' , ...
+                       '105', ...
+                       '48' ...
+                       '48', ...
+                       '48', ...
+                       '48', ...
+                       '35' ...
+                       };
         graph.shouldMatch = 1;
         balanced.key = 'balanced';
         balanced.value = {'0'};
         balanced.shouldMatch = 1;
         num_labeled.key = 'num labeled';
-        num_labeled.value = { '48', '35' };
+        
         num_labeled.shouldMatch = 1;
         labeled_init.key = 'labelled init';
         
@@ -199,7 +215,7 @@ methods (Access = public)
         
         %optimize_by.value = { 'PRBEP' };
         labeled_init.value = {'1'};
-        searchProperties{table_i} = [balanced num_labeled labeled_init];
+        searchProperties{table_i} = [balanced labeled_init];
         table_i = table_i + 1;
 
         %optimize_by.value = { 'macroACC' };
@@ -223,11 +239,12 @@ methods (Access = public)
         
             for graph_i = 1:length(graphNames)
                 graph.value = graphNames{graph_i};
+                num_labeled.value = numLabeledPerGraph(graph_i);
                 this.printOneDataset(outputFileID, graph.value{1}, ...
-                    [graph searchProperties{table_i}]);
+                    [num_labeled graph searchProperties{table_i}]);
             end
-            this.endTable( outputFileID, graph.value{1}, ...
-                [graph searchProperties{table_i}] );
+            this.endTable( outputFileID, ...
+                [num_labeled graph searchProperties{table_i}] );
         end
         fclose(outputFileID);
     end
@@ -297,6 +314,7 @@ methods (Access = public)
         metricName = 'PRBEP';
         columnStartHorzLine = '2';
         %fprintf(outputFile, '\\\\ \\hline\n');
+        fprintf(outputFile, '\\hline \\hline\n');
         this.printLine(outputFile, lineFormat, key, [], ...
                         PRBEP, macroAcc, metricName, columnStartHorzLine );
         
@@ -363,12 +381,12 @@ methods (Access = public)
         fprintf(outputFile, '\\hline\n');
         fprintf(outputFile, '\\multicolumn{2}{|c||}{}  & \\multicolumn{3}{|c||}{Optimized by} & \\multicolumn{3}{|c|}{Optimized by} \\\\\n');
         fprintf(outputFile, '\\multicolumn{2}{|c||}{}  & \\multicolumn{3}{|c||}{PRBEP}        & \\multicolumn{3}{|c|}{M-ACC} \\\\ \\cline{3-8}\n');
-        fprintf(outputFile, '\\multicolumn{2}{|c||}{}  & MAD & AM  & \\algorithmName           & MAD & AM  & \\algorithmName \\\\ \\hline\n');
+        fprintf(outputFile, '\\multicolumn{2}{|c||}{}  & MAD & AM  & \\algorithmName           & MAD & AM  & \\algorithmName \\\\ \n');
     end
     
     %% endTable
     
-    function endTable(this, outputFile, dataSetName, searchProperties )
+    function endTable(this, outputFile, searchProperties )
         
         algorithm.key = 'Algorithm';
         algorithm.shouldMatch = 1;
