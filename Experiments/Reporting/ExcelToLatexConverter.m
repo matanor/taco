@@ -27,8 +27,8 @@ methods (Access = public)
         this.trimHeaders();
         this.createMaps();
         this.trimValues();
-%         this.createGraphs();
-        this.createTables();
+        this.createGraphs();
+%        this.createTables();
         this.clearAll();
     end
     
@@ -119,7 +119,7 @@ methods (Access = public)
         
         fprintf(figuresFileID,'}\n');
 
-        fprintf(figuresFileID,'\\caption{Caption}\n');
+        fprintf(figuresFileID,'\\caption{\\numLabelsCompareCaption}\n');
         fprintf(figuresFileID,'\\label{fig:webkb_num_labeled_comare}\n');
         fprintf(figuresFileID,'\\vspace{-15pt}\n');
         fprintf(figuresFileID,'\\end{figure}\n');
@@ -135,27 +135,56 @@ methods (Access = public)
 
         numLabeledRange = {'24', '48', '96', '192', '500'};
         numAlgorithms = 3;
+        stddevKey       = this.stddevKay(presentedKey);
         barSource = zeros(length(numLabeledRange), numAlgorithms);
+        stddev = zeros( size(barSource) );
+        MAD = 1;        AM = 2; CSSL = 3;
         for numLabeled_i=1:length(numLabeledRange)
             num_labeled.value = numLabeledRange(numLabeled_i);
             algorithms = this.findAlgorithms([searchProperties num_labeled]);
-            barSource(numLabeled_i , 1) = str2num(algorithms.mad( presentedKey ));
-            barSource(numLabeled_i , 2) = str2num(algorithms.am( presentedKey )) ;
-            barSource(numLabeled_i , 3) = str2num(algorithms.diag( presentedKey )) ;
+            barSource(numLabeled_i , MAD) = str2num(algorithms.mad( presentedKey ));
+            barSource(numLabeled_i , AM) = str2num(algorithms.am( presentedKey )) ;
+            barSource(numLabeled_i , CSSL) = str2num(algorithms.diag( presentedKey )) ;
+            stddev(numLabeled_i , MAD) = str2num(algorithms.mad( stddevKey ));
+            stddev(numLabeled_i , AM) = str2num(algorithms.am( stddevKey ));
+            stddev(numLabeled_i , CSSL) = str2num(algorithms.diag( stddevKey ));
         end
         
-        % num options * num_algorithm
+        % barSource size is num options * num_algorithm
         h = figure;
         barSource = barSource * 100;
+        stddev = (1.96 / sqrt(20)) * stddev * 100;
         grid on;
-        bar(barSource,'hist');
-        set(gca,'XTickLabel',numLabeledRange);
-        legend('MAD','AM','CSSL', 'Location', 'EastOutside');
+        numLabeledRangeMatrix = str2num(char(numLabeledRange));
+        hold on;
+        algorithm = MAD;
+        lineWidth = 3.5;
+        markerSize = 11;
+        errorbar(numLabeledRangeMatrix,barSource(:,algorithm), stddev(:,algorithm),...
+                '-bs','LineWidth',lineWidth,...
+                'MarkerEdgeColor','b',...
+                'MarkerFaceColor','w',...
+                'MarkerSize',markerSize);
+        algorithm = AM;
+        errorbar(numLabeledRangeMatrix,barSource(:,algorithm), stddev(:,algorithm),...
+                '-gd','LineWidth',lineWidth,...
+                'MarkerEdgeColor','g',...
+                'MarkerFaceColor','w',...
+                'MarkerSize',markerSize);
+        algorithm = CSSL;
+        errorbar(numLabeledRangeMatrix,barSource(:,algorithm), stddev(:,algorithm),...
+                '-ro','LineWidth',lineWidth,...
+                'MarkerEdgeColor','r',...
+                'MarkerFaceColor','w',...
+                'MarkerSize',markerSize);
+        %bar(barSource,'hist');
+        %set(gca,'XTickLabel',numLabeledRange);
+        set(gca, 'FontSize', 18);
+        legend('MAD','AM','CSSL', 'Location', 'SouthEast');
         xlabel('Number of Labeled Examples');
         highLimitY = max(barSource(:)) * 1.05;
         lowLimitY  = min(barSource(:)) * 0.9;
         set(gca,'YLim',[lowLimitY highLimitY]);
-        %set(gca,'XTick',[]); % empty vector
         set(gca,'XGrid','off','YGrid','on')
         ylabel(presentedKeyLabelY);
         directory = 'C:\technion\theses\Tex\SSL\GraphSSL_Confidence_Paper\';
@@ -168,11 +197,11 @@ methods (Access = public)
         if ~isempty(x)
             optimizeByForFileName = optimizeByForFileName(x+1:end);
         end
-        caption = ['optimized by ' optimizeByForFileName];
+        caption = [presentedKeyFileName ' tuned according to ' optimizeByForFileName];
 
         fprintf(figuresFileID,'\\subfigure[%s]\n', caption);
         fprintf(figuresFileID,'{\\label{fig:%s}\n', fileName); 
-        fprintf(figuresFileID,'\\includegraphics[width=55mm,angle=0,trim = 15mm 65mm 20mm 65mm, clip]{%s}\n',...
+        fprintf(figuresFileID,'\\includegraphics[width=55mm,angle=0,trim = 15mm 65mm 10mm 65mm, clip]{%s}\n',...
                                 fileName);
         fprintf(figuresFileID,'}\n');
     end
@@ -192,7 +221,7 @@ methods (Access = public)
                        };
         numLabeledPerGraph = { '48' , ...
                        '105', ...
-                       '48' ...
+                       '500' ...
                        '48', ...
                        '48', ...
                        '48', ...
@@ -203,6 +232,10 @@ methods (Access = public)
         balanced.value = {'0'};
         balanced.shouldMatch = 1;
         num_labeled.key = 'num labeled';
+        
+        num_iterations.key = 'max iterations';
+        num_iterations.value = {'10'};
+        num_iterations.shouldMatch = 1;
         
         num_labeled.shouldMatch = 1;
         labeled_init.key = 'labelled init';
@@ -215,7 +248,7 @@ methods (Access = public)
         
         %optimize_by.value = { 'PRBEP' };
         labeled_init.value = {'1'};
-        searchProperties{table_i} = [balanced labeled_init];
+        searchProperties{table_i} = [balanced labeled_init num_iterations];
         table_i = table_i + 1;
 
         %optimize_by.value = { 'macroACC' };
@@ -308,7 +341,7 @@ methods (Access = public)
         end
         numLabeled = [PRBEP.diag('num labeled') ' labeled' ];
         
-        lineFormat = ['%s    & %s  & %s & %s & %s & %s & %s & %s \\\\ \\cline{%s-8}\n'];
+        lineFormat = ['%s    & ~%s~  & ~%s~ & ~%s~ & ~%s~ & ~%s~ & ~%s~ & ~%s~ \\\\ \\cline{%s-8}\n'];
 
         key = 'avg PRBEP';
         metricName = 'PRBEP';
@@ -411,8 +444,9 @@ methods (Access = public)
                    ' prior init mode ' diag('labelled init') ...
                    ' balanced ' diag('balanced')
                    ];
+        fprintf(outputFile, '\\vspace{0.5cm}\n');
                    
-        fprintf(outputFile, '\\caption{%s}\n', caption);
+        fprintf(outputFile, '\\caption{\\multiDataSetsTableCaption}\n');
         fprintf(outputFile, '\\label{tab:table_multiple_datasets}\n' );
         fprintf(outputFile, '\\end{table}\n');
     end
@@ -477,10 +511,20 @@ methods (Access = public)
             map = this.m_resultMaps{result_i};
             for key_i = 1:length(trimKeys)
                 key             = trimKeys{key_i};
-                map(key)        = this.trim(map(key));
+                originalValue   = map(key);
+                map(key)        = this.trim(originalValue);
+                sttdev          = this.parseStddev(originalValue);
+                stddevKey       = this.stddevKay(key);
+                map(stddevKey)  = sttdev;
             end
             this.m_resultMaps{result_i} = map;
         end        
+    end
+    
+    %% stddevKay
+    
+    function R = stddevKay(~,key)
+        R = ['stddev ' key];
     end
 
     %% trimHeaders
@@ -497,6 +541,19 @@ methods (Access = public)
         trimPosition = find(S == '(');
         if ~isempty(trimPosition)
             S = S(1:(trimPosition-1));
+        end
+        S = strtrim(S);
+    end
+    
+    %% parseStddev
+    
+    function S = parseStddev(~,S)
+        trimStart = find( S == '(' );
+        trimEnd = find( S == ')' );
+        if ~isempty(trimStart) && ~isempty(trimEnd)
+            S = S(trimStart+1:trimEnd-1);
+        else
+            Logger.log(['parseStddev::Error. Cannot trim value ''' S '''']);
         end
         S = strtrim(S);
     end
