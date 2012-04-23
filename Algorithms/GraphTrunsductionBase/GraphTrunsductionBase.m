@@ -8,6 +8,7 @@ classdef GraphTrunsductionBase < handle
         m_labeledSet;       % indices of labeled vertices.
         m_W;                % The weights of the graph.
         m_num_iterations;
+        m_useClassPriorNormalization;
     end
     
 methods
