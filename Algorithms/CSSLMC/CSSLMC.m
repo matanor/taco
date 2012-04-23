@@ -6,7 +6,10 @@ methods (Access=public)
 
         ticID = tic;
         
-        this.classPriorNormalization();
+        if (~isempty(this.m_useClassPriorNormalization) && ...
+            1 == this.m_useClassPriorNormalization)
+            this.classPriorNormalization();
+        end
         
         alpha               = this.m_alpha;
         beta                = this.m_beta;
