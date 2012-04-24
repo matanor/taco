@@ -28,8 +28,67 @@ methods (Access = public)
         this.createMaps();
         this.trimValues();
         this.createGraphs();
-%        this.createTables();
+        %this.createTables();
+        %this.createWebKBTable();
         this.clearAll();
+    end
+    
+    function createWebKBTable(this)
+        opt_PRBEP = [0.85428     0.60815     0.46296     0.78437;
+                     0.8101      0.59947     0.42628     0.74478;
+                     0.85479     0.58924     0.41442     0.76182].';
+        opt_M_ACC = [0.85448     0.60914     0.46015     0.78547;
+                     0.79452      0.5811     0.39114     0.67955;
+                     0.78056     0.53631     0.31394     0.56355].';
+        opt_PRBEP = opt_PRBEP * 100;
+        opt_M_ACC = opt_M_ACC * 100;
+%         mean_PRBEP = mean(opt_PRBEP);
+        CSSL = 3;
+        AM = 2;
+        MAD = 1;
+        
+        outputFileName = [this.inputFileName() '.webkb.tex'];
+        outputFile  = fopen(outputFileName, 'a+');
+        
+        fprintf(outputFile, '\\begin{table}\n');
+        fprintf(outputFile, '\\centering\n');
+        fprintf(outputFile, '\\begin{tabular}{ | c | c | c | c | c | }\n');
+        fprintf(outputFile, '\\hline\n');
+        fprintf(outputFile, '\\multicolumn{2}{|c||}{}  & MAD & AM & \\algorithmName } \\\\\n');
+        fprintf(outputFile, '\\hline\n');
+        
+        lineFormat = ['~%s~    & ~%s~  & ~%s~ & ~%s~ & ~%s~ & ~%s~ \\\\ \\hline\n'];
+        
+        COURSE = 1; FACULTY = 2; PROJECT = 3; STUDENT = 4;
+        
+        sourceTable = opt_PRBEP;
+        this.printWebKBLine(outputFile, lineFormat, [], 'course', sourceTable(COURSE,:));
+        this.printWebKBLine(outputFile, lineFormat, [], 'faculty', sourceTable(FACULTY,:));
+        this.printWebKBLine(outputFile, lineFormat, [], 'project', sourceTable(PROJECT,:));
+        this.printWebKBLine(outputFile, lineFormat, [], 'student', sourceTable(STUDENT,:));
+        
+        fprintf(outputFile, '\\hline\n');
+        fprintf(outputFile, '\\end{tabular}\n');
+
+        fprintf(outputFile, '\\vspace{0.5cm}\n');
+                   
+        fprintf(outputFile, '\\caption{\\webkbTableCaption}\n');
+        fprintf(outputFile, '\\label{tab:table_webkb_PRBEP}\n' );
+        fprintf(outputFile, '\\end{table}\n');
+        
+        fclose(outputFile);
+    end
+    
+    function printWebKBLine(~, outputFile, firstColumn, className, numeriaclValues)
+        CSSL = 3;
+        AM = 2;
+        MAD = 1;
+        
+        [~, maxPosition] = max(numeriaclValues);
+        stringValues = cellstr(num2str(numeriaclValues, '%.1f'));
+        stringValues{maxPosition} = ['\textbf{' stringValues{maxPosition} '}'];
+        fprintf(outputFile, lineFormat, firstColumn, className, ...
+                stringValues{MAD},stringValues{AM}, stringValues{MAD});
     end
     
     %% clearAll
@@ -56,6 +115,12 @@ methods (Access = public)
         labeled_init.value = {'1'};
         labeled_init.shouldMatch = 1;
         
+        PRBEP_limit.low = 48;
+        PRBEP_limit.high = 82;
+        
+        M_ACC_limit.low = 20;
+        M_ACC_limit.high = 82;
+        
         searchProperties = [graph balanced labeled_init];
         
         outputFileName = [this.inputFileName() '.figs.tex'];
@@ -75,10 +140,10 @@ methods (Access = public)
         presentedKeyLabelY = 'macro-averaged PRBEP';
         
         fprintf(figuresFileID,'\\mbox{\n');
-        % 1 %%%%%%%%%%%%%%%%%%
+        % 1 PRBEP by PRBEP %%%%%%%%%%%%%%%%%%
         
         this.createSingleFigure(figuresFileID, [searchProperties optimize_by], presentedKey, ...
-            presentedKeyFileName, presentedKeyLabelY, optimizeByForFileName);
+            presentedKeyFileName, presentedKeyLabelY, optimizeByForFileName, PRBEP_limit.low, PRBEP_limit.high);
 
         fprintf(figuresFileID,'\\quad\n');
                 
@@ -86,10 +151,11 @@ methods (Access = public)
         presentedKeyFileName = 'M-ACC';
         presentedKeyLabelY = 'macro-averaged accuracy (M-ACC)';
         
-        % 2 %%%%%%%%%%%%%%%%%%
+        % 2 M-ACC by PRBEP %%%%%%%%%%%%%%%%%%
         
         this.createSingleFigure(figuresFileID, [searchProperties optimize_by], presentedKey, ...
-            presentedKeyFileName, presentedKeyLabelY, optimizeByForFileName);
+            presentedKeyFileName, presentedKeyLabelY, optimizeByForFileName,...
+            M_ACC_limit.low, M_ACC_limit.high);
 
         fprintf(figuresFileID,'}\\\\\n');
         fprintf(figuresFileID,'\\mbox{\n');
@@ -101,10 +167,11 @@ methods (Access = public)
         presentedKeyFileName = 'M-ACC';
         presentedKeyLabelY = 'macro-averaged accuracy (M-ACC)';
 
-        % 3 %%%%%%%%%%%%%%%%%%
+        % 3 M-ACC by M-ACC %%%%%%%%%%%%%%%%%%
                 
         this.createSingleFigure(figuresFileID, [searchProperties optimize_by], presentedKey, ...
-            presentedKeyFileName, presentedKeyLabelY, optimizeByForFileName);
+            presentedKeyFileName, presentedKeyLabelY, optimizeByForFileName,...
+             M_ACC_limit.low, M_ACC_limit.high);
         
         fprintf(figuresFileID,'\\quad\n');
 
@@ -112,10 +179,10 @@ methods (Access = public)
         presentedKeyFileName = 'PRBEP';
         presentedKeyLabelY = 'macro-averaged PRBEP';
 
-        % 4 %%%%%%%%%%%%%%%%%%
+        % 4 PRBEP by M-ACC %%%%%%%%%%%%%%%%%%
         
         this.createSingleFigure(figuresFileID, [searchProperties optimize_by], presentedKey, ...
-            presentedKeyFileName, presentedKeyLabelY, optimizeByForFileName);
+            presentedKeyFileName, presentedKeyLabelY, optimizeByForFileName, PRBEP_limit.low, PRBEP_limit.high);
         
         fprintf(figuresFileID,'}\n');
 
@@ -129,7 +196,7 @@ methods (Access = public)
        
     function createSingleFigure(this, figuresFileID, searchProperties, presentedKey, ...
                                 presentedKeyFileName, presentedKeyLabelY,...
-                                optimizeByForFileName)
+                                optimizeByForFileName, lowLimitY, highLimitY)
         num_labeled.key = 'num labeled';
         num_labeled.shouldMatch = 1;
 
@@ -152,14 +219,16 @@ methods (Access = public)
         
         % barSource size is num options * num_algorithm
         h = figure;
-        barSource = barSource * 100;
-        stddev = (1.96 / sqrt(20)) * stddev * 100;
+        barSource = barSource * 100 ;
+        stddev = stddev * 100;
+        stddev = (1.96 / sqrt(20)) * stddev ;
+        %stddev = stddev / 2;
         grid on;
         numLabeledRangeMatrix = str2num(char(numLabeledRange));
         hold on;
         algorithm = MAD;
-        lineWidth = 3.5;
-        markerSize = 11;
+        lineWidth = 4.5;
+        markerSize = 13;
         errorbar(numLabeledRangeMatrix,barSource(:,algorithm), stddev(:,algorithm),...
                 '-bs','LineWidth',lineWidth,...
                 'MarkerEdgeColor','b',...
@@ -167,7 +236,7 @@ methods (Access = public)
                 'MarkerSize',markerSize);
         algorithm = AM;
         errorbar(numLabeledRangeMatrix,barSource(:,algorithm), stddev(:,algorithm),...
-                '-gd','LineWidth',lineWidth,...
+                '-g^','LineWidth',lineWidth,...
                 'MarkerEdgeColor','g',...
                 'MarkerFaceColor','w',...
                 'MarkerSize',markerSize);
@@ -179,15 +248,16 @@ methods (Access = public)
                 'MarkerSize',markerSize);
         %bar(barSource,'hist');
         %set(gca,'XTickLabel',numLabeledRange);
-        set(gca, 'FontSize', 18);
-        legend('MAD','AM','CSSL', 'Location', 'SouthEast');
+        set(gca,'XScale','log');
+        set(gca, 'FontSize', 22);
+        legend('MAD','AM','TACO', 'Location', 'SouthEast');
         xlabel('Number of Labeled Examples');
-        highLimitY = max(barSource(:)) * 1.05;
-        lowLimitY  = min(barSource(:)) * 0.9;
+        %highLimitY = max(barSource(:)) * 1.05;
+        %lowLimitY  = min(barSource(:)) * 0.9;
         set(gca,'YLim',[lowLimitY highLimitY]);
         set(gca,'XGrid','off','YGrid','on')
         ylabel(presentedKeyLabelY);
-        directory = 'C:\technion\theses\Tex\SSL\GraphSSL_Confidence_Paper\';
+        directory = 'C:\technion\theses\Tex\SSL\GraphSSL_Confidence_Paper\figures\';
         fileName = ['compare_num_labelled_' optimizeByForFileName '_' presentedKeyFileName] ;
         fileFullPath = [ directory fileName '.pdf'];
         saveas(h, fileFullPath ); 
@@ -400,7 +470,7 @@ methods (Access = public)
                             algorithms.diag(key) };
         numeriaclValues = 100 * str2num(char(stringValues));
         [~, maxPosition] = max(numeriaclValues);
-        stringValues = cellstr(num2str(numeriaclValues, '%.2f'));
+        stringValues = cellstr(num2str(numeriaclValues, '%.1f'));
         stringValues{maxPosition} = ['\textbf{' stringValues{maxPosition} '}'];
         R = stringValues;
     end
@@ -440,10 +510,10 @@ methods (Access = public)
 
         fprintf(outputFile, '\\hline\n');
         fprintf(outputFile, '\\end{tabular}\n');
-        caption = ['results ' ...
-                   ' prior init mode ' diag('labelled init') ...
-                   ' balanced ' diag('balanced')
-                   ];
+%        caption = ['results ' ...
+%                   ' prior init mode ' diag('labelled init') ...
+%                   ' balanced ' diag('balanced')
+%                    ];
         fprintf(outputFile, '\\vspace{0.5cm}\n');
                    
         fprintf(outputFile, '\\caption{\\multiDataSetsTableCaption}\n');
