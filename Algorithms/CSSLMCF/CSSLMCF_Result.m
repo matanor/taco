@@ -36,7 +36,7 @@ classdef CSSLMCF_Result < SSLMC_Result
             mu = this.m_Y( vertex_i, :, iteration_i );
             
            
-            sigma(:,:) = this.m_sigma( vertex_i, :,:, iteration_i );
+            sigma(:,:) = this.m_sigma( :,:, vertex_i, iteration_i );
             
             r = sprintf('(%6.4f,%6.4f)\n----\n(%6.4f,%6.4f)\n(%6.4f,%6.4f)', ...
                 mu(this.NEGATIVE), mu(this.POSITIVE), ...
@@ -84,19 +84,19 @@ classdef CSSLMCF_Result < SSLMC_Result
         end
         
         function addVertexTo_Sigma(this, oldNumVertices)
-            newSigma = zeros(   oldNumVertices + 1, ...
+            newSigma = zeros(   this.numLabels(),...
                                 this.numLabels(),...
-                                this.numLabels(),...
+                                oldNumVertices + 1, ...
                                 this.numIterations() );
             numIterations   = this.numIterations();
             numLabels       = this.numLabels();
             
             for vertex_i=1:oldNumVertices
-                newSigma(vertex_i,:,:,:) = this.m_sigma(vertex_i,:,:,:);
+                newSigma(:,:,vertex_i,:) = this.m_sigma(:,:,vertex_i,:);
             end
             
             for iter_i=1:numIterations
-                newSigma(end,:,:,iter_i) = eye(numLabels);
+                newSigma(:,:,end,iter_i) = eye(numLabels);
             end
             
             this.m_sigma = newSigma;
