@@ -124,8 +124,7 @@ methods (Access = public)
         
         isString = 0;
         if (optimize)
-%             kOptimizationRange = [10 50 100 500 1000 2000 4204];
-            kOptimizationRange = [1000];
+            kOptimizationRange = [100 500 1000 2000];
             this = this.createParameter(  'K', kOptimizationRange, isString, [] );
         else
             this = this.createParameter(  'K', [1000], isString, [] );
@@ -176,7 +175,7 @@ methods (Access = public)
             this = this.createParameter( 'mu3', paperOprimizationRange, isString, [] );
             mad_k_paper_range = [10,50,100,500,1000,2000];
             this = this.createParameter...
-                ( 'mad_K',   [1000]  , isString,[]); % NO all vertices option
+                ( 'mad_K',   kOptimizationRange  , isString,[]); % NO all vertices option
         else
             this = this.createParameter( 'mu2', [1], isString, [] );     
             this = this.createParameter( 'mu3', [1], isString, [] );
@@ -197,7 +196,7 @@ methods (Access = public)
             this = this.createParameter( 'am_alpha', [2], isString,[]);
             am_k_range_paper = [2,10,50,100,250,500,1000,2000]; % NO all vertices option
             this = this.createParameter...
-                ( 'am_K',     [1000], isString,[]); 
+                ( 'am_K',     kOptimizationRange, isString,[]); 
         else
             this = this.createParameter( 'am_v',     [1e-4], isString,[]);
             this = this.createParameter( 'am_mu',    [1e-2], isString,[]);

@@ -15,28 +15,33 @@ methods (Static)
             rootDir = 'C:/technion/theses/Experiments/';            
         end
         
-        R(dataset_i).fileName = [rootDir 'enron/farmer-d.instances'];
+         R(dataset_i).fileName = [rootDir 'enron/farmer-d.instances'];
+         R(dataset_i).maxInstances = DefaultFormatReader.READ_ALL_INSTANCES;
+         dataset_i = dataset_i + 1;
+         
+         R(dataset_i).fileName = [rootDir 'enron/kaminski-v.instances'];
+         R(dataset_i).maxInstances = DefaultFormatReader.READ_ALL_INSTANCES;
+         dataset_i = dataset_i + 1; %#ok<NASGU>
+        
+        R(dataset_i).fileName = [rootDir '20NG/twentyNG.instances'];
         R(dataset_i).maxInstances = DefaultFormatReader.READ_ALL_INSTANCES;
         dataset_i = dataset_i + 1;
-        
-        R(dataset_i).fileName = [rootDir 'enron/kaminski-v.instances'];
-        R(dataset_i).maxInstances = DefaultFormatReader.READ_ALL_INSTANCES;
-        dataset_i = dataset_i + 1; %#ok<NASGU>
-        
-%         R{dataset_i} = 'C:\technion\theses\Experiments\20news\From Koby\all.instances';
-%         dataset_i = dataset_i + 1;
 
-        R(dataset_i).fileName = [rootDir 'amazon/all.instances'];
-        R(dataset_i).maxInstances = DefaultFormatReader.READ_ALL_INSTANCES;
-        dataset_i = dataset_i + 1;
-        
-        R(dataset_i).fileName = [rootDir 'amazon/books_dvd_music.instances'];
-        R(dataset_i).maxInstances = 7000;
-        dataset_i = dataset_i + 1;
-        
-        R(dataset_i).fileName = [rootDir 'reuters/reuters_4_topics.instances'];
-        R(dataset_i).maxInstances = 4000;
-        dataset_i = dataset_i + 1;
+         R(dataset_i).fileName = [rootDir 'amazon/all.instances'];
+         R(dataset_i).maxInstances = DefaultFormatReader.READ_ALL_INSTANCES;
+         dataset_i = dataset_i + 1;
+         
+         R(dataset_i).fileName = [rootDir 'amazon/books_dvd_music.instances'];
+         R(dataset_i).maxInstances = 7000;
+         dataset_i = dataset_i + 1;
+         
+         R(dataset_i).fileName = [rootDir 'reuters/reuters_4_topics.instances'];
+         R(dataset_i).maxInstances = 4000;
+         dataset_i = dataset_i + 1;
+
+%         R(dataset_i).fileName = [rootDir 'test/test.instances'];
+%         R(dataset_i).maxInstances = 4000;
+%         dataset_i = dataset_i + 1;
         
     end
     
@@ -69,8 +74,8 @@ methods (Static)
             currentDataset = datasets(dataset_i);
             Logger.log(['File Name = '''   currentDataset.fileName '''']);
             Logger.log(['Max instances = ' num2str(currentDataset.maxInstances) ]);
-%             InstancesFileToGraph.readInstancesAndCreateGraph...
-%                 ( currentDataset.fileName, currentDataset.maxInstances );
+            InstancesFileToGraph.readInstancesAndCreateGraph...
+                ( currentDataset.fileName, currentDataset.maxInstances );
             InstancesFileToGraph.createGraphUsingTfidf...
                 ( currentDataset.fileName );
         end
@@ -79,25 +84,25 @@ methods (Static)
     %% readInstancesAndCreateGraph
     
     function readInstancesAndCreateGraph(fileName, maxInstances)
-        reader = DefaultFormatReader(fileName);
+         reader = DefaultFormatReader(fileName);
         [path, name, ~]  = fileparts(fileName);
-        reader.init();
-        reader.read(maxInstances);
-        reader.close();
-        
+         reader.init();
+         reader.read(maxInstances);
+         reader.close();
+
+        instancesFileName = [path '/' name '.mat'];
         instancesSet = reader.instancesSet();
         labelMappingFileName = [path '/' name '.labels.mapping.txt'];
-        instancesSet.writeLabelMapping(labelMappingFileName);
-        instancesFileName = [path '/' name '.mat'];
-        Logger.log(['Saving instances to ''' instancesFileName '''']);
-        save(instancesFileName, 'instancesSet');
+        instancesSet.writeLabelMapping(labelMappingFileName);     
+         Logger.log(['Saving instances to ''' instancesFileName '''']);
+         save(instancesFileName, 'instancesSet');
         
         use_tfidf = 0;
         graph = InstancesSetToGraphConverter.convert...
             ( instancesSet, use_tfidf  ); %#ok<NASGU>
         graphFileName = [path '/' name '.graph.mat'];
         Logger.log(['Saving graph to ''' graphFileName '''']);
-        save(graphFileName, 'graph');       
+        save(graphFileName, 'graph', '-v7.3');       
     end
     
     %% createGraphUsingTfidf
@@ -108,7 +113,7 @@ methods (Static)
         Logger.log(['Loading instances from ''' instancesFileName '''']);
         inputData = load(instancesFileName);
         instancesSet = inputData.instancesSet;
-        
+       
         instancesSet.create_tfidf();
         
         save(instancesFileName, 'instancesSet');
@@ -118,7 +123,7 @@ methods (Static)
             ( instancesSet, use_tfidf  ); %#ok<NASGU>
         graphFileName = [path '/' name '.tfidf.graph.mat'];
         Logger.log(['Saving tfidf graph to ''' graphFileName '''']);
-        save(graphFileName, 'graph');
+        save(graphFileName, 'graph', '-v7.3');
     end
 end
     
