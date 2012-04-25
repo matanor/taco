@@ -5,6 +5,7 @@ classdef MainClass < handle
     
     properties (Access=public)
         %graph;
+        m_showNumericResults;
     end
 
     properties (Access=private)
@@ -24,6 +25,8 @@ classdef MainClass < handle
         labeledConfidence;
         leftButtonDownPosition;
         algorithmType;
+        mu2;
+        mu3;
 %         rightButtonDownPosition;
     end
 
@@ -34,11 +37,17 @@ classdef MainClass < handle
             this.numIterations = 100;
             this.beta = 1;
             this.alpha = 1;
+            this.mu2 = 1;
+            this.mu3 = 1;
             this.labeledConfidence = 0.1;
             this.algorithmType = CSSL.name();
         end
+
+        function set_graph( this, value )
+            this.graph = value;
+        end
         
-        function set_graph( this, graphStruct )
+        function set_graphFromStruct( this, graphStruct )
             this.graph = Graph;
             this.graph.loadFromStruct(graphStruct);
         end
@@ -146,6 +155,15 @@ classdef MainClass < handle
                 this.graph.load( fileName );
                 this.run();
             end
+        end
+        
+        function print(this, ~, ~)
+            Logger.log('print');
+            directory = 'C:\technion\theses\Tex\SSL\GraphSSL_Confidence_Paper\figures\';
+            algorithm = this.algorithmType;
+            fileName = [directory 'illustrativeExample_' algorithm '.eps'];
+            disp(['saving to file ' fileName])
+            saveas(gcf, fileName);
         end
 
         function onButtonDown(this, ~, ~)
@@ -332,6 +350,20 @@ classdef MainClass < handle
             this.run();
         end
         
+        function updateMu2(this, ~, ~)
+            Logger.log('updateMu2');
+            newValue = get(gco,'string');
+            this.mu2 = str2double(newValue);
+            this.run();
+        end
+        
+        function updateMu3(this, ~, ~)
+            Logger.log('updateMu3');
+            newValue = get(gco,'string');
+            this.mu3 = str2double(newValue);
+            this.run();
+        end
+        
         function updateAlgorithm(this, hObj, ~)
             Logger.log('updateAlgorithm');
             selectedIndex = get(hObj,'Value');
@@ -345,6 +377,9 @@ classdef MainClass < handle
 
         function doPlot(this, E, iteration_i)
          
+            fontSize = 18;
+            markerSize = 120;
+            
             numVertices = this.graph.numVertices();
             
             md=inf; % the minimal distance between vertexes
@@ -378,26 +413,17 @@ classdef MainClass < handle
                 edge_weight = this.graph.getEdgeWeight( start_vertex_idx, end_vertex_idx ); 
                         
                 X = 1; Y = 2;
-                plot(edge(:,X),edge(:,Y),'k-',      ...
+                plot(edge(:,X),edge(:,Y),'-k',      ...
                         'UserData'     , edgeVertices,   ... 
                         'ButtonDownFcn', ...
                         {@(src, event)onButtonDown(this, src, event)});
                 edgeText = num2str(edge_weight);
                 edge_text_pos = mean(edge, 1) + [0.01 0.01];
-                text( edge_text_pos (X), edge_text_pos (Y), edgeText, ...
-                     'DisplayName', ...
-                     ['text_e_' num2str(start_vertex_idx) num2str(end_vertex_idx)] );
-%                      'UserData'   , vertex_i );
+                %text( edge_text_pos (X), edge_text_pos (Y), edgeText, ...
+                %     'DisplayName', ...
+                %     ['text_e_' num2str(start_vertex_idx) num2str(end_vertex_idx)] );
 
               
-%                 if ~isempty(ekind), % labels of edges (arrows)
-%                     if we==3,
-%                         s=sprintf(ekind,E2(currentEdge_i+k2-1,5));
-%                     else
-%                         s=sprintf(ekind,E2(currentEdge_i+k2-1,2));
-%                     end
-%                     text(MyXg(length(MyXg)/2),MyYg(length(MyYg)/2),s);
-%                 end
             end
         
             % we paint the graph
@@ -407,30 +433,84 @@ classdef MainClass < handle
             X = 1;
             Y = 2;
             color = this.algorithm_result.allColors( iteration_i );
+            
+            max_color = max (abs(color));
+            color = color / max_color;
+            
             scatter( verticesPosition(:,X), ...
-                     verticesPosition(:,Y), ... 
-                ones(numVertices, 1) * 40, color, ...
+                     verticesPosition(:,Y), ...
+                ones(numVertices, 1) * markerSize, color, ...
                 'filled', ...
-                'ButtonDownFcn', {@(src, event)onButtonDown(this, src, event)});
+                'ButtonDownFcn', {@(src, event)onButtonDown(this, src, event)}, ...
+                'MarkerEdgeColor', 'k');
+            %limit = max(abs(color));
+            caxis([-1 1]);
+            caxis manual;
+            colormap(gray);
             colorbar;
             
+            %pos = get(h,'Position');
+            %disp(pos);
+            %newpos = [1 1 1 1] .* pos;
+            % newpos = [newxpos ypos width height]
+            % play with newxpos to move colorbar to LHS of graph!
+            %disp(newpos);
+            %set(h,'Position',newpos)
+            
             % write vertex legend
-            text(0,0,this.algorithm_result.legend(),'Units','pixels');
+            %text(0,0,this.algorithm_result.legend(),'Units','pixels');
 
             for vertex_i=1:numVertices,
-               vertexText = this.algorithm_result.asText ...
+               
+               %v_pos = this.graph.vertexPosition( vertex_i );
+               if this.graph.isShowText( vertex_i)
+                   vertexText = this.algorithm_result.asText ...
                                     ( vertex_i, iteration_i );
-               v_pos = this.graph.vertexPosition( vertex_i );
-               X = 1; Y = 2;
-               text_pos.x = v_pos(X)+0.05;
-               text_pos.y = v_pos(Y)-0.07;
-               text( text_pos.x, text_pos.y, vertexText, ...
-                     'DisplayName', ['text_v_' num2str(vertex_i)], ...
-                     'UserData'   , vertex_i );
+                   X = 1; Y = 2;
+                   vertexTextPosition = this.graph.vertexTextPosition( vertex_i );
+
+                   disp('vertexTextPosition');
+                   disp(vertexTextPosition);
+                   text_pos.x = vertexTextPosition (X);
+                   text_pos.y = vertexTextPosition( Y );
+                   if this.m_showNumericResults
+                       vertexText = ['\textbf{' this.graph.vertexName(vertex_i) '}\newline' vertexText]; %#ok<AGROW>
+                   else
+                        vertexText = ['\textbf{' this.graph.vertexName(vertex_i) '}']; %#ok<AGROW>
+                   end
+                   text( text_pos.x, text_pos.y, vertexText, ...
+                         'DisplayName', ['text_v_' num2str(vertex_i)], ...
+                         'UserData'   , vertex_i, ...
+                        'Interpreter', 'latex',...
+                        'FontSize', fontSize);
+                    
+                    if this.graph.isShowArrow(vertex_i)
+                        
+                        vertexPosition = this.graph.vertexPosition(vertex_i);
+                   
+                        vertexPosition = this.convertToNormalizedFigureUnits(vertexPosition);
+                        vertexTextPosition = this.convertToNormalizedFigureUnits(vertexTextPosition);
+
+                        xCord = [vertexTextPosition(X) vertexPosition(Y)];
+                        ycord = [vertexTextPosition(X) vertexPosition(Y)];
+     %Create the textarrow object: 
+                        %annotation('textarrow',xCord,ycord,...
+                        %    'String','C','FontSize',14);
+                    end
+               end
             end
             
             hold off
             axis off
+        end
+        
+        function R = convertToNormalizedFigureUnits(~,plotPoint)
+            axPos = get(gca,'Position'); %# gca gets the handle to the current axes
+            xMinMax = xlim;
+            yMinMax = ylim;
+            xAnnotation = axPos(1) + ((plotPoint(1) - xMinMax(1))/(xMinMax(2)-xMinMax(1))) * axPos(3);
+            yAnnotation = axPos(2) + ((plotPoint(2) - yMinMax(1))/(yMinMax(2)-yMinMax(1))) * axPos(4);
+            R = [xAnnotation yAnnotation];
         end
 
         function addVertex( this, position )
@@ -526,6 +606,8 @@ classdef MainClass < handle
                 'save', {@(src, event)save(this, src, event)});
             MainClass.addIconToUI(toolbar, 'file_open.png', ...
                 'open', {@(src, event)open(this, src, event)});
+            MainClass.addIconToUI(toolbar, 'tool_plot_linked.png', ...
+                'print', {@(src, event)print(this, src, event)});
         end
         
         function createPlotInfo(this)
@@ -610,6 +692,14 @@ classdef MainClass < handle
                   @(src, event)updateLabeledConfidence(this, src, event) );
             controlPos.left = controlPos.left + controlPos.width + margin;
             
+            MainClass.addParam( controlPos, 'mu2', this.mu2, ...
+                            @(src, event)updateMu2(this, src, event) );
+            controlPos.left = controlPos.left + controlPos.width + margin;
+
+            MainClass.addParam( controlPos, 'mu3', this.mu3, ...
+                            @(src, event)updateMu3(this, src, event) );
+            controlPos.left = controlPos.left + controlPos.width + margin;
+            
             algorithmOptions = [CSSL.name()    '|' CSSLMC.name() '|' ...
                                 CSSLMCF.name() '|' ...
                                 LP.name()      '|' MAD.name() '|' ...
@@ -656,11 +746,17 @@ classdef MainClass < handle
             csslmc.m_alpha = this.alpha;
             csslmc.m_beta = this.beta;
             csslmc.m_labeledConfidence = this.labeledConfidence;
+            csslmc.m_isUsingL2Regularization = 0;
+            csslmc.m_isUsingSecondOrder = 1;
+            csslmc.m_labeledSet = this.graph.labeled();
             
             Y = MainClass.createLabeledY(this.graph);
+            csslmc.m_priorY = Y;
+            csslmc.m_useClassPriorNormalization = 0;
             this.algorithm_result = CSSLMC_Result;
-            R = csslmc.run ( Y );
-            this.algorithm_result.set_results( R );
+            R = csslmc.run ();
+            saveAllIterations = 1;
+            this.algorithm_result.set_results( R, saveAllIterations );
             this.set_numIterations( this.algorithm_result.numIterations() );
         end
         
@@ -673,11 +769,20 @@ classdef MainClass < handle
             algorithm.m_alpha = this.alpha;
             algorithm.m_beta = this.beta;
             algorithm.m_labeledConfidence = this.labeledConfidence;
+            algorithm.m_isUsingL2Regularization = 0;
+            algorithm.m_isUsingSecondOrder = 1;
+            algorithm.m_labeledSet = this.graph.labeled();
             
+            %algorithm.createInitialLabeledY(this.graph, ...
+            %                                ParamsManager.LABELED_INIT_ZERO_ONE);
             Y = MainClass.createLabeledY(this.graph);
+            algorithm.m_priorY = Y;
+            
             this.algorithm_result = CSSLMCF_Result;
-            R = algorithm.run ( Y );
-            this.algorithm_result.set_results( R );
+            R = algorithm.run ();
+            saveAllIterations = 1;
+            this.algorithm_result.set_results( R, saveAllIterations );
+            this.set_numIterations( this.algorithm_result.numIterations() );
         end
         
         function runLP(this)
@@ -694,18 +799,20 @@ classdef MainClass < handle
         function runMAD(this)
             mad = MAD;
             
-            params.mu1 = 1;
-            params.mu2 = 0.01;
-            params.mu3 = 0.01;
-            params.useGraphHeuristics = 1;
-            params.maxIterations = this.numIterations; 
+            mad.m_W = this.graph.weights();
+            mad.m_mu1 = 1;
+            mad.m_mu2 = this.mu2;
+            mad.m_mu3 = this.mu3;
+            mad.m_useGraphHeuristics = 1;
+            mad.m_num_iterations = this.numIterations; 
+            mad.m_labeledSet = this.graph.labeled();
             
             Y = MainClass.createLabeledY(this.graph);
+            mad.m_priorY = Y;
             
-            labeledVertices = this.graph.labeled();
+%             labeledVertices = this.graph.labeled();
             this.algorithm_result = MAD_Results;
-            R = mad.run...
-                ( this.graph.weights(), Y, params, labeledVertices );
+            R = mad.run(  );
             saveAllIterations = 1;
             this.algorithm_result.set_results( R, saveAllIterations );
             this.set_numIterations( this.algorithm_result.numIterations() );
@@ -716,16 +823,18 @@ classdef MainClass < handle
         function runAM(this)
             algorithm = AM;
             
-            algorithm.m_v = 1;
-            algorithm.m_mu = 1;
-            algorithm.m_alpha = 1;
+            algorithm.m_v = 0.001;
+            algorithm.m_mu = 0.01;
+            algorithm.m_alpha = 2;
             algorithm.m_num_iterations = this.numIterations; 
             algorithm.m_W  = this.graph.weights();
+            algorithm.m_labeledSet = this.graph.labeled();
             
             Y = MainClass.createLabeledY(this.graph);
+            algorithm.m_priorY = Y;
             
             this.algorithm_result = AM_Result;
-            R = algorithm.run(Y);
+            R = algorithm.run();
             saveAllIterations = 1;
             this.algorithm_result.set_results( R, saveAllIterations );
             this.set_numIterations( this.algorithm_result.numIterations() );

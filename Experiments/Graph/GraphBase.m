@@ -131,10 +131,16 @@ methods
     %% numVertices
     
     function R = numVertices(this)
-        if (~isempty(this.m_weights))
+        if (~isempty(this.m_weights) && ~isempty(this.m_correctLabels))
             assert( length(this.m_correctLabels) == size(this.m_weights, 1) );
         end
-        R = length(this.m_correctLabels);
+        if ~isempty(this.m_correctLabels)
+            R = length(this.m_correctLabels);
+        elseif ~isempty(this.m_weights)
+            R = size(this.m_weights, 1);
+        else
+            R = 0;
+        end  
     end
 
     %% removeVertices
