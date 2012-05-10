@@ -8,7 +8,11 @@ properties (Access=public)
 end % properties (Access=public)
 
 methods (Access=public)
-        
+       
+    function this = AM()
+        this.m_useClassPriorNormalization = 0;
+    end
+    
 	function iteration = run( this )
 
         ticID = tic;

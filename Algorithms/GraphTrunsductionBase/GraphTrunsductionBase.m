@@ -13,6 +13,10 @@ classdef GraphTrunsductionBase < handle
     
 methods
     
+    function this = GraphTrunsductionBase()
+        this.m_useClassPriorNormalization = 1; % use class prior normalization by default.
+    end
+    
     %% numVertices
     
     function R = numVertices(this)

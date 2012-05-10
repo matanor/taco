@@ -31,8 +31,8 @@ methods (Static)
         configManager = ConfigManager.get();
         configManager.createWithDefaultsIfMissing();
         
-        folderName = '2012_04_10_1_generate_trunsduction_sets';
-        resultsDir = 'C:/technion/theses/Experiments/WebKB/results/';
+        folderName = '2012_05_10_1_structured';
+        resultsDir = 'C:/technion/theses/Experiments/results/';
         isOnOdin = 0;
         outputManager = OutputManager;
         outputManager.set_currentFolder( [resultsDir folderName]);
