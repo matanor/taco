@@ -68,18 +68,20 @@ methods (Access=public)
                     
                     neighbours = getNeighbours( this.m_W, vertex_i);
 
-                    ni = sum( neighbours.weights ) + isLabeled;
                     neighbours_mu = prev_mu( neighbours.indices, label_i );
                     neighbours_v  = prev_v ( neighbours.indices, label_i );
-                    B = sum( neighbours.weights .* neighbours_mu ) ...
-                        + isLabeled * y_i_l;
-                    C = sum( neighbours.weights .* neighbours_mu ./ neighbours_v ) ...
-                        + isLabeled * (y_i_l / gamma) ;
-                    D = sum( neighbours.weights ./ neighbours_v ) ...
-                        + isLabeled / gamma + isUsingL2Regularization * 1;
-
-                    new_mu =    (B + prev_v(vertex_i,label_i) * C) / ...
-                                (ni + prev_v(vertex_i,label_i) * D);
+                    v_i = prev_v(vertex_i,label_i);
+                    numerator = sum( neighbours.weights .* ...
+                                     ( 1./neighbours_v + 1 / v_i) .* neighbours_mu ) ...
+                                + ...
+                                isLabeled * (1/v_i + 1/gamma) * y_i_l;
+                    denominator = sum( neighbours.weights .*        ...
+                                     ( 1./neighbours_v + 1 / v_i) ) ...
+                                +                                   ...
+                                isLabeled * (1/v_i + 1/gamma)       ...
+                                +                                   ... 
+                                isUsingL2Regularization * 1;
+                    new_mu = (numerator) / (denominator);
                     iteration.mu(vertex_i, label_i, iter_i) = new_mu ;
                 end
                 if this.DESCEND_MODE_AM == this.m_descendMode
@@ -94,20 +96,53 @@ methods (Access=public)
 
             if isUsingSecondOrder
                 for vertex_i=1:num_vertices
+                    mu_i = prev_mu(vertex_i,:).';
                     for label_i=1:num_labels
-                        y_i_l     = this.priorLabelScore( vertex_i, label_i );
+                        y_i_r     = this.priorLabelScore( vertex_i, label_i );
                         isLabeled = this.injectionProbability(vertex_i);
 
                         neighbours = getNeighbours( this.m_W, vertex_i);
 
-                        mu_i = prev_mu(vertex_i,label_i);
+                        mu_i_r = prev_mu(vertex_i,label_i);
                         neighbours_mu = prev_mu( neighbours.indices, label_i );
-                        A = 0.5 * (sum ( neighbours.weights .* ...
-                            (mu_i  - neighbours_mu).^2 )...
-                            + isLabeled * (mu_i -y_i_l)^2 );
+                        A = 0.5 * ...
+                            ( ...
+                                sum ( neighbours.weights .* (mu_i_r  - neighbours_mu).^2 )...
+                                + ...
+                                isLabeled * (mu_i_r - y_i_r)^2 ...
+                            );
+                        
+                        if this.m_useStructured
+                            transitionMatrix_r = this.transitionMatrixRow( label_i );
+                            structured.previousVertex = this.getPreviousVertexIndex(vertex_i);
+                            if this.STRUCTURED_NO_VERTEX ~= structured.previousVertex
+                                structured.prev_mu = prev_mu( structured.previousVertex, :);
+                                A = A + 0.5 * zeta * ...
+                                    ( ...
+                                        mu_i_r ...
+                                        - ...
+                                        transitionMatrix_r * structured.prev_mu ...
+                                    );
+                            end
+                            clear structured;
+                            
+                            structured.nextVertex     = this.getNextVertexIndex(vertex_i);
+                            if this.STRUCTURED_NO_VERTEX ~= structured.nextVertex;
+                                structured.next_mu_r = prev_mu( structured.nextVertex,label_i);
+                                A = A + 0.5 * zeta *...
+                                    ( ...
+                                        structured.next_mu_r ...
+                                        - ...
+                                        transitionMatrix_r * mu_i ...
+                                    );
+                            end
+                            clear structured;
+                            clear transitionMatrix_r;
+                        end
 
                         new_v = (beta + sqrt( beta^2 + 4 * alpha * A))...
                                 / (2 * alpha);
+                        clear A;
                         iteration.v(vertex_i, label_i, iter_i) = new_v ;
                     end
                         %(beta + sqrt( beta^2 + 4 * alpha * A)) / (2 * alpha);
@@ -119,7 +154,9 @@ methods (Access=public)
             prev_mu     = iteration.mu( :, :, iter_i - 1) ;
             
             iteration_diff = sum((prev_mu(:) - current_mu(:)).^2);
-            this.calcObjective( iteration.mu( :, :, iter_i), iteration.v( :, :, iter_i) );
+            if this.m_isCalcObjective
+                this.calcObjective( iteration.mu( :, :, iter_i), iteration.v( :, :, iter_i) );
+            end
         end
 
         toc(ticID);

@@ -5,12 +5,17 @@ classdef CSSLBase < GraphTrunsductionBase
         m_alpha;
         m_beta;
         m_labeledConfidence;
+        m_zeta;
         m_useGraphHeuristics;
         m_isUsingL2Regularization;
         m_isUsingSecondOrder;
         m_descendMode;
         
         m_p; % controlled random walk probabilities;
+        
+        m_structureInfo;
+        m_useStructured;
+        m_isCalcObjective;
     end
     
 properties( Constant)
@@ -31,11 +36,20 @@ properties( Constant)
     DESCEND_MODE_AM = 3;
 end
 
+properties( Constant)
+    % if a vertex next/previous vertex is
+    % the constant STRUCTURED_NO_VERTEX, it means the
+    % vertex has no next/previous vertex
+    STRUCTURED_NO_VERTEX = 0;
+end
+
 methods (Access=public)
     
     function this = CSSLBase() % constructor
         this.m_useGraphHeuristics = 0;
-        this.m_descendMode = CSSLBase.DESCEND_MODE_AM;
+        this.m_descendMode = CSSLBase.DESCEND_MODE_COORIDNATE_DESCENT;
+        this.m_useStructured = 0;
+        this.m_isCalcObjective = 0;
     end
     
 end %methods (Access=public)
@@ -48,6 +62,7 @@ methods (Access=protected)
                 [' alpha = '                num2str(this.m_alpha) ...
                  ' beta = '                 num2str(this.m_beta) ...
                  ' gamma = '                num2str(this.m_labeledConfidence) ...
+                 ' zeta = '                 num2str(this.m_zeta) ...
                  ' with l2 = '              num2str(this.m_isUsingL2Regularization)...
                  ' using 2nd order = '      num2str(this.m_isUsingSecondOrder)...
                  ' descend mode = '         num2str(this.m_descendMode) ...
@@ -55,6 +70,32 @@ methods (Access=protected)
                  ' maxIterations = '        num2str(this.m_num_iterations)...
                  ' num vertices = '         num2str(numVertices) ];                
         Logger.log(['Running ' algorithmName '.' paramsString]);
+    end
+    
+    %% setNextVertices
+    
+    function setNextVertices(this, value)
+        assert(this.numVertices == size(value,1));
+        this.m_structureInfo.next = value;
+    end
+    
+    %% setPreviousVertices
+    
+    function setPreviousVertices(this, value)
+        assert(this.numVertices == size(value,1));
+        this.m_structuredInfo.previous = value;
+    end
+    
+    %% getNextVertexIndex
+    
+    function R = getNextVertexIndex( this, vertex_i )
+        R = this.m_structuredInfo.next(vertex_i);
+    end
+    
+    %% getPreviousVertexIndex
+    
+    function R = getPreviousVertexIndex( this, vertex_i )
+        R = this.m_structuredInfo.previous(vertex_i);
     end
     
     %% prepareGraph
