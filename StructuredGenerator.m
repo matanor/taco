@@ -31,6 +31,17 @@ methods
         end
     end
     
+    %% saveGraph
+
+    function saveGraph(this, graph)
+        outputFolder = 'C:\technion\theses\Experiments\StructureSynthetic\data';
+        graphName = [outputFolder '\' graph.name];
+        graph.transitionMatrix = this.m_transitions;
+        numVertices = length(graph.labels);
+        graph.vertexOrder = (1:numVertices).';
+        save(graphName, 'graph');        
+    end
+    
 end % methods
 
 methods (Static)
@@ -47,17 +58,17 @@ methods (Static)
         s.m_prior = [0.2 0.8];
         %dbstop in StructuredGenerator.m at 53;
         [output states] = s.createSequence();
-        outputFolder = 'C:\technion\theses\Experiments\StructureSynthetic\data';
-        context = 1;
         
+        context = 1;
         graph = s.createGraph(states, output, context);
-        graphName = [outputFolder '\' graph.name];
-        save(graphName, 'graph');
+        s.saveGraph( graph );
+        
         context = 7;
         graph = s.createGraph(states, output, context);
-        graphName = [outputFolder '\' graph.name];
-        save(graphName, 'graph');
+        s.saveGraph( graph );
     end
+        
+    %% createGraph
     
     function graph = createGraph( labels, instances, context )
         graph.labels = labels;

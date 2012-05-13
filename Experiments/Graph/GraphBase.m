@@ -21,7 +21,7 @@ methods
         
         this.checkWeightsAndLabels();
         
-        this.loadFromStruct( fileData );
+        this.loadFromStruct( fileData.graph );
     end
     
     %% loadFromSavedFileName

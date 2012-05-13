@@ -82,6 +82,11 @@ methods (Access = public)
         
         algorithm.createInitialLabeledY(this.m_graph, params.labeledInitMode);
         
+        if algorithmType == SingleRun.CSSLMC
+            algorithm.setTransitionMatrix( this.m_graph.transitionMatrix() );
+            algorithm.setVertexOrder( this.m_graph.vertexOrder() );
+        end
+        
         this.loadSpecificAlgorithmParams( algorithm, algorithmType, params );
         
         algorithmResultsSource = algorithm.run();
@@ -104,13 +109,16 @@ methods (Static)
             case SingleRun.CSSLMC
                 algorithm.m_alpha                   = params.alpha;
                 algorithm.m_beta                    = params.beta;
+                algorithm.m_zeta                    = params.zeta;
                 algorithm.m_labeledConfidence       = params.labeledConfidence;
                 algorithm.m_useGraphHeuristics      = params.useGraphHeuristics;
                 algorithm.m_isUsingL2Regularization = params.isUsingL2Regularization;
                 algorithm.m_isUsingSecondOrder      = params.isUsingSecondOrder;
+                algorithm.m_isUsingStructured       = params.isUsingStructured;
             case SingleRun.CSSLMCF
                 algorithm.m_alpha                   = params.alpha;
                 algorithm.m_beta                    = params.beta;
+                algorithm.m_zeta                    = params.zeta;
                 algorithm.m_labeledConfidence       = params.labeledConfidence;
                 algorithm.m_useGraphHeuristics      = params.useGraphHeuristics;
                 algorithm.m_isUsingL2Regularization = params.isUsingL2Regularization;

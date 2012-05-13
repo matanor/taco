@@ -6,6 +6,8 @@ properties (GetAccess = public, SetAccess = private)
     m_K;
     m_alpha;
     m_beta;
+    m_zeta;
+    m_isUsingStructured;
     m_labeledConfidence;
     m_isUsingL2Regularization;
     m_isUsingSecondOrder;
@@ -101,6 +103,8 @@ methods (Access = public)
         amazon3              = [ rootDir 'amazon/books_dvd_music/books_dvd_music' tfidf '.graph.mat'];
         amazon7              = [ rootDir 'amazon/all/all'               tfidf '.graph.mat'];
         reuters              = [ rootDir 'reuters/reuters_4_topics'     tfidf '.graph.mat'];
+        phon_synth_context1  = [ rootDir 'StructureSynthetic/data/context_1.mat' ];
+        phon_synth_context7  = [ rootDir 'StructureSynthetic/data/context_7.mat' ];
 
         if isOnOdin
            fileNames = [ {webkb_constructed} ...
@@ -140,15 +144,18 @@ methods (Access = public)
         if (optimize)
             alphaOptimizationRange = [1e-4 1e-2 1 10 1e2 ];
             betaOptimizationRange  = [1e-4 1e-2 1 10 1e2 ];
+            zetaOptimizationRange  = [1e-2 1 1e2 ];
             gammaOptimizationRange = [1 2 5];
 
             this = this.createParameter( 'alpha', alphaOptimizationRange, isString, [] );
             this = this.createParameter( 'beta',  betaOptimizationRange, isString, [] );
             this = this.createParameter( 'labeledConfidence', gammaOptimizationRange, isString, [] );
+            this = this.createParameter( 'zeta',  zetaOptimizationRange, isString, [] );
         else
             this = this.createParameter( 'alpha', [1], isString, [] );
             this = this.createParameter( 'beta' , [1], isString, [] );        
             this = this.createParameter( 'labeledConfidence', [1], isString, [] );     
+            this = this.createParameter( 'zeta',  [1], isString, [] );
         end
         
         if isTesting
@@ -161,11 +168,18 @@ methods (Access = public)
             this = this.createParameter( 'isUsingSecondOrder', [1], isString, [] );
         else 
             this = this.createParameter( 'isUsingSecondOrder', [1], isString, [] );
+        end
+        
+        if isTesting
+            this = this.createParameter( 'isUsingStructured', [0], isString, [] );
+        else 
+            this = this.createParameter( 'isUsingStructured', [0 1], isString, [] );
         end
         
         this.m_defaultParamsCSSL.K = 1000;
         this.m_defaultParamsCSSL.alpha = 1;
         this.m_defaultParamsCSSL.beta = 1;
+        this.m_defaultParamsCSSL.zeta = 1;
         this.m_defaultParamsCSSL.labeledConfidence = 1;
         
         this = this.createParameter( 'mu1', [1], isString, [] );
@@ -285,7 +299,7 @@ methods (Access = public)
         R = [ this.m_makeSymetric,       this.m_maxIterations, ...
               this.m_useGraphHeuristics, this.m_labeledInitMode, ...
               this.m_numEvaluationRuns,  this.m_isUsingL2Regularization...
-              this.m_isUsingSecondOrder];
+              this.m_isUsingSecondOrder, this.m_isUsingStructured];
     end   
     
     %% constructionParamsProperties
@@ -299,7 +313,7 @@ methods (Access = public)
     %% optimizationParamsCSSL
     
     function R = optimizationParamsCSSL(this)
-        R = [ this.m_K, this.m_alpha, this.m_beta, this.m_labeledConfidence];
+        R = [ this.m_K, this.m_alpha, this.m_beta, this.m_zeta, this.m_labeledConfidence];
     end
     
     %% defaultParamsCSSL

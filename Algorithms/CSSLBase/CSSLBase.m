@@ -13,8 +13,8 @@ classdef CSSLBase < GraphTrunsductionBase
         
         m_p; % controlled random walk probabilities;
         
-        m_structureInfo;
-        m_useStructured;
+        m_structuredInfo;
+        m_isUsingStructured;
         m_isCalcObjective;
     end
     
@@ -48,8 +48,25 @@ methods (Access=public)
     function this = CSSLBase() % constructor
         this.m_useGraphHeuristics = 0;
         this.m_descendMode = CSSLBase.DESCEND_MODE_COORIDNATE_DESCENT;
-        this.m_useStructured = 0;
+        this.m_isUsingStructured = 0;
         this.m_isCalcObjective = 0;
+    end
+    
+    %% setTransitionMatrix
+    
+    function setTransitionMatrix(this, value)
+        this.m_structuredInfo.transitionMatrix = value;
+    end
+    
+    %% setVertexOrder
+    
+    function setVertexOrder(this, vertexOrder)
+        next = vertexOrder + 1;
+        next( next > this.numVertices() ) = this.STRUCTURED_NO_VERTEX;
+        prev = vertexOrder - 1;
+        prev( prev < 1 ) = this.STRUCTURED_NO_VERTEX;
+        this.m_structuredInfo.next = next;
+        this.m_structuredInfo.previous = prev;
     end
     
 end %methods (Access=public)
@@ -63,6 +80,7 @@ methods (Access=protected)
                  ' beta = '                 num2str(this.m_beta) ...
                  ' gamma = '                num2str(this.m_labeledConfidence) ...
                  ' zeta = '                 num2str(this.m_zeta) ...
+                 ' structured = '           num2str(this.m_isUsingStructured)...
                  ' with l2 = '              num2str(this.m_isUsingL2Regularization)...
                  ' using 2nd order = '      num2str(this.m_isUsingSecondOrder)...
                  ' descend mode = '         num2str(this.m_descendMode) ...
@@ -72,11 +90,23 @@ methods (Access=protected)
         Logger.log(['Running ' algorithmName '.' paramsString]);
     end
     
+    %% transitionMatrix
+    
+    function R = transitionMatrix(this)
+        R = this.m_structuredInfo.transitionMatrix;
+    end
+    
+    %% transitionsToState
+    
+    function R = transitionsToState(this, state_i)
+        R = this.m_structuredInfo.transitionMatrix(state_i, :);
+    end
+    
     %% setNextVertices
     
     function setNextVertices(this, value)
         assert(this.numVertices == size(value,1));
-        this.m_structureInfo.next = value;
+        this.m_structuredInfo.next = value;
     end
     
     %% setPreviousVertices
