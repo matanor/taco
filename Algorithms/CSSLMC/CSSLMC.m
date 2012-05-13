@@ -60,30 +60,54 @@ methods (Access=public)
             prev_v =  iteration.v ( :, :, iter_i - 1) ;
 
             for vertex_i=vertexUpdateOrder
-
-                for label_i = 1:num_labels
-
-                    y_i_l = this.priorLabelScore( vertex_i, label_i );
-                    isLabeled = this.injectionProbability(vertex_i);
-                    
-                    neighbours = getNeighbours( this.m_W, vertex_i);
-
-                    neighbours_mu = prev_mu( neighbours.indices, label_i );
-                    neighbours_v  = prev_v ( neighbours.indices, label_i );
-                    v_i = prev_v(vertex_i,label_i);
-                    numerator = sum( neighbours.weights .* ...
-                                     ( 1./neighbours_v + 1 / v_i) .* neighbours_mu ) ...
-                                + ...
-                                isLabeled * (1/v_i + 1/gamma) * y_i_l;
-                    denominator = sum( neighbours.weights .*        ...
-                                     ( 1./neighbours_v + 1 / v_i) ) ...
-                                +                                   ...
-                                isLabeled * (1/v_i + 1/gamma)       ...
-                                +                                   ... 
-                                isUsingL2Regularization * 1;
-                    new_mu = (numerator) / (denominator);
-                    iteration.mu(vertex_i, label_i, iter_i) = new_mu ;
+                neighbours = getNeighbours( this.m_W, vertex_i);
+                isLabeled = this.injectionProbability(vertex_i);
+                neighbours_mu = prev_mu( neighbours.indices, : );
+                neighbours_v  = prev_v ( neighbours.indices, : );
+                v_i           = prev_v ( vertex_i,:);
+                numNeighbours = length(neighbours.indices);
+                sum_K_i_j = zeros(1, num_labels);
+                Q_i       = zeros(1, num_labels);
+                for neighbour_i=1:numNeighbours
+                    single_neighbour_mu = neighbours_mu(neighbour_i,:);
+                    single_neighbour_v  = neighbours_v (neighbour_i,:);
+                    w_i_j = neighbours.weights(neighbour_i);
+                    K_i_j = w_i_j * ((1./single_neighbour_v) + (1./v_i));
+                    sum_K_i_j = sum_K_i_j + ...
+                        K_i_j .* single_neighbour_mu;
+                    Q_i = Q_i + K_i_j;
                 end
+                P_i = isLabeled * ( 1./v_i + 1 / gamma );
+                y_i = this.priorVector(vertex_i);
+                numerator = sum_K_i_j + (P_i .* y_i.'); % .* because P_i is only main diagonal
+                denominator = Q_i + P_i + isUsingL2Regularization * 1;
+
+                new_mu = (numerator) ./ (denominator);
+                iteration.mu(vertex_i, :, iter_i) = new_mu.' ;
+
+%                 for label_i = 1:num_labels
+% 
+%                     y_i_l = this.priorLabelScore( vertex_i, label_i );
+%                     isLabeled = this.injectionProbability(vertex_i);
+%                     
+%                     neighbours = getNeighbours( this.m_W, vertex_i);
+% 
+%                     neighbours_mu = prev_mu( neighbours.indices, label_i );
+%                     neighbours_v  = prev_v ( neighbours.indices, label_i );
+%                     v_i = prev_v(vertex_i,label_i);
+%                     numerator = sum( neighbours.weights .* ...
+%                                      ( 1./neighbours_v + 1 / v_i) .* neighbours_mu ) ...
+%                                 + ...
+%                                 isLabeled * (1/v_i + 1/gamma) * y_i_l;
+%                     denominator = sum( neighbours.weights .*        ...
+%                                      ( 1./neighbours_v + 1 / v_i) ) ...
+%                                 +                                   ...
+%                                 isLabeled * (1/v_i + 1/gamma)       ...
+%                                 +                                   ... 
+%                                 isUsingL2Regularization * 1;
+%                     new_mu = (numerator) / (denominator);
+%                     iteration.mu(vertex_i, label_i, iter_i) = new_mu ;
+%                 end
                 if this.DESCEND_MODE_AM == this.m_descendMode
                     % for true AM
                     prev_mu(vertex_i,:) = iteration.mu(vertex_i, :, iter_i);
