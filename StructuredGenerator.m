@@ -24,7 +24,8 @@ methods
             currentOutput = mvnrnd(outputMean,outptutCovariance,1);
             states(sequence_i) = currentState;
             output(sequence_i,:) = currentOutput;
-            probabilitiesToNextState = this.m_transitions(currentState, :);
+            probabilitiesToNextState = this.m_transitions(:, currentState).';
+            assert(sum(probabilitiesToNextState) == 1);
             nextState = randp(probabilitiesToNextState, 1);
             currentState = nextState;
         end
@@ -41,8 +42,8 @@ methods (Static)
                                          1.5 1];
         s.m_gaussianCovariance(:,:,2) = [3 -1.5;
                                          -1.5 1];
-        s.m_transitions = [ 0.6 0.4 ;
-                            0.7 0.3 ];
+        s.m_transitions = [ 0.6 0.7 ;
+                            0.4 0.3 ];
         s.m_prior = [0.2 0.8];
         %dbstop in StructuredGenerator.m at 53;
         [output states] = s.createSequence();
