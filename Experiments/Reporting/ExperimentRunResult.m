@@ -146,6 +146,7 @@ methods (Static)
         T = [T 'balanced (Y|N)' SEPERATOR];
         T = [T 'heuristics (Y|N)' SEPERATOR];
         T = [T 'labelled init (1|2)' SEPERATOR];
+        T = [T 'Structured' SEPERATOR];
         T = [T 'Reg L2 (Y|N)' SEPERATOR];
         T = [T '2nd Ord (Y|N)' SEPERATOR];
         T = [T 'optimize_by (P|B|N|M)' SEPERATOR];
@@ -163,6 +164,7 @@ methods (Static)
         T = [T 'alpha' SEPERATOR];
         T = [T 'beta' SEPERATOR];
         T = [T 'gamma' SEPERATOR];
+        T = [T 'zeta' SEPERATOR];
         T = [T 'K' SEPERATOR];
         T = [T 'mu1' SEPERATOR];
         T = [T 'mu2' SEPERATOR];
