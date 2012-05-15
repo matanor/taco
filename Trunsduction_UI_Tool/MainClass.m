@@ -7,6 +7,7 @@ classdef MainClass < handle
         %graph;
         m_showNumericResults;
         m_showEdgeWeights;
+        m_showLegend;
     end
 
     properties (Access=private)
@@ -44,6 +45,7 @@ methods (Access = public)
         this.algorithmType = CSSL.name();
         this.m_showEdgeWeights = 1;
         this.m_showNumericResults = 1;
+        this.m_showLegend = 1;
     end
 
     %% set_graph
@@ -125,12 +127,16 @@ end % public methods
 
 methods (Access = private)
 
+    %% back
+    
     function back(this, ~, ~)
         if (this.currentIteration > 1)
             plotGraph(this, this.currentIteration - 1);
         end
         Logger.log('back');
     end
+    
+    %% forward
 
     function forward(this, ~, ~)
         if (this.currentIteration < this.numIterations)
@@ -138,7 +144,9 @@ methods (Access = private)
         end
         Logger.log('forward');
     end
-
+    
+    %% run
+    
     function run(this, ~, ~)
         Logger.log('run');
         this.runAlgorithm();
@@ -146,6 +154,8 @@ methods (Access = private)
         plotGraph(this, this.currentIteration);
     end
 
+    %% save
+    
     function save(this, ~, ~)
         Logger.log('save');
         fileName = uiputfile;
@@ -155,6 +165,8 @@ methods (Access = private)
         end
     end
 
+    %% open
+    
     function open(this, ~, ~)
         Logger.log('open');
         fileName = uigetfile;
@@ -166,6 +178,8 @@ methods (Access = private)
         end
     end
 
+    %% print
+    
     function print(this, ~, ~)
         Logger.log('print');
         directory = 'C:\technion\theses\Tex\SSL\GraphSSL_Confidence_Paper\figures\';
@@ -175,6 +189,8 @@ methods (Access = private)
         saveas(gcf, fileName);
     end
 
+    %% onButtonDown
+    
     function onButtonDown(this, ~, ~)
         Logger.log('onButtonDown');
         buttonType = get(this.figureHandle,'selectiontype');
@@ -292,23 +308,30 @@ methods (Access = private)
         this.setEdgeWeight(edgeVertices(1), edgeVertices(2), str2double(weight{1}));
         this.plotGraph(this.currentIteration);            
     end
+    
+    %% setVertexPositive
 
     function setVertexPositive(this, ~, ~)
         Logger.log('setVertexPositive');
         this.updateVertex('positive');
     end
 
+    %% setVertexNegative
+    
     function setVertexNegative(this, ~, ~)
         Logger.log('setVertexNegative');
         this.updateVertex('negative');
     end
 
+    %% setVertexUnlabled
+    
     function setVertexUnlabled(this, ~, ~)
         Logger.log('setVertexUnlabled');
-%             vertex_i = get(gco,'UserData');
         this.updateVertex('none');
     end
 
+    %% updateNumIterations
+    
     function updateNumIterations(this, ~, ~)
         Logger.log('updateNumIterations');
         newValue = get(gco,'string');
@@ -321,6 +344,8 @@ methods (Access = private)
         this.run();
     end
 
+    %% updateCurrentIteration
+    
     function updateCurrentIteration(this,~,~)
         Logger.log('updateCurrentIteration');
         newValue = get(gco,'string');
@@ -338,6 +363,8 @@ methods (Access = private)
         this.plotGraph(this.currentIteration);
     end
 
+    %% updateAlpha
+    
     function updateAlpha(this, ~, ~)
         Logger.log('updateAlpha');
         newValue = get(gco,'string');
@@ -345,6 +372,8 @@ methods (Access = private)
         this.run();
     end
 
+    %% updateBeta
+    
     function updateBeta(this, ~, ~)
         Logger.log('updateBeta');
         newValue = get(gco,'string');
@@ -352,6 +381,8 @@ methods (Access = private)
         this.run();
     end
 
+    %% updateLabeledConfidence
+    
     function updateLabeledConfidence(this, ~, ~)
         Logger.log('updateLabeledConfidence');
         newValue = get(gco,'string');
@@ -359,6 +390,8 @@ methods (Access = private)
         this.run();
     end
 
+    %% updateMu2
+    
     function updateMu2(this, ~, ~)
         Logger.log('updateMu2');
         newValue = get(gco,'string');
@@ -366,6 +399,8 @@ methods (Access = private)
         this.run();
     end
 
+    %% updateMu3
+    
     function updateMu3(this, ~, ~)
         Logger.log('updateMu3');
         newValue = get(gco,'string');
@@ -373,6 +408,8 @@ methods (Access = private)
         this.run();
     end
 
+    %% updateAlgorithm
+    
     function updateAlgorithm(this, hObj, ~)
         Logger.log('updateAlgorithm');
         selectedIndex = get(hObj,'Value');
@@ -383,6 +420,8 @@ methods (Access = private)
     end
 
 %********************** Private helpers ***************************
+
+    %% doPlot
 
     function doPlot(this, E, iteration_i)
 
@@ -460,7 +499,9 @@ methods (Access = private)
         colorbar;
 
         % write vertex legend
-        text(0,0,this.algorithm_result.legend(),'Units','pixels');
+        if this.m_showLegend
+            text(0,0,this.algorithm_result.legend(),'Units','pixels');
+        end
 
         for vertex_i=1:numVertices,
 
@@ -512,6 +553,8 @@ methods (Access = private)
         axis off
     end
 
+    %% convertToNormalizedFigureUnits
+    
     function R = convertToNormalizedFigureUnits(~,plotPoint)
         axPos = get(gca,'Position'); %# gca gets the handle to the current axes
         xMinMax = xlim;
@@ -521,6 +564,8 @@ methods (Access = private)
         R = [xAnnotation yAnnotation];
     end
 
+    %% addVertex
+    
     function addVertex( this, position )
         old_num_vertices = this.graph.numVertices();
         Logger.log(['Old num vertices: ' num2str(old_num_vertices)]);
@@ -532,6 +577,8 @@ methods (Access = private)
         new_num_vertices = this.graph.numVertices();
         Logger.log(['New num vertices: ' num2str(new_num_vertices)]);
     end
+    
+    %% removeVertex
 
     function removeVertex(this, vertex_i )
         Logger.log('removeVertex');
@@ -543,27 +590,39 @@ methods (Access = private)
         end
     end
 
+    %% moveVertex
+    
     function moveVertex(this, v, newPosition)
         this.graph.moveVertex( v, newPosition );
     end
 
+    %% removeEdge
+    
     function removeEdge(this, v1, v2)
         this.graph.removeEdge( v1, v2 );
     end
 
+    %% setEdgeWeight
+    
     function setEdgeWeight(this, v1, v2, weight)
         this.graph.setEdgeWeight(v1,v2,weight);
     end
 
+    %% addEdge
+    
     function addEdge(this, v1, v2 )
         this.graph.addEdge( v1, v2 );
     end
 
+    %% updateVertex
+    
     function updateVertex(this, updateType)
         vertex_i = get(gco,'UserData');
         this.updateVertexIndex(updateType, vertex_i);
     end
 
+    %% updateVertexIndex
+    
     function updateVertexIndex(this, updateType, vertex_i)
         if (isempty(vertex_i))
             Logger.log('Error: no vertex index');
@@ -586,6 +645,8 @@ methods (Access = private)
         this.run();
     end
 
+    %% createFigureToolbar
+    
     function fig = createFigureToolbar(this)
 
         fig  =  figure( ...
@@ -618,11 +679,15 @@ methods (Access = private)
             'print', {@(src, event)print(this, src, event)});
     end
 
+    %% createPlotInfo
+    
     function createPlotInfo(this)
         this.plotInfo.Edges = MainClass.createEdges(this.graph.weights());
         this.currentIteration = 1;
     end
 
+    %% addVerticesContextMenu 
+    
     function addVerticesContextMenu(this)
         Logger.log('Adding context menu to vertices');
         % Create axes and save handle
@@ -861,6 +926,8 @@ end % private methods
 
 methods(Static)
 
+    %% createLabeledY
+    
     function labeledY = createLabeledY( graph )
         numVertices = graph.numVertices();
         numLabels   = graph.numLabels();
@@ -870,6 +937,8 @@ methods(Static)
         labeledY( graph.labeled_positive(), POSITIVE ) = 1;
     end
 
+    %% getClickPosition
+    
     function curPos = getClickPosition()
         coordinates = get(gca,'CurrentPoint');
         %Logger.log(coordinates));
@@ -877,14 +946,20 @@ methods(Static)
         curPos.y = coordinates(1,2);
     end
 
+    %% isLeftButton
+    
     function result = isLeftButton(button)
         result =  strcmpi(button,'normal');
     end
 
+    %% isRightButton
+    
     function result = isRightButton(button)
         result =  strcmpi(button,'alt');
     end
 
+    %% addIconToUI
+    
     function addIconToUI(toolbar, iconName, tooltip, eventHandler)
         cdata = MainClass.loadIcon( iconName );
 
@@ -894,6 +969,8 @@ methods(Static)
                     'ClickedCallback',  eventHandler);
     end
 
+    %% loadIcon
+    
     function iconData = loadIcon( iconName )
         % Load the icon
         icon = fullfile(matlabroot,['/toolbox/matlab/icons/' iconName]);
@@ -911,6 +988,7 @@ methods(Static)
         end
     end
 
+    %% addParam
 
     function h = addParam( controlPos, label, value, callback)
         margin = 5;
@@ -932,6 +1010,8 @@ methods(Static)
              'callback',callback);
     end
 
+    %% addComboParam
+    
     function addComboParam( controlPos, label, values, callback)
         margin = 5;
         labelPos = controlPos;
@@ -951,6 +1031,8 @@ methods(Static)
              'fontsize',11,...
              'callback',callback);
     end
+    
+    %% createEdges
 
     function E = createEdges(W)
 
