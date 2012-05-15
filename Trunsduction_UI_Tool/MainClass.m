@@ -815,22 +815,24 @@ methods (Access = private)
 
     function runCSSLMC(this)
 
-        csslmc = CSSLMC;
+        algorithm = CSSLMC;
 
-        csslmc.m_W = this.graph.weights();
-        csslmc.m_num_iterations = this.numIterations;
-        csslmc.m_alpha = this.alpha;
-        csslmc.m_beta = this.beta;
-        csslmc.m_labeledConfidence = this.labeledConfidence;
-        csslmc.m_isUsingL2Regularization = 0;
-        csslmc.m_isUsingSecondOrder = 1;
-        csslmc.m_labeledSet = this.graph.labeled();
+        algorithm.m_W = this.graph.weights();
+        algorithm.m_num_iterations = this.numIterations;
+        algorithm.m_alpha = this.alpha;
+        algorithm.m_beta = this.beta;
+        algorithm.m_labeledConfidence = this.labeledConfidence;
+        algorithm.m_isUsingL2Regularization = 0;
+        algorithm.m_isUsingSecondOrder = 1;
+        algorithm.m_labeledSet = this.graph.labeled();
 
         Y = MainClass.createLabeledY(this.graph);
-        csslmc.m_priorY = Y;
-        csslmc.m_useClassPriorNormalization = 0;
+        algorithm.m_priorY = Y;
+        
+        algorithm.m_useClassPriorNormalization = 0;
+        
         this.algorithm_result = CSSLMC_Result;
-        R = csslmc.run ();
+        R = algorithm.run ();
         saveAllIterations = 1;
         this.algorithm_result.set_results( R, saveAllIterations );
         this.set_numIterations( this.algorithm_result.numIterations() );
@@ -851,10 +853,10 @@ methods (Access = private)
         algorithm.m_isUsingSecondOrder = 1;
         algorithm.m_labeledSet = this.graph.labeled();
 
-        %algorithm.createInitialLabeledY(this.graph, ...
-        %                                ParamsManager.LABELED_INIT_ZERO_ONE);
         Y = MainClass.createLabeledY(this.graph);
         algorithm.m_priorY = Y;
+        
+        algorithm.m_useClassPriorNormalization = 0;
 
         this.algorithm_result = CSSLMCF_Result;
         R = algorithm.run ();
@@ -877,22 +879,23 @@ methods (Access = private)
     %% runMAD
 
     function runMAD(this)
-        mad = MAD;
+        algorithm = MAD;
 
-        mad.m_W = this.graph.weights();
-        mad.m_mu1 = 1;
-        mad.m_mu2 = this.mu2;
-        mad.m_mu3 = this.mu3;
-        mad.m_useGraphHeuristics = 1;
-        mad.m_num_iterations = this.numIterations; 
-        mad.m_labeledSet = this.graph.labeled();
+        algorithm.m_W = this.graph.weights();
+        algorithm.m_mu1 = 1;
+        algorithm.m_mu2 = this.mu2;
+        algorithm.m_mu3 = this.mu3;
+        algorithm.m_useGraphHeuristics = 1;
+        algorithm.m_num_iterations = this.numIterations; 
+        algorithm.m_labeledSet = this.graph.labeled();
 
         Y = MainClass.createLabeledY(this.graph);
-        mad.m_priorY = Y;
+        algorithm.m_priorY = Y;
+        
+        algorithm.m_useClassPriorNormalization = 0;
 
-%             labeledVertices = this.graph.labeled();
         this.algorithm_result = MAD_Results;
-        R = mad.run(  );
+        R = algorithm.run();
         saveAllIterations = 1;
         this.algorithm_result.set_results( R, saveAllIterations );
         this.set_numIterations( this.algorithm_result.numIterations() );
