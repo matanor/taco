@@ -92,7 +92,8 @@ function iteration = run( this )
                     structured.prev_v  = prev_v ( structured.previousVertex, :);
                     G_i = 1./v_i + 1./structured.prev_v;
                     denominator  = denominator + zeta * diag(G_i);
-                    numerator    = numerator   - zeta * (diag(G_i) * A * structured.prev_mu.').';
+                    numerator    = numerator   + ...
+                                   zeta * (diag(G_i) * A * structured.prev_mu.').';
                 end
                 clear structured;
 
@@ -101,8 +102,9 @@ function iteration = run( this )
                     structured.next_mu = prev_mu( structured.nextVertex,:);
                     structured.next_v  = prev_v ( structured.nextVertex,:);
                     G_i_plus1 = 1./v_i + 1./structured.next_v;
-                    denominator  = denominator - zeta * diag(G_i_plus1) * A;
-                    numerator    = numerator   + zeta * (G_i_plus1 .* structured.next_mu);
+                    denominator  = denominator + zeta * diag(G_i_plus1) * A * A;
+                    numerator    = numerator   + ...
+                                   zeta * (diag(G_i_plus1) * A * structured.next_mu.').';
                 end
                 clear structured;
             end
@@ -203,7 +205,7 @@ function calcObjective(this, current_mu, current_v)
     objective = 0;
     for vertex_i=1:numVertices
         mu_i = current_mu( vertex_i, :).';
-        v_i = current_v(vertex_i,:).';
+        v_i  = current_v(vertex_i,:).';
         %if mod(vertex_i, 100) == 0
         %    disp(vertex_i);
         %end
@@ -219,6 +221,17 @@ function calcObjective(this, current_mu, current_v)
             y_i = this.priorLabelScore( vertex_i, : ).';
             objective = objective + ...
                 0.5 * sum((1./v_i + 1/gamma) .* ((mu_i - y_i).^2));
+        end
+        if this.m_isUsingStructured
+            A = this.transitionMatrix();
+            structuredPreviousVertex = this.getPreviousVertexIndex(vertex_i);
+            if this.STRUCTURED_NO_VERTEX ~= structuredPreviousVertex
+               mu_i_prev = current_mu( structuredPreviousVertex, :).';
+               v_i_prev  = current_v ( structuredPreviousVertex, :).';
+               G_i = diag( 1./v_i + 1./v_i_prev );
+               mu_i_diff = (mu_i - A * mu_i_prev);
+               objective = objective + mu_i_diff.' * G_i * mu_i_diff;
+            end
         end
     end
     objective = objective + alpha * sum(sum(current_v));
