@@ -43,9 +43,13 @@ circle.labeled.negative = 5;
 
 %% run 
 
-fishGraph = createFish();
-mainObject.set_graph( fishGraph );
-mainObject.m_showNumericResults = 0;
+%fishGraph = createFish();
+%mainObject.set_graph( fishGraph );
+
+g = Graph;
+g.loadFromStruct(circle);
+
+mainObject.set_graph( g );
 
 line.text_coordinates = zeros(size(line.v_coordinates));
 line.vertexProperties = struct('name',[],'showText', ...
