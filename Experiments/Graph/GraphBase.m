@@ -123,9 +123,13 @@ methods
     function loadFromStruct(this, fileData)
         if isfield(fileData,'structuredEdges')
             this.m_structuredInfo.structuredEdges = fileData.structuredEdges;
+        else
+            Logger.log('No structured info in graph');
         end
         if isfield(fileData,'transitionMatrix')
             this.m_structuredInfo.transitionMatrix = fileData.transitionMatrix;
+        else
+            Logger.log('No transition matrix in graph');
         end        
     end
     
