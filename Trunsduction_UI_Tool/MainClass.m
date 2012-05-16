@@ -8,6 +8,7 @@ classdef MainClass < handle
         m_showNumericResults;
         m_showEdgeWeights;
         m_showLegend;
+        m_isCalcObjective;
     end
 
     properties (Access=private)
@@ -25,6 +26,7 @@ classdef MainClass < handle
         alpha;
         beta;
         labeledConfidence;
+        zeta;
         leftButtonDownPosition;
         algorithmType;
         mu2;
@@ -39,6 +41,7 @@ methods (Access = public)
         this.numIterations = 100;
         this.beta = 1;
         this.alpha = 1;
+        this.zeta = 1;
         this.mu2 = 1;
         this.mu3 = 1;
         this.labeledConfidence = 0.1;
@@ -46,6 +49,7 @@ methods (Access = public)
         this.m_showEdgeWeights = 1;
         this.m_showNumericResults = 1;
         this.m_showLegend = 1;
+        this.m_isCalcObjective = 1;
     end
 
     %% set_graph
@@ -158,10 +162,11 @@ methods (Access = private)
     
     function save(this, ~, ~)
         Logger.log('save');
-        fileName = uiputfile;
+        [fileName,pathName] = uiputfile;
+        fileFullPath = [pathName fileName];
         if (0 ~= fileName)
-            Logger.log(['Saving to file: ' fileName]);
-            this.graph.save( fileName );
+            Logger.log(['Saving to file: ' fileFullPath]);
+            this.graph.save( fileFullPath );
         end
     end
 
@@ -329,6 +334,31 @@ methods (Access = private)
         Logger.log('setVertexUnlabled');
         this.updateVertex('none');
     end
+    
+    %% setVertexOrder
+    
+    function setVertexOrder(this, ~, ~)
+        Logger.log('setVertexOrder');
+        order = this.askUserForNumericInput('Enter vertex order:', 'Input Vertex Order');
+        if isempty(order)
+            Logger.log('Cancel');
+            return;
+        end
+        vertexID = get(gco,'UserData');
+        Logger.log(['Vertex = ' num2str(vertexID) '. order = ' num2str(order)]);
+        this.graph.set_vertexOrderIndex(vertexID, order);
+    end
+    
+    %% askUserForInput
+    
+    function R = askUserForNumericInput( ~, prompt, name )
+        numlines=1;
+        defaultanswer={'1'};
+        R = inputdlg(prompt,name,numlines,defaultanswer);
+        if ~isempty(R)
+            R = str2double(R{1});
+        end
+    end
 
     %% updateNumIterations
     
@@ -446,6 +476,12 @@ methods (Access = private)
         hold on
         axis equal
 
+        numRegularEdges = size(E,1);
+        isStructured = zeros(numRegularEdges,1);
+        structuredEdges = this.graph.structuredEdges();
+        E = [E; structuredEdges];
+        isStructured = [isStructured;ones(size(structuredEdges,1),1)];
+        
         % edges (arrows)
         numEdges = size(E,1);
         for currentEdge_i=1:numEdges,
@@ -462,11 +498,17 @@ methods (Access = private)
             edge_weight = this.graph.getEdgeWeight( start_vertex_idx, end_vertex_idx ); 
 
             X = 1; Y = 2;
-            plot(edge(:,X),edge(:,Y),'-k',      ...
+            isStructuredEdge = isStructured(currentEdge_i);
+            if isStructuredEdge
+                color = '-r';
+            else
+                color = '-k';
+            end
+            plot(edge(:,X),edge(:,Y),color,      ...
                     'UserData'     , edgeVertices,   ... 
                     'ButtonDownFcn', ...
                     {@(src, event)onButtonDown(this, src, event)});
-            if this.m_showEdgeWeights
+            if this.m_showEdgeWeights && ~isStructuredEdge
                 edgeText = num2str(edge_weight);
                 edge_text_pos = mean(edge, 1) + [0.01 0.01];
                 text( edge_text_pos (X), edge_text_pos (Y), edgeText, ...
@@ -512,12 +554,12 @@ methods (Access = private)
                X = 1; Y = 2;
                vertexTextPosition = this.graph.vertexTextPosition( vertex_i );
 
-               disp('vertexTextPosition');
-               disp(vertexTextPosition);
+               %disp('vertexTextPosition');
+               %disp(vertexTextPosition);
                text_pos.x = vertexTextPosition (X);
                text_pos.y = vertexTextPosition( Y );
                if this.graph.vertexHasName(vertex_i)
-                   vertexNameText = ['\textbf{' this.graph.vertexName(vertex_i) '}\newline'];
+                   vertexNameText = ['\textbf{' this.graph.vertexName(vertex_i) '}       '];
                else
                    vertexNameText = [];
                end
@@ -530,8 +572,8 @@ methods (Access = private)
                text( text_pos.x, text_pos.y, vertexText, ...
                      'DisplayName', ['text_v_' num2str(vertex_i)], ...
                      'UserData'   , vertex_i, ...
-                    'Interpreter', 'latex',...
-                    'FontSize', fontSize);
+                     'Interpreter', 'latex',...
+                     'FontSize', fontSize);
 
                if this.graph.isShowArrow(vertex_i)
                     % currently not working
@@ -703,6 +745,9 @@ methods (Access = private)
                        'Callback', @(src, event)setVertexNegative(this, src, event));
         uimenu(hcmenu, 'Label', 'Unlabeled', ...
                         'Callback', @(src, event)setVertexUnlabled(this, src, event));
+        uimenu(hcmenu, 'Label', 'Set Order', ...
+                        'Callback', @(src, event)setVertexOrder(this, src, event));
+
         % Locate vertices object
 %             points = findall(hax,'DisplayName','vertices');
         objectWithContextMenu = findall(hax,'Type','text');
@@ -822,12 +867,20 @@ methods (Access = private)
         algorithm.m_alpha = this.alpha;
         algorithm.m_beta = this.beta;
         algorithm.m_labeledConfidence = this.labeledConfidence;
+        algorithm.m_zeta = this.zeta;
         algorithm.m_isUsingL2Regularization = 0;
         algorithm.m_isUsingSecondOrder = 1;
         algorithm.m_labeledSet = this.graph.labeled();
+        algorithm.m_isCalcObjective = this.m_isCalcObjective;
 
         Y = MainClass.createLabeledY(this.graph);
         algorithm.m_priorY = Y;
+        
+        transitionMatrix = [0.1 0.9;
+                            0.9 0.1];
+        algorithm.setTransitionMatrix( transitionMatrix );
+        algorithm.setStructuredEdges( this.graph.structuredEdges() );
+        algorithm.m_isUsingStructured = 1;
         
         algorithm.m_useClassPriorNormalization = 0;
         

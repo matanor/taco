@@ -58,7 +58,8 @@ classdef Graph < GraphBase
                 this.m_vertexProperties = ...
                     struct('name',[],  ...
                            'showText', num2cell(ones(numVertices,1)), ...
-                           'showArrow',num2cell(zeros(numVertices,1)));
+                           'showArrow',num2cell(zeros(numVertices,1)),...
+                           'orderIndex',num2cell(zeros(numVertices,1)));
             end
            
             for v_idx=1:length(positive)
@@ -301,14 +302,56 @@ classdef Graph < GraphBase
         %% vertexName
         
         function r = vertexName(this,v_idx)
+            
             r = this.m_vertexProperties(v_idx).name;
+            vertexOrderIndex = this.vertexOrderIndex(v_idx);
+            if vertexOrderIndex
+                r = [num2str(vertexOrderIndex) r];
+            end
         end
         
         %% vertexHasName
         
         function r = vertexHasName(this,v_idx)
-            r = ~isempty(this.m_vertexProperties(v_idx).name);
-        end        
+            r = ~isempty(this.vertexName(v_idx));
+        end
+
+        %% set_vertexOrderIndex
+        
+        function set_vertexOrderIndex(this, v_idx, value)
+            this.m_vertexProperties(v_idx).orderIndex = value;
+            this.createStructuredEdges();
+        end
+        
+        %% vertexOrderIndex
+        
+        function r = vertexOrderIndex(this,v_idx)
+            r = this.m_vertexProperties(v_idx).orderIndex;
+        end
+        
+        %% createStructuredEdges
+        
+        function createStructuredEdges(this)
+            Logger.log('Creating structured edges');
+            R = [];
+            numVertices = this.numVertices();
+            orderIndices = [this.m_vertexProperties.orderIndex];
+            vertices     =  1:numVertices;
+            [orderIndices sortOrder]= sort(orderIndices);
+            sortedVertices = vertices(sortOrder);
+            firstOrdered = find(orderIndices);
+            for vertex_i=firstOrdered:(numVertices-1)
+                index_start = orderIndices(vertex_i);
+                index_end   = orderIndices(vertex_i+1);
+                if index_start + 1 == index_end
+                    edge_start = sortedVertices(vertex_i);
+                    edge_end   = sortedVertices(vertex_i+1);
+                    R = [R; edge_start edge_end]; %#ok<AGROW>
+                    Logger.log(['start end = ' num2str([edge_start edge_end])]);
+                end
+            end
+            this.m_structuredInfo.structuredEdges = R;
+        end
         
     end % methods (Access = public)
 

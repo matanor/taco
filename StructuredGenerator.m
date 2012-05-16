@@ -11,7 +11,8 @@ end
 
 methods
     function [output, states] = createSequence(this)
-        sequenceLength = 50 + randi(100,1);
+        minSequenceLength = 1000;
+        sequenceLength = minSequenceLength + randi(1000,1);
 
         numFeatures = size(this.m_gaussianMean, 2);
         initialState = randp( this.m_prior, 1);
@@ -38,7 +39,7 @@ methods
         graphName = [outputFolder '\' graph.name];
         graph.transitionMatrix = this.m_transitions;
         numVertices = length(graph.labels);
-        graph.vertexOrder = (1:numVertices).';
+        graph.structuredEdges = [(1:(numVertices-1)).' (2:(numVertices)).'];
         save(graphName, 'graph');        
     end
     
@@ -53,11 +54,18 @@ methods (Static)
                                          1.5 1];
         s.m_gaussianCovariance(:,:,2) = [3 -1.5;
                                          -1.5 1];
-        s.m_transitions = [ 0.6 0.7 ;
-                            0.4 0.3 ];
-        s.m_prior = [0.2 0.8];
+        s.m_transitions = [ 0.9 0.1 ;
+                            0.1 0.9 ];
+        s.m_prior = [0.5 0.5];
         %dbstop in StructuredGenerator.m at 53;
         [output states] = s.createSequence();
+        
+        class1 = output(states == 1, :);
+        class2 = output(states == 2, :);
+        hold on;
+        scatter(class1(:,1), class1(:,2) );
+        scatter(class2(:,1), class2(:,2) );
+        hold off;
         
         context = 1;
         graph = s.createGraph(states, output, context);
@@ -72,9 +80,10 @@ methods (Static)
     
     function graph = createGraph( labels, instances, context )
         graph.labels = labels;
+        graph.instances = instances;
         numInstances    = size(instances, 1);
         numFeatures     = size(instances, 2);
-        dummyContext = zeros(1, numFeatures);
+        dummyContext = zeros(1, numFeatures) * 100; % some dummy value not likely to occur
         instances_with_context = zeros(numInstances, context * numFeatures );
         for instance_i=1:numInstances
             half_context = (context - 1)/2;

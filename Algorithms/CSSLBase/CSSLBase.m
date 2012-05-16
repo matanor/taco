@@ -50,6 +50,7 @@ methods (Access=public)
         this.m_descendMode = CSSLBase.DESCEND_MODE_COORIDNATE_DESCENT;
         this.m_isUsingStructured = 0;
         this.m_isCalcObjective = 0;
+        this.m_structuredInfo.transitionMatrix = [];
     end
     
     %% setTransitionMatrix
@@ -58,13 +59,22 @@ methods (Access=public)
         this.m_structuredInfo.transitionMatrix = value;
     end
     
-    %% setVertexOrder
+    %% setStructuredEdges
     
-    function setVertexOrder(this, vertexOrder)
-        next = vertexOrder + 1;
-        next( next > this.numVertices() ) = this.STRUCTURED_NO_VERTEX;
-        prev = vertexOrder - 1;
-        prev( prev < 1 ) = this.STRUCTURED_NO_VERTEX;
+    function setStructuredEdges(this, structuredEdges)
+        numVertices = this.numVertices();
+        next = this.STRUCTURED_NO_VERTEX * zeros(numVertices, 1);
+        prev = this.STRUCTURED_NO_VERTEX * zeros(numVertices, 1);
+        numStructuredEdges = size(structuredEdges,1);
+        if ~isempty(structuredEdges)
+            assert( size(structuredEdges,2) == 2);
+        end
+        for edge_i=1:numStructuredEdges
+            v1 = structuredEdges(edge_i, 1);
+            v2 = structuredEdges(edge_i, 2);
+            next(v1) = v2;
+            prev(v2) = v1;
+        end
         this.m_structuredInfo.next = next;
         this.m_structuredInfo.previous = prev;
     end
@@ -93,27 +103,17 @@ methods (Access=protected)
     %% transitionMatrix
     
     function R = transitionMatrix(this)
-        R = this.m_structuredInfo.transitionMatrix;
+        if ~isempty(this.m_structuredInfo.transitionMatrix)
+            R = this.m_structuredInfo.transitionMatrix;
+        else
+            R = [];
+        end
     end
     
     %% transitionsToState
     
     function R = transitionsToState(this, state_i)
         R = this.m_structuredInfo.transitionMatrix(state_i, :);
-    end
-    
-    %% setNextVertices
-    
-    function setNextVertices(this, value)
-        assert(this.numVertices == size(value,1));
-        this.m_structuredInfo.next = value;
-    end
-    
-    %% setPreviousVertices
-    
-    function setPreviousVertices(this, value)
-        assert(this.numVertices == size(value,1));
-        this.m_structuredInfo.previous = value;
     end
     
     %% getNextVertexIndex

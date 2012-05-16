@@ -84,7 +84,7 @@ methods (Access = public)
         
         if algorithmType == SingleRun.CSSLMC
             algorithm.setTransitionMatrix( this.m_graph.transitionMatrix() );
-            algorithm.setVertexOrder( this.m_graph.vertexOrder() );
+            algorithm.setStructuredEdges( this.m_graph.structuredEdges() );
         end
         
         this.loadSpecificAlgorithmParams( algorithm, algorithmType, params );

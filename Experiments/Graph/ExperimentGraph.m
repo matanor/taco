@@ -7,7 +7,6 @@ properties
     m_w_nn_symetric;
     m_lastUsedK;
     m_savedNumFolds;
-    m_structuredInfo;
 end
     
 methods
@@ -35,38 +34,6 @@ methods
         this.m_savedNumFolds = numFolds;
     end
     
-    %% loadFromStruct (hook for derived classes)
-    
-    function loadFromStruct(this, fileData)
-        loadFromStruct@GraphBase(this);
-        if isfield(fileData,'vertexOrder')
-            this.m_structuredInfo.vertexOrder = fileData.vertexOrder;
-        end
-        if isfield(fileData,'transitionMatrix')
-            this.m_structuredInfo.transitionMatrix = fileData.transitionMatrix;
-        end        
-    end
-    
-    %% transitionMatrix
-    
-    function R = transitionMatrix(this)
-        if isfield(this.m_structuredInfo,'transitionMatrix')
-            R = this.m_structuredInfo.transitionMatrix;
-        else
-            R = [];
-        end
-    end
-    
-	%% vertexOrder
-    
-    function R = vertexOrder(this)
-        if isfield(this.m_structuredInfo,'vertexOrder')
-            R = this.m_structuredInfo.vertexOrder;
-        else
-            R = [];
-        end
-    end
-
     %% clearWeights
     
     function clearWeights(this)

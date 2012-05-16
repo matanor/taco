@@ -6,6 +6,7 @@ properties
     m_weights;
     m_correctLabels;
     m_fileName;
+    m_structuredInfo;
 end
     
 methods
@@ -119,7 +120,13 @@ methods
     
     %% loadFromStruct (hook for derived classes)
     
-    function loadFromStruct(~, ~)
+    function loadFromStruct(this, fileData)
+        if isfield(fileData,'structuredEdges')
+            this.m_structuredInfo.structuredEdges = fileData.structuredEdges;
+        end
+        if isfield(fileData,'transitionMatrix')
+            this.m_structuredInfo.transitionMatrix = fileData.transitionMatrix;
+        end        
     end
     
     %% correctLabels
@@ -179,6 +186,26 @@ methods
     
     function R = correctLabelsForVertices(this, vertices)
         R = this.m_correctLabels(vertices);
+    end
+    
+    %% transitionMatrix
+    
+    function R = transitionMatrix(this)
+        if isfield(this.m_structuredInfo,'transitionMatrix')
+            R = this.m_structuredInfo.transitionMatrix;
+        else
+            R = [];
+        end
+    end
+    
+	%% structuredEdges
+    
+    function R = structuredEdges(this)
+        if isfield(this.m_structuredInfo,'structuredEdges')
+            R = this.m_structuredInfo.structuredEdges;
+        else
+            R = [];
+        end
     end
 end
 
