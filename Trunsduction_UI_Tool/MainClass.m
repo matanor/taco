@@ -9,6 +9,7 @@ classdef MainClass < handle
         m_showEdgeWeights;
         m_showLegend;
         m_isCalcObjective;
+        m_stayInStateProbability;
     end
 
     properties (Access=private)
@@ -50,6 +51,7 @@ methods (Access = public)
         this.m_showNumericResults = 1;
         this.m_showLegend = 1;
         this.m_isCalcObjective = 1;
+        this.m_stayInStateProbability = 0.1;
     end
 
     %% set_graph
@@ -396,46 +398,53 @@ methods (Access = private)
     %% updateAlpha
     
     function updateAlpha(this, ~, ~)
-        Logger.log('updateAlpha');
-        newValue = get(gco,'string');
-        this.alpha = str2double(newValue);
-        this.run();
+        this.updateParamAndRun('alpha');
     end
 
     %% updateBeta
     
     function updateBeta(this, ~, ~)
-        Logger.log('updateBeta');
-        newValue = get(gco,'string');
-        this.beta = str2double(newValue);
-        this.run();
+        this.updateParamAndRun('beta');
     end
 
     %% updateLabeledConfidence
     
     function updateLabeledConfidence(this, ~, ~)
-        Logger.log('updateLabeledConfidence');
+        this.updateParamAndRun('labeledConfidence');
+    end
+    
+    %% updateZeta
+    
+    function updateZeta(this,~,~)
+        this.updateParamAndRun('zeta');
+    end
+    
+    %% updateStayInStateProbability
+    
+    function updateStayInStateProbability(this,~,~)
+        this.updateParamAndRun('m_stayInStateProbability');
+    end
+    
+    %% updateParamAndRun
+    
+    function updateParamAndRun(this, paramName)
+        Logger.log(['Updating ' paramName]);
         newValue = get(gco,'string');
-        this.labeledConfidence = str2double(newValue);
+        Logger.log(['New value is ' newValue]);
+        this.(paramName) = str2double(newValue);
         this.run();
     end
 
     %% updateMu2
     
     function updateMu2(this, ~, ~)
-        Logger.log('updateMu2');
-        newValue = get(gco,'string');
-        this.mu2 = str2double(newValue);
-        this.run();
+        this.updateParamAndRun('mu2');
     end
 
     %% updateMu3
     
     function updateMu3(this, ~, ~)
-        Logger.log('updateMu3');
-        newValue = get(gco,'string');
-        this.mu3 = str2double(newValue);
-        this.run();
+        this.updateParamAndRun('mu3');
     end
 
     %% updateAlgorithm
@@ -786,8 +795,10 @@ methods (Access = private)
     %% addParamsUI
 
     function addParamsUI(this)
-        controlPos.left = 30;
-        controlPos.bottom = 0;
+        INITIAL_LEFT_POSITION = 30;
+        INITIAL_BOTTOM_POSITION = 0;
+        controlPos.left = INITIAL_LEFT_POSITION;
+        controlPos.bottom = INITIAL_BOTTOM_POSITION;
         controlPos.width = 100;
         controlPos.height = 20;
         margin = 5;
@@ -831,6 +842,17 @@ methods (Access = private)
         MainClass.addParam( controlPos, 'iteration', ... 
                         this.labeledConfidence, ...
               @(src, event)updateCurrentIteration(this, src, event) );
+        
+        controlPos.left = INITIAL_LEFT_POSITION;
+        controlPos.bottom = INITIAL_BOTTOM_POSITION + 2*(controlPos.height + margin);
+        MainClass.addParam( controlPos, 'zeta', this.zeta, ...
+                        @(src, event)updateZeta(this, src, event) );
+        controlPos.left = controlPos.left + controlPos.width + margin;
+        
+        MainClass.addParam( controlPos, 'Stay Prob', this.m_stayInStateProbability, ...
+                        @(src, event)updateStayInStateProbability(this, src, event) );
+        controlPos.left = controlPos.left + controlPos.width + margin;
+
     end
 
     %% runCSSL
@@ -876,8 +898,9 @@ methods (Access = private)
         Y = MainClass.createLabeledY(this.graph);
         algorithm.m_priorY = Y;
         
-        transitionMatrix = [0.1 0.9;
-                            0.9 0.1];
+        a = this.m_stayInStateProbability;
+        transitionMatrix = [ a  1-a;
+                            1-a  a  ];
         algorithm.setTransitionMatrix( transitionMatrix );
         algorithm.setStructuredEdges( this.graph.structuredEdges() );
         algorithm.m_isUsingStructured = 1;
