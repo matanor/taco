@@ -122,7 +122,10 @@ methods
     
     function loadFromStruct(this, fileData)
         if isfield(fileData,'structuredEdges')
-            this.m_structuredInfo.structuredEdges = fileData.structuredEdges;
+            structuredEdges = fileData.structuredEdges;
+            numStructuredEdges = size(structuredEdges, 1);
+            Logger.log(['Loading ' num2str(numStructuredEdges) ' structured edges']);
+            this.m_structuredInfo.structuredEdges = structuredEdges;
         else
             Logger.log('No structured info in graph');
         end

@@ -45,7 +45,9 @@ end
 
 methods (Access=public)
     
-    function this = CSSLBase() % constructor
+    %% constructor
+    
+    function this = CSSLBase() 
         this.m_useGraphHeuristics = 0;
         this.m_descendMode = CSSLBase.DESCEND_MODE_COORIDNATE_DESCENT;
         this.m_isUsingStructured = 0;
@@ -69,6 +71,7 @@ methods (Access=public)
         if ~isempty(structuredEdges)
             assert( size(structuredEdges,2) == 2);
         end
+        Logger.log(['setStructuredEdges. numStructuredEdges = ' num2str(numStructuredEdges)]);
         for edge_i=1:numStructuredEdges
             v1 = structuredEdges(edge_i, 1);
             v2 = structuredEdges(edge_i, 2);
