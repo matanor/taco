@@ -3,10 +3,12 @@ methods (Static)
     
     %% calcKnnMain
     
-    function calcKnnMain(inputFileFullPath, K, instancesPerJob, outputManager)
+    function calcKnnMain(inputFileFullPath, K, instancesPerJob, ...
+                         maxInstances,      outputManager)
         fileData = load(inputFileFullPath);
         graph = fileData.graph;
         numInstances = size(graph.instances, 2);
+        numInstances = min(numInstances, maxInstances);
         numJobs = ceil(numInstances / instancesPerJob);
         job_i_zero_based = 0;
         allJobs = [];
