@@ -20,7 +20,7 @@ methods (Static)
             job_i_zero_based = job_i_zero_based + 1;
             instancesRange = firstInstanceForJob:lastInstanceForJob;
             newJob = sparseKnn.scheduleAsyncKNN(inputFileFullPath, instancesRange, K, outputManager);
-            newJob.instancesRange = instancesRange;
+            jobInfo{job_i}.instancesRange = instancesRange; %#ok<AGROW>
             allJobs = [allJobs; newJob]; %#ok<AGROW>
         end
         JobManager.executeJobs( allJobs );
@@ -29,7 +29,7 @@ methods (Static)
         for job_i=1:numJobs
             job = allJobs(job_i);
             partialWeights = JobManager.loadJobOutput(job.fileFullPath);
-            instancesRange = job.instancesRange;
+            instancesRange = jobInfo{job_i}.instancesRange;
             allWeights(instancesRange, :) = partialWeights;
         end
         
