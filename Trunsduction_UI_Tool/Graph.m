@@ -186,6 +186,7 @@ classdef Graph < GraphBase
             this.m_vertexProperties(newVertexID).showText = 1;
             this.m_vertexProperties(newVertexID).name = [];
             this.m_vertexProperties(newVertexID).showArrow = 0;
+            this.m_vertexProperties(newVertexID).orderIndex = 0;
             R = newVertexID;
         end
         
