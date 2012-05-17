@@ -5,7 +5,9 @@ methods (Static)
     
     function calcKnnMain(inputFileFullPath, K, instancesPerJob, ...
                          maxInstances,      outputManager)
+        Logger.log(['Loading file ''' inputFileFullPath '''']);
         fileData = load(inputFileFullPath);
+        Logger.log('Done');
         graph = fileData.graph;
         numInstances = size(graph.instances, 2);
         numInstances = min(numInstances, maxInstances);
@@ -40,6 +42,9 @@ methods (Static)
     function job = scheduleAsyncKNN(inputFileFullPath, instancesRange, K,...
                                           outputManager ) %#ok<INUSL,INUSD>
         Logger.log('scheduleAsyncKNN');
+        firstInstance = instancesRange(1);
+        fileName = ['KNN_' num2str(firstInstance) '.mat' ];
+        fileFullPath = outputManager.createFileNameAtCurrentFolder(fileName);
         save(fileFullPath,'inputFileFullPath','instancesRange','K');
         
         job = JobManager.createJob(fileFullPath, 'asyncCalcKnn', outputManager);
@@ -48,12 +53,15 @@ methods (Static)
     %% calcKnn
     
     function result = calcKnn(inputFileFullPath, instancesRange, K)
+        Logger.log(['Loading input file full path = ''' inputFileFullPath ''''])
         fileData = load(inputFileFullPath);
+        Logger.log('Done');
+        
         graph = fileData.graph;
         numInstances = size(graph.instances, 2);
-        inverse_covariance = inv(graph.covariance);
-        Logger.log(['Input file full path = ' inputFileFullPath])
         Logger.log(['Instances range = ' num2str(instancesRange) ', K = ' num2str(K)])
+        inverse_covariance = inv(graph.covariance);
+
         tic;
         numRows = length(instancesRange);
         result = sparse(numRows, numInstances);
