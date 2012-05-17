@@ -1,2 +1,2 @@
 
-sh ./startFunction parallelKNN
+sh ./startFunction.sh parallelKNN
