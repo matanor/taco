@@ -27,7 +27,7 @@ methods (Static)
         save(jobsOutputFile, 'allJobs');
         JobManager.executeJobs( allJobs );
         
-        allWeights = sparse();
+        allWeights = sparse(numInstances, numInstances);
         Logger.log('Connecting all results to one graph');
         tic;
         for job_i=1:numJobs
