@@ -1,6 +1,6 @@
 
 outputDir=/u/matanorb/experiments/results/
-folderName=2012_04_05_01_sentiment_no_random_seed_fixed_labeled_selection
+folderName=$2
 resultsDirectory=$outputDir$folderName
 logFile=$resultsDirectory/matlab.log
 codeRoot=/u/matanorb/matlab_async
