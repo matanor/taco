@@ -86,6 +86,7 @@ methods (Static)
         Logger.log('Done');
         
         graph = fileData.graph;
+        clear fileData;
         numInstances = size(graph.instances, 2);
         Logger.log(['Instances range = ' num2str(instancesRange(1)) ' ' ...
                     num2str(instancesRange(end)) ...
