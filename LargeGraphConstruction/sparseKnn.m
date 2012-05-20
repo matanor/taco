@@ -66,6 +66,9 @@ methods (Static)
         numRows = length(instancesRange);
         result = sparse(numRows, numInstances);
         for instance_i=instancesRange
+            if mod(instance_i, 50) == 0
+                Logger.log(['instance_i = ' num2str(instance_i)]);
+            end
             current_instance = graph.instances(:, instance_i);
             
             row_diffs = zeros(size(graph.instances));
