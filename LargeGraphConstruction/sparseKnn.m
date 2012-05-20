@@ -8,8 +8,8 @@ methods (Static)
         Logger.log(['Loading file ''' inputFileFullPath '''']);
         fileData = load(inputFileFullPath);
         Logger.log('Done');
-        graph = fileData.graph;
-        numInstances = size(graph.instances, 2);
+        inputGraph = fileData.graph;
+        numInstances = size(inputGraph.instances, 2);
         numInstancesToCompute = min(numInstances, maxInstances);
         numJobs = ceil(numInstancesToCompute / instancesPerJob);
         job_i_zero_based = 0;
@@ -52,10 +52,10 @@ methods (Static)
         toc;
         
         outputFileFullPath = [inputFileFullPath '.k_' num2str(K) '.mat'];
-        outputGraph.name = [graph.name '_K_' num2str(K)];
+        graph.name = [inputGraph.name '_K_' num2str(K)];
         %outputGraph
-        outputGraph.weights = allWeights; %#ok<STRNU>
-        save(outputFileFullPath, 'outputGraph');
+        graph.weights = allWeights; %#ok<STRNU>
+        save(outputFileFullPath, 'graph');
     end
     
     %% scheduleAsyncKNN
@@ -66,9 +66,16 @@ methods (Static)
         firstInstance = instancesRange(1);
         fileName = ['KNN_' num2str(firstInstance) '.mat' ];
         fileFullPath = outputManager.createFileNameAtCurrentFolder(fileName);
-        save(fileFullPath,'inputFileFullPath','instancesRange','K');
-        
-        job = JobManager.createJob(fileFullPath, 'asyncCalcKnn', outputManager);
+        if ParamsManager.ASYNC_RUNS == 0
+            result = sparseKnn.calcKnn( inputFileFullPath, instancesRange, K);
+            JobManager.saveJobOutput( result, fileFullPath);
+            JobManager.signalJobIsFinished( fileFullPath );
+            job = Job;
+            job.fileFullPath = fileFullPath;
+        else
+            save(fileFullPath,'inputFileFullPath','instancesRange','K');
+            job = JobManager.createJob(fileFullPath, 'asyncCalcKnn', outputManager);
+        end
     end
     
     %% calcKnn
