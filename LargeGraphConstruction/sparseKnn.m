@@ -10,10 +10,11 @@ methods (Static)
         Logger.log('Done');
         graph = fileData.graph;
         numInstances = size(graph.instances, 2);
-        numInstances = min(numInstances, maxInstances);
-        numJobs = ceil(numInstances / instancesPerJob);
+        numInstancesToCompute = min(numInstances, maxInstances);
+        numJobs = ceil(numInstancesToCompute / instancesPerJob);
         job_i_zero_based = 0;
         allJobs = [];
+        Logger.log(['numJobs = ' num2str(numJobs) ' numInstances = ' num2str(numInstances)]);
         for job_i=1:numJobs
             firstInstanceForJob = 1 + job_i_zero_based * instancesPerJob;
             lastInstanceForJob = min(numInstances, firstInstanceForJob + instancesPerJob - 1);
