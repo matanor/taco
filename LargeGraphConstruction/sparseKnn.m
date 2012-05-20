@@ -15,7 +15,7 @@ methods (Static)
         job_i_zero_based = 0;
         allJobs = [];
         for job_i=1:numJobs
-            firstInstanceForJob = job_i + job_i_zero_based * instancesPerJob;
+            firstInstanceForJob = 1 + job_i_zero_based * instancesPerJob;
             lastInstanceForJob = min(numInstances, firstInstanceForJob + instancesPerJob - 1);
             job_i_zero_based = job_i_zero_based + 1;
             instancesRange = firstInstanceForJob:lastInstanceForJob;
