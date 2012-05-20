@@ -23,18 +23,27 @@ methods (Static)
             jobInfo{job_i}.instancesRange = instancesRange; %#ok<AGROW>
             allJobs = [allJobs; newJob]; %#ok<AGROW>
         end
+        jobsOutputFile = outputManager.createFileNameAtCurrentFolder('allJobs.mat');
+        save(jobsOutputFile, 'allJobs');
         JobManager.executeJobs( allJobs );
         
         allWeights = sparse();
+        Logger.log('Connecting all results to one graph');
+        tic;
         for job_i=1:numJobs
+            Logger.log(['job_i = ' num2str(job_i)]);
             job = allJobs(job_i);
             partialWeights = JobManager.loadJobOutput(job.fileFullPath);
             instancesRange = jobInfo{job_i}.instancesRange;
             allWeights(instancesRange, :) = partialWeights;
         end
+        toc;
         
-        graph.weights = allWeights;
-        save(inputFileFullPath, 'graph');
+        outputFileFullPath = [inputFileFullPath '.k_' num2str(K) '.mat'];
+        outputGraph.name = [graph.name '_K_' num2str(K)];
+        %outputGraph
+        outputGraph.weights = allWeights; %#ok<STRNU>
+        save(outputFileFullPath, 'outputGraph');
     end
     
     %% scheduleAsyncKNN
