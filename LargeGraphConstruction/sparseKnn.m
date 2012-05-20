@@ -27,16 +27,27 @@ methods (Static)
         save(jobsOutputFile, 'allJobs');
         JobManager.executeJobs( allJobs );
         
-        allWeights = sparse(numInstances, numInstances);
+%         allWeights = sparse(numInstances, numInstances);
         Logger.log('Connecting all results to one graph');
         tic;
+        allRowIndices       = [];
+        allColumnIndices    = [];
+        allValues           = [];
         for job_i=1:numJobs
             Logger.log(['job_i = ' num2str(job_i)]);
             job = allJobs(job_i);
             partialWeights = JobManager.loadJobOutput(job.fileFullPath);
+            [rows_indices,column_indices,value] = find(partialWeights);
+            allRowIndices    = [allRowIndices;rows_indices]; %#ok<AGROW>
+            allColumnIndices = [allColumnIndices; column_indices]; %#ok<AGROW>
+            allValues        = [allValues; value]; %#ok<AGROW>
             instancesRange = jobInfo{job_i}.instancesRange;
-            allWeights(instancesRange, :) = partialWeights;
+            Logger.log(['instancesRange = ' num2str(instancesRange(1)) '_' ...
+                                            num2str(instancesRange(emd))]);
         end
+        
+        allWeights = sparse(allRowIndices,allColumnIndices, allValues, ...
+                            numInstances, numInstances);
         toc;
         
         outputFileFullPath = [inputFileFullPath '.k_' num2str(K) '.mat'];
