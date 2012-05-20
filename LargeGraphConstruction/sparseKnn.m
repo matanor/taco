@@ -43,7 +43,7 @@ methods (Static)
             allValues        = [allValues; value]; %#ok<AGROW>
             instancesRange = jobInfo{job_i}.instancesRange;
             Logger.log(['instancesRange = ' num2str(instancesRange(1)) '_' ...
-                                            num2str(instancesRange(emd))]);
+                                            num2str(instancesRange(end))]);
         end
         
         allWeights = sparse(allRowIndices,allColumnIndices, allValues, ...
