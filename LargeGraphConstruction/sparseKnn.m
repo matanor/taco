@@ -67,7 +67,7 @@ methods (Static)
         fileName = ['KNN_' num2str(firstInstance) '.mat' ];
         fileFullPath = outputManager.createFileNameAtCurrentFolder(fileName);
         if ParamsManager.ASYNC_RUNS == 0
-            result = sparseKnn.calcKnn( inputFileFullPath, instancesRange, K);
+            result = sparseKnn.calcKnnFromInstances( inputFileFullPath, instancesRange, K);
             JobManager.saveJobOutput( result, fileFullPath);
             JobManager.signalJobIsFinished( fileFullPath );
             job = Job;
@@ -78,9 +78,9 @@ methods (Static)
         end
     end
     
-    %% calcKnn
+    %% calcKnnFromInstances
     
-    function result = calcKnn(inputFileFullPath, instancesRange, K)
+    function result = calcKnnFromInstances(inputFileFullPath, instancesRange, K)
         Logger.log(['Loading input file full path = ''' inputFileFullPath ''''])
         fileData = load(inputFileFullPath);
         Logger.log('Done');
@@ -110,6 +110,7 @@ methods (Static)
             
             % This is fastest: (see below) sum((B.' * A).' .* B);
             row_weights = exp(-sum((row_diffs.' * inverse_covariance).' .* row_diffs, 1));
+            clear row_diffs;
             assert( row_weights(instance_i) == 1);
             row_weights(instance_i) = 0;
             
@@ -126,6 +127,97 @@ methods (Static)
             result( instance_i, :) = row_weights; %#ok<SPRIX>
         end
         toc;
+    end
+    
+    %% calcKnnOnGraph
+        
+    function weights = calcKnnOnGraph( weights, K )
+        %KNN Create K nearest neighbour graph
+        %   graph.weights - symetric weights metrix describing the graph.
+        %   K - create a K - NN graph.
+        %   This will zero all N-K smallest values per each row.
+        %   Assume that the weights matrix is sparse.
+
+        weights = weights.';    % transpose because the weights are not symetric
+        numVertices = size(weights, 1);
+        assert( numVertices == size(weights, 2));
+        
+        allRows     = zeros(numVertices*K,1);
+        allColumns  = zeros(numVertices*K,1);
+        allValues   = zeros(numVertices*K,1);
+        
+        insertPosition = 1;
+        for col_i=1:numVertices
+            if mod(col_i,10000) == 0
+                Logger.log(['col_i = ' num2str(col_i)])
+            end
+            
+            [rows,~,values] = find(weights(:,col_i));
+            currentK = length(rows);
+            
+            % Sort column <i> in W. Get the indices for the sort.
+            [~, sortOrder] = sort(values);
+            
+            % Get indices for K largest values per row.
+            large_nums_indexes = sortOrder( (currentK - K + 1):end );
+         
+            selectedRows    = rows(large_nums_indexes);
+            selectedColumns = col_i * ones(K, 1);
+            selectedValues  = values(large_nums_indexes);
+            lastPosition = insertPosition+K-1;
+            allRows     (insertPosition:lastPosition) = selectedRows;
+            allColumns  (insertPosition:lastPosition) = selectedColumns;
+            allValues   (insertPosition:lastPosition) = selectedValues;
+            insertPosition = insertPosition + K;
+        end;
+        
+        weights = sparse(allRows, allColumns, allValues, numVertices, numVertices);
+    end
+    
+    %% makeSymetric
+    %  This was not used because it is very slow for sparse matrices.
+    
+    function weights = makeSymetric(weights)
+        [rows,cols,values] = find(weights);
+        numEntries = length(rows);
+        allRows     = [rows;zeros(numEntries, 1)];
+        allColumns  = [cols;zeros(numEntries, 1)];
+        allValues   = [values;zeros(numEntries, 1)];
+        insertPosition = numEntries+1;
+        for entry_i=1:numEntries
+            if mod(entry_i, 1000) == 0
+                Logger.log(['entry_i = ' num2str(entry_i)]);
+            end
+            row_i = rows(entry_i);
+            col_i = cols(entry_i);
+            if weights(col_i, row_i) == 0
+                allRows     ( insertPosition ) = col_i;
+                allColumns  ( insertPosition ) = row_i;
+                allValues   ( insertPosition ) = values(entry_i);
+                insertPosition = insertPosition + 1;
+            end
+        end
+    end
+    
+    %% createDummy
+    
+    function createDummy(outputFileFullPath, numInstances, K)
+        allRows = [];
+        allCols = [];
+        allValues = [];
+        for instance_i=1:numInstances
+            if mod(instance_i,1000) == 0
+                Logger.log(['Instance_i = ' num2str(instance_i)]);
+            end
+            rows = randi(numInstances, K, 1);
+            cols = instance_i * ones(K,1);
+            values = ones(K,1);
+            allRows  = [allRows; rows]; %#ok<AGROW>
+            allCols  = [allCols; cols]; %#ok<AGROW>
+            allValues = [allValues; values]; %#ok<AGROW>
+        end
+        graph.weights = sparse(allRows, allCols, allValues, numInstances, numInstances); %#ok<STRNU>
+        save(outputFileFullPath, 'graph');
     end
 
     %% testCalcDistance
