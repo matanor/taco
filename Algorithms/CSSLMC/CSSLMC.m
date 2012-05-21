@@ -26,10 +26,11 @@ function iteration = run( this )
     num_vertices = this.numVertices();
     num_labels   = this.numLabels();
 
-    iteration.mu = zeros( num_vertices, num_labels, num_iterations );
-    iteration.v  = ones ( num_vertices, num_labels, num_iterations );
+    prev_mu     =  zeros( num_vertices, num_labels );
+    current_mu  =  zeros( num_vertices, num_labels );
+    prev_v      =  ones ( num_vertices, num_labels );
     if 0 == isUsingSecondOrder
-        iteration.v = (beta / alpha ) * iteration.v;
+        prev_v = (beta / alpha ) * prev_v;
     end
 
     this.prepareGraph();
@@ -45,26 +46,24 @@ function iteration = run( this )
 
     % note iteration index starts from 2
     for iter_i = 2:num_iterations
-
-        if ( mod(iter_i, 2) == 0 )
-            Logger.log([ '#Iteration = ' num2str(iter_i)...
-                   ' iteration_diff = ' num2str(iteration_diff)]);
-        end
-
+        Logger.log([ '#Iteration = ' num2str(iter_i)...
+                     ' iteration_diff = ' num2str(iteration_diff)]);
         if iteration_diff < diff_epsilon
             Logger.log([  'converged after '   num2str(iter_i-1) ' iterations'...
-                    ' iteration_diff = ' num2str(iteration_diff)]);
-            iteration.mu(:,:, iter_i:end) = [];
-            iteration.v(:,:, iter_i:end) = [];
+                          ' iteration_diff = ' num2str(iteration_diff)]);
             break;
         end
-
-        prev_mu = iteration.mu( :, :, iter_i - 1) ;
-        prev_v =  iteration.v ( :, :, iter_i - 1) ;
+        iteration_diff = 0;
+        
+        Logger.log('Updating first order...');
 
         A = this.transitionMatrix();
         
         for vertex_i=vertexUpdateOrder
+            if ( mod(vertex_i, 10000) == 0 )
+                Logger.log([ 'vertex_i = ' num2str(vertex_i)]);
+            end
+
             neighbours = getNeighbours( this.m_W, vertex_i);
             isLabeled = this.injectionProbability(vertex_i);
             neighbours_mu = prev_mu( neighbours.indices, : ).';
@@ -116,20 +115,28 @@ function iteration = run( this )
             else
                 new_mu = zeros(1,num_labels);
             end
-            iteration.mu(vertex_i, :, iter_i) = new_mu.' ;
+            current_mu(vertex_i, :) = new_mu.' ;
             
             if this.DESCEND_MODE_AM == this.m_descendMode
                 % for true AM
-                prev_mu(vertex_i,:) = iteration.mu(vertex_i, :, iter_i);
+                iteration_diff = iteration_diff + ...
+                                 sum(current_mu(vertex_i, :) - prev_mu(vertex_i,:)).^2;
+                prev_mu(vertex_i,:) = current_mu(vertex_i, :);
             end
         end
 
         if this.m_descendMode == this.DESCEND_MODE_2 
-            prev_mu = iteration.mu( :, :, iter_i) ;
+            iteration_diff = sum((prev_mu(:) - current_mu(:)).^2);
+            prev_mu = current_mu ;
         end
+        
+        Logger.log('Updating second order...');
 
         if isUsingSecondOrder
             for vertex_i=1:num_vertices
+                if ( mod(vertex_i, 10000) == 0 )
+                    Logger.log([ 'vertex_i = ' num2str(vertex_i)]);
+                end
                 mu_i = prev_mu(vertex_i,:).';
                 for label_i=1:num_labels
                     y_i_r     = this.priorLabelScore( vertex_i, label_i );
@@ -177,21 +184,24 @@ function iteration = run( this )
                     new_v = (beta + sqrt( beta^2 + 4 * alpha * R_i))...
                             / (2 * alpha);
                     clear R_i;
-                    iteration.v(vertex_i, label_i, iter_i) = new_v ;
+                    prev_v(vertex_i, label_i) = new_v ;
                 end
                     %(beta + sqrt( beta^2 + 4 * alpha * A)) / (2 * alpha);
                     % matan changed 5.12.11 from 4 to 2.
             end
         end
 
-        current_mu  = iteration.mu( :, :, iter_i) ;
-        prev_mu     = iteration.mu( :, :, iter_i - 1) ;
-
-        iteration_diff = sum((prev_mu(:) - current_mu(:)).^2);
+        if this.m_descendMode == this.DESCEND_MODE_COORIDNATE_DESCENT 
+            iteration_diff = sum((prev_mu(:) - current_mu(:)).^2);
+            prev_mu = current_mu;
+        end
         if this.m_isCalcObjective
-            this.calcObjective( iteration.mu( :, :, iter_i), iteration.v( :, :, iter_i) );
+            this.calcObjective( current_mu, prev_v );
         end
     end
+    
+    iteration.v = prev_v;
+    iteration.mu = current_mu;
 
     toc(ticID);
 end
