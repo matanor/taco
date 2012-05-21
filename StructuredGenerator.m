@@ -122,6 +122,31 @@ methods (Static)
         structuredEdges(segmentsEnd,:) = [];  % remove edges from segment end to a different segment start
         R = structuredEdges;
     end
+    
+    %% estimateTransitionMatrix
+    
+    function R = estimateTransitionMatrix(correctLabels, segments)
+        numLabels = length(unique(correctLabels));
+        Logger.log(['Number of classes = ' num2str(numLabels)]);
+        transitions = zeros(numLabels, numLabels);
+        numSegments = size(segments, 1);
+        Logger.log(['Number of segments = ' num2str(numSegments)]);
+        Logger.log(['Labels sequence length = ' num2str(length(correctLabels))]);
+        numTransitions = 0;
+        for segment_i=1:numSegments
+            segmentStart = segments(segment_i,1);
+            segmentEnd   = segments(segment_i,2);
+            for frame_i=segmentStart:(segmentEnd-1)
+                framePhone      = correctLabels(frame_i);
+                nextFramePhone  = correctLabels(frame_i+1);
+                transitions(nextFramePhone, framePhone) = ...
+                    transitions(nextFramePhone, framePhone) + 1;
+                numTransitions = numTransitions +1;
+            end
+        end
+        Logger.log(['Number of transitions = ' num2str(numTransitions)]);
+        R = transitions ./ repmat(sum(transitions, 1), numLabels, 1);
+    end
 end
     
 end
