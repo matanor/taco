@@ -1,7 +1,9 @@
 classdef CSSLMC < CSSLBase
-
+    
 methods (Access=public)
-        
+
+%% run
+    
 function iteration = run( this )
 
     ticID = tic;
@@ -31,7 +33,7 @@ function iteration = run( this )
     end
 
     this.prepareGraph();
-
+    
     iteration_diff = 10^1000;
     diff_epsilon = 0.0001;
 
@@ -65,15 +67,15 @@ function iteration = run( this )
         for vertex_i=vertexUpdateOrder
             neighbours = getNeighbours( this.m_W, vertex_i);
             isLabeled = this.injectionProbability(vertex_i);
-            neighbours_mu = prev_mu( neighbours.indices, : );
-            neighbours_v  = prev_v ( neighbours.indices, : );
-            v_i           = prev_v ( vertex_i,:);
+            neighbours_mu = prev_mu( neighbours.indices, : ).';
+            neighbours_v  = prev_v ( neighbours.indices, : ).';
+            v_i           = prev_v ( vertex_i,:).';
             numNeighbours = length(neighbours.indices);
-            sum_K_i_j = zeros(1, num_labels);
-            Q_i       = zeros(1, num_labels);
+            sum_K_i_j = zeros(num_labels, 1);
+            Q_i       = zeros(num_labels, 1);
             for neighbour_i=1:numNeighbours
-                single_neighbour_mu = neighbours_mu(neighbour_i,:);
-                single_neighbour_v  = neighbours_v (neighbour_i,:);
+                single_neighbour_mu = neighbours_mu(:,neighbour_i);
+                single_neighbour_v  = neighbours_v (:,neighbour_i);
                 w_i_j = neighbours.weights(neighbour_i);
                 K_i_j = w_i_j * ((1./single_neighbour_v) + (1./v_i));
                 sum_K_i_j = sum_K_i_j + ...
@@ -82,35 +84,35 @@ function iteration = run( this )
             end
             P_i = isLabeled * ( 1./v_i + 1 / gamma );
             y_i = this.priorVector(vertex_i);
-            numerator   = sum_K_i_j + (P_i .* y_i.'); % .* because P_i is only main diagonal
+            numerator   = sum_K_i_j + (P_i .* y_i); % .* because P_i is only main diagonal
             denominator = diag(Q_i + P_i + isUsingL2Regularization * 1);
             
             if this.m_isUsingStructured
                 structured.previousVertex = this.getPreviousVertexIndex(vertex_i);
                 if this.STRUCTURED_NO_VERTEX ~= structured.previousVertex
                     structured.prev_mu = prev_mu( structured.previousVertex, :);
-                    structured.prev_v  = prev_v ( structured.previousVertex, :);
+                    structured.prev_v  = prev_v ( structured.previousVertex, :).';
                     G_i = 1./v_i + 1./structured.prev_v;
                     denominator  = denominator + zeta * diag(G_i);
                     numerator    = numerator   + ...
-                                   zeta * (diag(G_i) * A * structured.prev_mu.').';
+                                   zeta * (diag(G_i) * A * structured.prev_mu.');
                 end
                 clear structured;
 
                 structured.nextVertex     = this.getNextVertexIndex(vertex_i);
                 if this.STRUCTURED_NO_VERTEX ~= structured.nextVertex;
                     structured.next_mu = prev_mu( structured.nextVertex,:);
-                    structured.next_v  = prev_v ( structured.nextVertex,:);
+                    structured.next_v  = prev_v ( structured.nextVertex,:).';
                     G_i_plus1 = 1./v_i + 1./structured.next_v;
                     denominator  = denominator + zeta * diag(G_i_plus1) * A * A;
                     numerator    = numerator   + ...
-                                   zeta * (diag(G_i_plus1) * A * structured.next_mu.').';
+                                   zeta * (diag(G_i_plus1) * A * structured.next_mu.');
                 end
                 clear structured;
             end
 
             if ~isempty(find(numerator,1))
-                new_mu = denominator \ numerator.';
+                new_mu = denominator \ numerator;
             else
                 new_mu = zeros(1,num_labels);
             end
@@ -202,6 +204,7 @@ function calcObjective(this, current_mu, current_v)
     gamma               = this.m_labeledConfidence;
     numVertices = this.numVertices();
     Logger.log('calcObjective');
+    assert(~issparse(this.m_W)); % The calculation is not for sparse matrices.
     objective = 0;
     for vertex_i=1:numVertices
         mu_i = current_mu( vertex_i, :).';
