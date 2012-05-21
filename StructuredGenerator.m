@@ -111,6 +111,17 @@ methods (Static)
         graph.weights = weights;
         graph.name = ['context_' num2str(context)];
     end
+    
+    %% segmentsToStructuredEdges
+    
+    function R = segmentsToStructuredEdges(segments)
+        lastSeg = segments(end,end);
+        structuredEdges = [(1:lastSeg-1).' (2:lastSeg).'];
+        segmentsEnd = segments(:,2);
+        segmentsEnd = segmentsEnd(1:end-1); % remove last segment end
+        structuredEdges(segmentsEnd,:) = [];  % remove edges from segment end to a different segment start
+        R = structuredEdges;
+    end
 end
     
 end
