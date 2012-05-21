@@ -71,6 +71,13 @@ methods
         R = full(this.m_w_nn_symetric);
     end
     
+    %% get_weights
+    
+    function R = get_weights(this)
+        R = this.m_weights;
+        assert( ~isempty(R));
+    end
+    
     %% doCreateKnn
     
     function doCreateKnn( this, K )
@@ -82,20 +89,24 @@ methods
         this.m_w_nn = this.m_weights;
         this.m_weights = [];
         n = this.numVertices();
-        for row_i=1:n
+        for col_i=1:n
+            if mod(col_i,100) == 0
+                Logger.log(['col_i = ' num2str(col_i)])
+            end
             % Sort row <i> in W. Get the indices for the sort.
-            [~,j] = sort(this.m_w_nn(row_i,:), 2);
+            [~,j] = sort(this.m_w_nn(:,col_i), 1);
             
             % Get indices for N-K smallest values per row.
             small_nums_indexes = j( 1:(n - K) );
          
-            this.m_w_nn( row_i,  small_nums_indexes ) = 0;
+            this.m_w_nn( small_nums_indexes,  col_i ) = 0;
         end;
     end
     
     %% makeSymetric
     
     function makeSymetric( this )
+        assert(~issparse(this.m_w_nn)); % This will be really slow for sparse matrices.
         this.m_w_nn_symetric = this.m_w_nn;
         this.m_w_nn = [];
         w_size = size(this.m_w_nn_symetric,1);
