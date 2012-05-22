@@ -107,7 +107,9 @@ function iteration = run( this )
                     structured.next_mu = prev_mu( :, structured.nextVertex);
                     structured.next_v  = prev_v ( :, structured.nextVertex);
                     G_i_plus1 = 1./v_i + 1./structured.next_v;
-                    G_i_plus1_repmat = repmat(G_i_plus1, 1, num_labels);
+                    % This is what repmat does - only without all the time
+                    % wasting if's
+                    G_i_plus1_repmat = G_i_plus1(:, ones(num_labels, 1));
                     denominator  = denominator + zeta * G_i_plus1_repmat .* A_squared;
                     numerator    = numerator   + ...
                                    zeta * (G_i_plus1 .* (A * structured.next_mu));
