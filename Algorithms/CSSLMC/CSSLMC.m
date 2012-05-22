@@ -70,9 +70,7 @@ function iteration = run( this )
             col = this.m_W(:, vertex_i);
             [neighbours_indices, ~, neighbours_weights] = find(col);
     
-%             neighbours = getNeighbours( this.m_W, vertex_i);
             isLabeled = this.m_isLabeledVector(vertex_i);
-%             isLabeled = this.injectionProbability(vertex_i);
             neighbours_mu = prev_mu( neighbours_indices, : ).';
             neighbours_v  = prev_v ( neighbours_indices, : ).';
             v_i           = prev_v ( vertex_i,:).';
@@ -95,7 +93,6 @@ function iteration = run( this )
             
             if this.m_isUsingStructured
                 structured.previousVertex = this.m_structuredInfo.previous(vertex_i);
-%                 structured.previousVertex = this.getPreviousVertexIndex(vertex_i);
                 if this.STRUCTURED_NO_VERTEX ~= structured.previousVertex
                     structured.prev_mu = prev_mu( structured.previousVertex, :);
                     structured.prev_v  = prev_v ( structured.previousVertex, :).';
@@ -104,10 +101,8 @@ function iteration = run( this )
                     numerator    = numerator   + ...
                                    zeta * (diag(G_i) * A * structured.prev_mu.');
                 end
-                %clear structured;
 
                 structured.nextVertex     = this.m_structuredInfo.next(vertex_i);
-%                 structured.nextVertex     = this.getNextVertexIndex(vertex_i);
                 if this.STRUCTURED_NO_VERTEX ~= structured.nextVertex;
                     structured.next_mu = prev_mu( structured.nextVertex,:);
                     structured.next_v  = prev_v ( structured.nextVertex,:).';
@@ -116,7 +111,6 @@ function iteration = run( this )
                     numerator    = numerator   + ...
                                    zeta * (diag(G_i_plus1) * A * structured.next_mu.');
                 end
-                %clear structured;
             end
 
             if ~isempty(find(numerator,1))
@@ -146,84 +140,44 @@ function iteration = run( this )
                 if ( mod(vertex_i, 100000) == 0 )
                     Logger.log([ 'vertex_i = ' num2str(vertex_i)]);
                 end
-%                 mu_i = prev_mu(vertex_i,:).';
                 isLabeled = this.m_isLabeledVector(vertex_i);
-%                 isLabeled = this.injectionProbability(vertex_i);
                 col = this.m_W(:, vertex_i);
                 [neighbours_indices, ~, neighbours_weights] = find(col);
-%                 neighbours = getNeighbours( this.m_W, vertex_i);
                 if this.m_isUsingStructured
                     structured.previousVertex = this.m_structuredInfo.previous(vertex_i);
-%                     structured.previousVertex = this.getPreviousVertexIndex(vertex_i);
                     structured.nextVertex     = this.m_structuredInfo.next(vertex_i);
-%                     structured.nextVertex     = this.getNextVertexIndex(vertex_i);
                 end
                 
                 y_i  = this.m_priorY(vertex_i,:).';
                 mu_i = prev_mu(vertex_i,:).';
                 numNeighbours = length( neighbours_indices );
                 neighbours_mu = prev_mu( neighbours_indices, : ).';
-%                 mu_i_diff_neighbours_mu = zeros(num_labels, numNeighbours);
                 neighboursSquaredDiff = zeros(num_labels, numNeighbours);
                 for neighbour_i=1:numNeighbours
                     neighboursSquaredDiff(:,neighbour_i) = ...
                         neighbours_weights(neighbour_i) * ...
                             ((mu_i - neighbours_mu(:,neighbour_i)).^2);
                 end
-%                 neighboursSquaredDiff = ...
-%                     repmat(neighbours_weights.',num_labels,1) .* ...
-%                         ((repmat(mu_i, 1, numNeighbours) - neighbours_mu).^2);
+
                 R_i = 0.5 * sum(neighboursSquaredDiff,2);
                 if isLabeled
                    R_i = R_i +  0.5 * ((mu_i - y_i).^2);
                 end
                 
-%                 for label_i=1:num_labels
-%                     y_i_r = this.m_priorY( vertex_i, label_i );
-%                     y_i_r     = this.priorLabelScore( vertex_i, label_i );
-%                     mu_i_r = prev_mu(vertex_i,label_i);
-%                     neighbours_mu = prev_mu( neighbours_indices, label_i );
-%                     R_i = 0.5 * ...
-%                         ( ...
-%                             sum ( neighbours_weights .* (mu_i_r  - neighbours_mu).^2 )...
-%                             + ...
-%                             isLabeled * (mu_i_r - y_i_r)^2 ...
-%                         );
-
-                if this.m_isUsingStructured
-%                     for label_i=1:num_labels
-%                         transitionMatrix_r = A(label_i,:);
-%                         transitionMatrix_r = this.transitionsToState( label_i ); % Row of A.
-                        
+                if this.m_isUsingStructured        
                     if this.STRUCTURED_NO_VERTEX ~= structured.previousVertex
                         structured.prev_mu = prev_mu( structured.previousVertex, :).';
-                        R_i = R_i + 0.5 * zeta * ...
-                            ( ...
-                                mu_i ...
-                                - ...
-                                A * structured.prev_mu ...
-                            ).^2;
+                        R_i = R_i + 0.5 * zeta * (( mu_i - A * structured.prev_mu ).^2);
                     end
-                        %clear structured;
 
                     if this.STRUCTURED_NO_VERTEX ~= structured.nextVertex;
                         structured.next_mu = prev_mu( structured.nextVertex,:).';
-                        R_i = R_i + 0.5 * zeta *...
-                            ( ...
-                                structured.next_mu ...
-                                - ...
-                                A * mu_i ...
-                            ).^2;
+                        R_i = R_i + 0.5 * zeta * (( structured.next_mu - A * mu_i ).^2);
                     end
-                        %clear structured;
-                        %clear transitionMatrix_r;
-%                     end
                 end
                 new_v = (beta + sqrt( beta^2 + 4 * alpha * R_i))...
                         / (2 * alpha);
                 prev_v(vertex_i, :) = new_v.' ;
-                    %(beta + sqrt( beta^2 + 4 * alpha * A)) / (2 * alpha);
-                    % matan changed 5.12.11 from 4 to 2.
             end
         end
 
