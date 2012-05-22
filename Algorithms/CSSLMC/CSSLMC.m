@@ -26,9 +26,9 @@ function iteration = run( this )
     num_vertices = this.numVertices();
     num_labels   = this.numLabels();
 
-    prev_mu     =  zeros( num_vertices, num_labels );
-    current_mu  =  zeros( num_vertices, num_labels );
-    prev_v      =  ones ( num_vertices, num_labels );
+    prev_mu     =  zeros( num_labels, num_vertices );
+    current_mu  =  zeros( num_labels, num_vertices );
+    prev_v      =  ones ( num_labels, num_vertices );
     if 0 == isUsingSecondOrder
         prev_v = (beta / alpha ) * prev_v;
     end
@@ -71,9 +71,9 @@ function iteration = run( this )
             [neighbours_indices, ~, neighbours_weights] = find(col);
     
             isLabeled = this.m_isLabeledVector(vertex_i);
-            neighbours_mu = prev_mu( neighbours_indices, : ).';
-            neighbours_v  = prev_v ( neighbours_indices, : ).';
-            v_i           = prev_v ( vertex_i,:).';
+            neighbours_mu = prev_mu( :, neighbours_indices );
+            neighbours_v  = prev_v ( :, neighbours_indices );
+            v_i           = prev_v ( :, vertex_i);
             numNeighbours = length(neighbours_indices);
             sum_K_i_j = zeros(num_labels, 1);
             Q_i       = zeros(num_labels, 1);
@@ -87,29 +87,30 @@ function iteration = run( this )
                 Q_i = Q_i + K_i_j;
             end
             P_i = isLabeled * ( 1./v_i + 1 / gamma );
-            y_i = this.priorVector(vertex_i);
+            y_i = this.m_priorY(vertex_i,:).';
             numerator   = sum_K_i_j + (P_i .* y_i); % .* because P_i is only main diagonal
             denominator = diag(Q_i + P_i + isUsingL2Regularization * 1);
             
             if this.m_isUsingStructured
                 structured.previousVertex = this.m_structuredInfo.previous(vertex_i);
                 if this.STRUCTURED_NO_VERTEX ~= structured.previousVertex
-                    structured.prev_mu = prev_mu( structured.previousVertex, :);
-                    structured.prev_v  = prev_v ( structured.previousVertex, :).';
+                    structured.prev_mu = prev_mu( :, structured.previousVertex );
+                    structured.prev_v  = prev_v ( :, structured.previousVertex);
                     G_i = 1./v_i + 1./structured.prev_v;
                     denominator  = denominator + zeta * diag(G_i);
                     numerator    = numerator   + ...
-                                   zeta * (diag(G_i) * A * structured.prev_mu.');
+                                   zeta * (G_i .* (A * structured.prev_mu));
                 end
 
                 structured.nextVertex     = this.m_structuredInfo.next(vertex_i);
                 if this.STRUCTURED_NO_VERTEX ~= structured.nextVertex;
-                    structured.next_mu = prev_mu( structured.nextVertex,:);
-                    structured.next_v  = prev_v ( structured.nextVertex,:).';
+                    structured.next_mu = prev_mu( :, structured.nextVertex);
+                    structured.next_v  = prev_v ( :, structured.nextVertex);
                     G_i_plus1 = 1./v_i + 1./structured.next_v;
-                    denominator  = denominator + zeta * diag(G_i_plus1) * A_squared;
+                    G_i_plus1_repmat = repmat(G_i_plus1, 1, num_labels);
+                    denominator  = denominator + zeta * G_i_plus1_repmat .* A_squared;
                     numerator    = numerator   + ...
-                                   zeta * (diag(G_i_plus1) * A * structured.next_mu.');
+                                   zeta * (G_i_plus1 .* (A * structured.next_mu));
                 end
             end
 
@@ -118,18 +119,18 @@ function iteration = run( this )
             else
                 new_mu = zeros(1,num_labels);
             end
-            current_mu(vertex_i, :) = new_mu.' ;
+            current_mu(:, vertex_i) = new_mu ;
             
             if this.DESCEND_MODE_AM == this.m_descendMode
                 % for true AM
                 iteration_diff = iteration_diff + ...
-                                 sum(current_mu(vertex_i, :) - prev_mu(vertex_i,:)).^2;
-                prev_mu(vertex_i,:) = current_mu(vertex_i, :);
+                                 sum(current_mu(:, vertex_i) - prev_mu(:,vertex_i)).^2;
+                prev_mu(:,vertex_i) = current_mu( :, vertex_i);
             end
         end
 
         if this.m_descendMode == this.DESCEND_MODE_2 
-            iteration_diff = sum((prev_mu(:) - current_mu(:)).^2);
+            iteration_diff = sum(sum((prev_mu - current_mu).^2));
             prev_mu = current_mu ;
         end
         
@@ -149,9 +150,9 @@ function iteration = run( this )
                 end
                 
                 y_i  = this.m_priorY(vertex_i,:).';
-                mu_i = prev_mu(vertex_i,:).';
+                mu_i = prev_mu(:,vertex_i);
                 numNeighbours = length( neighbours_indices );
-                neighbours_mu = prev_mu( neighbours_indices, : ).';
+                neighbours_mu = prev_mu( :, neighbours_indices );
                 neighboursSquaredDiff = zeros(num_labels, numNeighbours);
                 for neighbour_i=1:numNeighbours
                     neighboursSquaredDiff(:,neighbour_i) = ...
@@ -166,23 +167,23 @@ function iteration = run( this )
                 
                 if this.m_isUsingStructured        
                     if this.STRUCTURED_NO_VERTEX ~= structured.previousVertex
-                        structured.prev_mu = prev_mu( structured.previousVertex, :).';
+                        structured.prev_mu = prev_mu( :, structured.previousVertex );
                         R_i = R_i + 0.5 * zeta * (( mu_i - A * structured.prev_mu ).^2);
                     end
 
                     if this.STRUCTURED_NO_VERTEX ~= structured.nextVertex;
-                        structured.next_mu = prev_mu( structured.nextVertex,:).';
+                        structured.next_mu = prev_mu( :, structured.nextVertex );
                         R_i = R_i + 0.5 * zeta * (( structured.next_mu - A * mu_i ).^2);
                     end
                 end
                 new_v = (beta + sqrt( beta^2 + 4 * alpha * R_i))...
                         / (2 * alpha);
-                prev_v(vertex_i, :) = new_v.' ;
+                prev_v(:,vertex_i) = new_v ;
             end
         end
 
         if this.m_descendMode == this.DESCEND_MODE_COORIDNATE_DESCENT 
-            iteration_diff = sum((prev_mu(:) - current_mu(:)).^2);
+            iteration_diff = sum(sum((prev_mu - current_mu).^2));
             prev_mu = current_mu;
         end
         if this.m_isCalcObjective
