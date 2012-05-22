@@ -163,12 +163,14 @@ methods
         this.m_correctLabels(verticesToRemove) = [];
         this.m_weights(verticesToRemove,:) = [];
         this.m_weights(:,verticesToRemove) = [];
-        structuredEdges = this.m_structuredInfo.structuredEdges;
-        edgesToRemove1 = ismember(structuredEdges(:,1),verticesToRemove);
-        edgesToRemove2 = ismember(structuredEdges(:,2),verticesToRemove);
-        edgesToRemove = edgesToRemove1 | edgesToRemove2;
-        structuredEdges(edgesToRemove, :) = [];
-        this.m_structuredInfo.structuredEdges = structuredEdges;
+        if ~isempty(this.m_structuredInfo)
+            structuredEdges = this.m_structuredInfo.structuredEdges;
+            edgesToRemove1 = ismember(structuredEdges(:,1),verticesToRemove);
+            edgesToRemove2 = ismember(structuredEdges(:,2),verticesToRemove);
+            edgesToRemove = edgesToRemove1 | edgesToRemove2;
+            structuredEdges(edgesToRemove, :) = [];
+            this.m_structuredInfo.structuredEdges = structuredEdges;
+        end
     end
     
     %% clearWeights

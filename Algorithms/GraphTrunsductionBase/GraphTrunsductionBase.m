@@ -6,6 +6,7 @@ classdef GraphTrunsductionBase < handle
         m_priorY;           % Y - prior labeling, its size should be
                             %       number of vertices X number of labels.
         m_labeledSet;       % indices of labeled vertices.
+        m_isLabeledVector;  % 1 - for labeled vertices, otherwise 0.
         m_W;                % The weights of the graph.
         m_num_iterations;
         m_useClassPriorNormalization;
@@ -32,7 +33,7 @@ methods
     %% isLabeled
     
     function R = isLabeled(this, vertex_i)
-        R = ismember( vertex_i, this.m_labeledSet );
+        R = this.m_isLabeledVector(vertex_i);
     end
     
     %% priorVector
@@ -51,6 +52,14 @@ methods
     
     function R = labeledSet(this)
         R = this.m_labeledSet;
+    end
+    
+    %% setLabeledSet
+    
+    function setLabeledSet(this, value)
+        this.m_labeledSet = value;
+        this.m_isLabeledVector = zeros(this.numVertices(), 1);
+        this.m_isLabeledVector(this.m_labeledSet) = 1;
     end
     
     %% createInitialLabeledY

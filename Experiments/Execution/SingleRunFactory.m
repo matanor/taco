@@ -75,10 +75,14 @@ methods (Access = public)
     function runAlgorithm( this, singleRun, algorithmType, params )
         
         [algorithm algorithm_results ] = this.createAlgorithm( algorithmType );
-        
-        algorithm.m_W = this.get_wnnGraph( params.makeSymetric, params.K );
+
+        if params.isCalculateKNN
+            algorithm.m_W = this.get_wnnGraph( params.makeSymetric, params.K );
+        else
+            algorithm.m_W = this.m_graph.get_weights();
+        end
         algorithm.m_num_iterations  = params.maxIterations;
-        algorithm.m_labeledSet      = this.m_trunsductionSet.labeled();
+        algorithm.setLabeledSet(this.m_trunsductionSet.labeled());
         
         algorithm.createInitialLabeledY(this.m_graph, params.labeledInitMode);
         
