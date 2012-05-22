@@ -58,24 +58,31 @@ function iteration = run( this )
         Logger.log('Updating first order...');
 
         A = this.transitionMatrix();
+        if ~isempty(A)
+            A_squared = A * A;
+        end
         
         for vertex_i=vertexUpdateOrder
-            if ( mod(vertex_i, 10000) == 0 )
+            if ( mod(vertex_i, 100000) == 0 )
                 Logger.log([ 'vertex_i = ' num2str(vertex_i)]);
             end
 
-            neighbours = getNeighbours( this.m_W, vertex_i);
-            isLabeled = this.injectionProbability(vertex_i);
-            neighbours_mu = prev_mu( neighbours.indices, : ).';
-            neighbours_v  = prev_v ( neighbours.indices, : ).';
+            col = this.m_W(:, vertex_i);
+            [neighbours_indices, ~, neighbours_weights] = find(col);
+    
+%             neighbours = getNeighbours( this.m_W, vertex_i);
+            isLabeled = this.m_isLabeledVector(vertex_i);
+%             isLabeled = this.injectionProbability(vertex_i);
+            neighbours_mu = prev_mu( neighbours_indices, : ).';
+            neighbours_v  = prev_v ( neighbours_indices, : ).';
             v_i           = prev_v ( vertex_i,:).';
-            numNeighbours = length(neighbours.indices);
+            numNeighbours = length(neighbours_indices);
             sum_K_i_j = zeros(num_labels, 1);
             Q_i       = zeros(num_labels, 1);
             for neighbour_i=1:numNeighbours
                 single_neighbour_mu = neighbours_mu(:,neighbour_i);
                 single_neighbour_v  = neighbours_v (:,neighbour_i);
-                w_i_j = neighbours.weights(neighbour_i);
+                w_i_j = neighbours_weights(neighbour_i);
                 K_i_j = w_i_j * ((1./single_neighbour_v) + (1./v_i));
                 sum_K_i_j = sum_K_i_j + ...
                     K_i_j .* single_neighbour_mu;
@@ -87,7 +94,8 @@ function iteration = run( this )
             denominator = diag(Q_i + P_i + isUsingL2Regularization * 1);
             
             if this.m_isUsingStructured
-                structured.previousVertex = this.getPreviousVertexIndex(vertex_i);
+                structured.previousVertex = this.m_structuredInfo.previous(vertex_i);
+%                 structured.previousVertex = this.getPreviousVertexIndex(vertex_i);
                 if this.STRUCTURED_NO_VERTEX ~= structured.previousVertex
                     structured.prev_mu = prev_mu( structured.previousVertex, :);
                     structured.prev_v  = prev_v ( structured.previousVertex, :).';
@@ -96,18 +104,19 @@ function iteration = run( this )
                     numerator    = numerator   + ...
                                    zeta * (diag(G_i) * A * structured.prev_mu.');
                 end
-                clear structured;
+                %clear structured;
 
-                structured.nextVertex     = this.getNextVertexIndex(vertex_i);
+                structured.nextVertex     = this.m_structuredInfo.next(vertex_i);
+%                 structured.nextVertex     = this.getNextVertexIndex(vertex_i);
                 if this.STRUCTURED_NO_VERTEX ~= structured.nextVertex;
                     structured.next_mu = prev_mu( structured.nextVertex,:);
                     structured.next_v  = prev_v ( structured.nextVertex,:).';
                     G_i_plus1 = 1./v_i + 1./structured.next_v;
-                    denominator  = denominator + zeta * diag(G_i_plus1) * A * A;
+                    denominator  = denominator + zeta * diag(G_i_plus1) * A_squared;
                     numerator    = numerator   + ...
                                    zeta * (diag(G_i_plus1) * A * structured.next_mu.');
                 end
-                clear structured;
+                %clear structured;
             end
 
             if ~isempty(find(numerator,1))
@@ -138,24 +147,33 @@ function iteration = run( this )
                     Logger.log([ 'vertex_i = ' num2str(vertex_i)]);
                 end
                 mu_i = prev_mu(vertex_i,:).';
+                isLabeled = this.m_isLabeledVector(vertex_i);
+%                 isLabeled = this.injectionProbability(vertex_i);
+                col = this.m_W(:, vertex_i);
+                [neighbours_indices, ~, neighbours_weights] = find(col);
+%                 neighbours = getNeighbours( this.m_W, vertex_i);
+                if this.m_isUsingStructured
+                    structured.previousVertex = this.m_structuredInfo.previous(vertex_i);
+%                     structured.previousVertex = this.getPreviousVertexIndex(vertex_i);
+                    structured.nextVertex     = this.m_structuredInfo.next(vertex_i);
+%                     structured.nextVertex     = this.getNextVertexIndex(vertex_i);
+                end
                 for label_i=1:num_labels
-                    y_i_r     = this.priorLabelScore( vertex_i, label_i );
-                    isLabeled = this.injectionProbability(vertex_i);
-
-                    neighbours = getNeighbours( this.m_W, vertex_i);
-
+                    y_i_r = this.m_priorY( vertex_i, label_i );
+%                     y_i_r     = this.priorLabelScore( vertex_i, label_i );
                     mu_i_r = prev_mu(vertex_i,label_i);
-                    neighbours_mu = prev_mu( neighbours.indices, label_i );
+                    neighbours_mu = prev_mu( neighbours_indices, label_i );
                     R_i = 0.5 * ...
                         ( ...
-                            sum ( neighbours.weights .* (mu_i_r  - neighbours_mu).^2 )...
+                            sum ( neighbours_weights .* (mu_i_r  - neighbours_mu).^2 )...
                             + ...
                             isLabeled * (mu_i_r - y_i_r)^2 ...
                         );
 
                     if this.m_isUsingStructured
-                        transitionMatrix_r = this.transitionsToState( label_i ); % Row of A.
-                        structured.previousVertex = this.getPreviousVertexIndex(vertex_i);
+                        transitionMatrix_r = A(label_i,:);
+%                         transitionMatrix_r = this.transitionsToState( label_i ); % Row of A.
+                        
                         if this.STRUCTURED_NO_VERTEX ~= structured.previousVertex
                             structured.prev_mu = prev_mu( structured.previousVertex, :).';
                             R_i = R_i + 0.5 * zeta * ...
@@ -165,9 +183,8 @@ function iteration = run( this )
                                     transitionMatrix_r * structured.prev_mu ...
                                 )^2;
                         end
-                        clear structured;
+                        %clear structured;
 
-                        structured.nextVertex     = this.getNextVertexIndex(vertex_i);
                         if this.STRUCTURED_NO_VERTEX ~= structured.nextVertex;
                             structured.next_mu_r = prev_mu( structured.nextVertex,label_i);
                             R_i = R_i + 0.5 * zeta *...
@@ -177,13 +194,12 @@ function iteration = run( this )
                                     transitionMatrix_r * mu_i ...
                                 )^2;
                         end
-                        clear structured;
-                        clear transitionMatrix_r;
+                        %clear structured;
+                        %clear transitionMatrix_r;
                     end
 
                     new_v = (beta + sqrt( beta^2 + 4 * alpha * R_i))...
                             / (2 * alpha);
-                    clear R_i;
                     prev_v(vertex_i, label_i) = new_v ;
                 end
                     %(beta + sqrt( beta^2 + 4 * alpha * A)) / (2 * alpha);
@@ -229,7 +245,8 @@ function calcObjective(this, current_mu, current_v)
             objective = objective + ...
                 0.25 * w_i_j * sum((1./v_i + 1 ./ v_j) .* ((mu_i - mu_j).^2));
         end
-        isLabeled_i = this.injectionProbability(vertex_i);
+        isLabeled_i = this.m_isLabeledVector(vertex_i);
+%         isLabeled_i = this.injectionProbability(vertex_i);
         if isLabeled_i
             y_i = this.priorLabelScore( vertex_i, : ).';
             objective = objective + ...
@@ -237,7 +254,8 @@ function calcObjective(this, current_mu, current_v)
         end
         if this.m_isUsingStructured
             A = this.transitionMatrix();
-            structuredPreviousVertex = this.getPreviousVertexIndex(vertex_i);
+            structuredPreviousVertex = this.m_structuredInfo.previous(vertex_i);
+%           structuredPreviousVertex = this.getPreviousVertexIndex(vertex_i);
             if this.STRUCTURED_NO_VERTEX ~= structuredPreviousVertex
                mu_i_prev = current_mu( structuredPreviousVertex, :).';
                v_i_prev  = current_v ( structuredPreviousVertex, :).';
