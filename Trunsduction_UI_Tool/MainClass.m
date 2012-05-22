@@ -892,7 +892,7 @@ methods (Access = private)
         algorithm.m_zeta = this.zeta;
         algorithm.m_isUsingL2Regularization = 0;
         algorithm.m_isUsingSecondOrder = 1;
-        algorithm.m_labeledSet = this.graph.labeled();
+        algorithm.setLabeledSet(this.graph.labeled());
         algorithm.m_isCalcObjective = this.m_isCalcObjective;
 
         Y = MainClass.createLabeledY(this.graph);
@@ -927,7 +927,7 @@ methods (Access = private)
         algorithm.m_labeledConfidence = this.labeledConfidence;
         algorithm.m_isUsingL2Regularization = 0;
         algorithm.m_isUsingSecondOrder = 1;
-        algorithm.m_labeledSet = this.graph.labeled();
+        algorithm.setLabeledSet(this.graph.labeled());
 
         Y = MainClass.createLabeledY(this.graph);
         algorithm.m_priorY = Y;
@@ -963,7 +963,7 @@ methods (Access = private)
         algorithm.m_mu3 = this.mu3;
         algorithm.m_useGraphHeuristics = 1;
         algorithm.m_num_iterations = this.numIterations; 
-        algorithm.m_labeledSet = this.graph.labeled();
+        algorithm.setLabeledSet(this.graph.labeled());
 
         Y = MainClass.createLabeledY(this.graph);
         algorithm.m_priorY = Y;
@@ -987,7 +987,7 @@ methods (Access = private)
         algorithm.m_alpha = 2;
         algorithm.m_num_iterations = this.numIterations; 
         algorithm.m_W  = this.graph.weights();
-        algorithm.m_labeledSet = this.graph.labeled();
+        algorithm.setLabeledSet(this.graph.labeled());
 
         Y = MainClass.createLabeledY(this.graph);
         algorithm.m_priorY = Y;
