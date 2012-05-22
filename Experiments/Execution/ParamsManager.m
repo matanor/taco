@@ -23,7 +23,6 @@ properties (GetAccess = public, SetAccess = private)
     m_maxIterations;
     m_numLabeled;
     m_numFolds;
-    m_numInstancesPerClass; % is required ?
     m_useGraphHeuristics;
     m_fileName;
     m_numEvaluationRuns;
@@ -33,6 +32,7 @@ properties (GetAccess = public, SetAccess = private)
     m_defaultParamsCSSL;
     m_defaultParamsMAD;
     m_defaultParamsAM;
+    m_isCalculateKNN;
 end
 
 properties( Constant)
@@ -105,6 +105,8 @@ methods (Access = public)
         reuters              = [ rootDir 'reuters/reuters_4_topics'     tfidf '.graph.mat'];
         phon_synth_context1  = [ rootDir 'StructureSynthetic/data/context_1.mat' ];
         phon_synth_context7  = [ rootDir 'StructureSynthetic/data/context_7.mat' ];
+        dummy_timit          = [ rootDir 'timit/dummy.mat' ];
+        trainAndDev_timit    = [ rootDir 'timit/trainAndDev.k_10.mat' ];
 
         if isOnOdin
            fileNames = [ {webkb_constructed} ...
@@ -142,10 +144,10 @@ methods (Access = public)
         %beta.range = [10^(-5), 10^(-4), 0.001, 0.01, 1, 10^2, 10^4 ];
         %labeledConfidence.range = [0.01,0.1];
         if (optimize)
-            alphaOptimizationRange = [1e-4 1e-2 1 10 1e2 ];
-            betaOptimizationRange  = [1e-4 1e-2 1 10 1e2 ];
-            zetaOptimizationRange  = [1e-2 1 1e2 ];
-            gammaOptimizationRange = [1 2 5];
+            alphaOptimizationRange = [1e-4 1e-2 1 1e2 ];
+            betaOptimizationRange  = [1e-4 1e-2 1 1e2 ];
+            zetaOptimizationRange  = [1 10 100];
+            gammaOptimizationRange = [1 5];
 
             this = this.createParameter( 'alpha', alphaOptimizationRange, isString, [] );
             this = this.createParameter( 'beta',  betaOptimizationRange, isString, [] );
@@ -170,11 +172,8 @@ methods (Access = public)
             this = this.createParameter( 'isUsingSecondOrder', [1], isString, [] );
         end
         
-        if isTesting
-            this = this.createParameter( 'isUsingStructured', [0], isString, [] );
-        else 
-            this = this.createParameter( 'isUsingStructured', [0 1], isString, [] );
-        end
+        this = this.createParameter( 'isCalculateKNN',    [0], isString, [] );
+        this = this.createParameter( 'isUsingStructured', [1], isString, [] );
         
         this.m_defaultParamsCSSL.K = 1000;
         this.m_defaultParamsCSSL.alpha = 1;
@@ -227,23 +226,22 @@ methods (Access = public)
         
         %numIterations.range = [5 10 25 50 100];
         if isTesting
-            this = this.createParameter( 'maxIterations', [1], isString, [] );    
-            this = this.createParameter( 'numEvaluationRuns', [1], isString, [] );
+            this = this.createParameter( 'maxIterations', [10], isString, [] );    
+            this = this.createParameter( 'numEvaluationRuns', [0], isString, [] );
         else
             this = this.createParameter( 'maxIterations',     [10], isString, [] );    
-            this = this.createParameter( 'numEvaluationRuns', [20], isString, [] );
+            this = this.createParameter( 'numEvaluationRuns', [0], isString, [] );
         end
         
         this = this.createParameter( 'numLabeled', [48], isString, [] );    
+        %11054
         
         this = this.createParameter( 'numFolds', [4], isString, [] );    
         
-        % 0 means all instances
-        this = this.createParameter( 'numInstancesPerClass', [0], isString, [] );    
         if isTesting
-            this = this.createParameter( 'useGraphHeuristics', [1], isString, [] );
+            this = this.createParameter( 'useGraphHeuristics', [0], isString, [] );
         else 
-            this = this.createParameter( 'useGraphHeuristics', [0 1], isString, [] );
+            this = this.createParameter( 'useGraphHeuristics', [0], isString, [] );
         end
         
         if isTesting
@@ -258,7 +256,7 @@ methods (Access = public)
         if isTesting
             this = this.createParameter( 'balanced', [0], isString, [] );
         else
-            this = this.createParameter( 'balanced', [0 1], isString, [] );
+            this = this.createParameter( 'balanced', [0], isString, [] );
         end
         
         if isTesting
@@ -299,7 +297,8 @@ methods (Access = public)
         R = [ this.m_makeSymetric,       this.m_maxIterations, ...
               this.m_useGraphHeuristics, this.m_labeledInitMode, ...
               this.m_numEvaluationRuns,  this.m_isUsingL2Regularization...
-              this.m_isUsingSecondOrder, this.m_isUsingStructured];
+              this.m_isUsingSecondOrder, this.m_isUsingStructured, ...
+              this.m_isCalculateKNN];
     end   
     
     %% constructionParamsProperties
@@ -313,7 +312,7 @@ methods (Access = public)
     %% optimizationParamsCSSL
     
     function R = optimizationParamsCSSL(this)
-        R = [ this.m_K, this.m_alpha, this.m_beta, this.m_zeta, this.m_labeledConfidence];
+        R = [ this.m_K, this.m_alpha, this.m_beta, this.m_labeledConfidence, this.m_zeta];
     end
     
     %% defaultParamsCSSL
