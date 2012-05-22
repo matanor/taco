@@ -193,8 +193,8 @@ function iteration = run( this )
         end
     end
     
-    iteration.v = prev_v;
-    iteration.mu = current_mu;
+    iteration.v = prev_v.';
+    iteration.mu = current_mu.';
 
     toc(ticID);
 end
@@ -207,18 +207,19 @@ function calcObjective(this, current_mu, current_v)
     gamma               = this.m_labeledConfidence;
     numVertices = this.numVertices();
     Logger.log('calcObjective');
+    Logger.log(['numVertices = ' num2str(numVertices)]);
     assert(~issparse(this.m_W)); % The calculation is not for sparse matrices.
     objective = 0;
     for vertex_i=1:numVertices
-        mu_i = current_mu( vertex_i, :).';
-        v_i  = current_v(vertex_i,:).';
+        mu_i = current_mu( :, vertex_i);
+        v_i  = current_v ( :, vertex_i);
         %if mod(vertex_i, 100) == 0
         %    disp(vertex_i);
         %end
         for vertex_j=1:numVertices
             w_i_j = this.m_W(vertex_i, vertex_j);
-            mu_j = current_mu( vertex_j, :).';
-            v_j = current_v(vertex_i,:).';
+            mu_j    = current_mu( :, vertex_j);
+            v_j     = current_v ( :, vertex_j);
             objective = objective + ...
                 0.25 * w_i_j * sum((1./v_i + 1 ./ v_j) .* ((mu_i - mu_j).^2));
         end
@@ -232,10 +233,9 @@ function calcObjective(this, current_mu, current_v)
         if this.m_isUsingStructured
             A = this.transitionMatrix();
             structuredPreviousVertex = this.m_structuredInfo.previous(vertex_i);
-%           structuredPreviousVertex = this.getPreviousVertexIndex(vertex_i);
             if this.STRUCTURED_NO_VERTEX ~= structuredPreviousVertex
-               mu_i_prev = current_mu( structuredPreviousVertex, :).';
-               v_i_prev  = current_v ( structuredPreviousVertex, :).';
+               mu_i_prev = current_mu( :, structuredPreviousVertex);
+               v_i_prev  = current_v ( :, structuredPreviousVertex);
                G_i = diag( 1./v_i + 1./v_i_prev );
                mu_i_diff = (mu_i - A * mu_i_prev);
                objective = objective + mu_i_diff.' * G_i * mu_i_diff;
