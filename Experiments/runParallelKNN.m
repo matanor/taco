@@ -3,10 +3,11 @@ function runParallelKNN(resultsDirectory, codeRoot)
 %   Detailed explanation goes here
     disp('runParallelKNN');
     outputManager = initRunOnOdin(resultsDirectory, codeRoot);
-    inputFileFullPath = '/u/matanorb/experiments/timit/trainAndDev.mat';
+    inputFileFullPath = '/u/matanorb/experiments/timit/trainAndTest.mat';
     K = 10;
     instancesPerJob = 500;
-    maxInstances = 10 * instancesPerJob;
+%     maxInstances = 10 * instancesPerJob;
+    maxInstances = Inf;
     sparseKnn.calcKnnMain(inputFileFullPath, K, instancesPerJob, ...
                           maxInstances,      outputManager);
 end
