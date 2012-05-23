@@ -16,7 +16,11 @@ methods
     %% availableResultsAlgorithmRange
         
     function R = availableResultsAlgorithmRange(this)
-        R = this.getRun(1).availableResultsAlgorithmRange();
+        if this.num_runs() > 0
+            R = this.getRun(1).availableResultsAlgorithmRange();
+        else
+            R = [];
+        end
     end
 
     %% constructionParams

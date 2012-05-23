@@ -88,6 +88,7 @@ methods
     function R = toString_all(this)
         optimizationMethods = this.optimizationMethodsCollection();
         line_i = 1;
+        R = [];
         for optimization_method_i=optimizationMethods
             multipleRunResult = this.m_results{optimization_method_i};
             algorithmsInResult = MultipleRunsResult.algorithmsResultOrder();
