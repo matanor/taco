@@ -115,6 +115,7 @@ classdef SingleRun < handle
         %% clearAlgorithmOutput
     
         function clearAlgorithmOutput(this)
+            Logger.log('clearAlgorithmOutput');
             algorithmRange = this.availableResultsAlgorithmRange();
             for algorithm_i=algorithmRange
                 algorithmResults = this.getAlgorithmResults(algorithm_i);
