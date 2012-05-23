@@ -33,6 +33,7 @@ properties (GetAccess = public, SetAccess = private)
     m_defaultParamsMAD;
     m_defaultParamsAM;
     m_isCalculateKNN;
+    m_descendMethodCSSL;
 end
 
 properties( Constant)
@@ -160,11 +161,7 @@ methods (Access = public)
             this = this.createParameter( 'zeta',  [1], isString, [] );
         end
         
-        if isTesting
-            this = this.createParameter( 'isUsingL2Regularization', [0], isString, [] );
-        else 
-            this = this.createParameter( 'isUsingL2Regularization', [0], isString, [] );
-        end
+        this = this.createParameter( 'isUsingL2Regularization', [0], isString, [] );
         
         if isTesting
             this = this.createParameter( 'isUsingSecondOrder', [1], isString, [] );
@@ -174,6 +171,8 @@ methods (Access = public)
         
         this = this.createParameter( 'isCalculateKNN',    [0], isString, [] );
         this = this.createParameter( 'isUsingStructured', [1], isString, [] );
+        this = this.createParameter( 'descendMethodCSSL', ...
+                                     [CSSLBase.DESCEND_MODE_AM], isString, [] );
         
         this.m_defaultParamsCSSL.K = 1000;
         this.m_defaultParamsCSSL.alpha = 1;
@@ -234,7 +233,7 @@ methods (Access = public)
         end
         
         this = this.createParameter( 'numLabeled', [48], isString, [] );    
-        %11054
+        %11411
         
         this = this.createParameter( 'numFolds', [4], isString, [] );    
         
@@ -298,7 +297,7 @@ methods (Access = public)
               this.m_useGraphHeuristics, this.m_labeledInitMode, ...
               this.m_numEvaluationRuns,  this.m_isUsingL2Regularization...
               this.m_isUsingSecondOrder, this.m_isUsingStructured, ...
-              this.m_isCalculateKNN];
+              this.m_isCalculateKNN,     this.m_descendMethodCSSL];
     end   
     
     %% constructionParamsProperties

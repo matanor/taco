@@ -124,6 +124,7 @@ methods (Static)
                 algorithm.m_isUsingL2Regularization = params.isUsingL2Regularization;
                 algorithm.m_isUsingSecondOrder      = params.isUsingSecondOrder;
                 algorithm.m_isUsingStructured       = params.isUsingStructured;
+                algorithm.m_descendMode             = params.descendMethodCSSL;
             case SingleRun.CSSLMCF
                 algorithm.m_alpha                   = params.alpha;
                 algorithm.m_beta                    = params.beta;
