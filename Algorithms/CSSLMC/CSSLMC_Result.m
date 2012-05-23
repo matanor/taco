@@ -8,6 +8,15 @@ classdef CSSLMC_Result < SSLMC_Result
     
     methods (Access = public)
         
+        %% clearOutput
+    
+        function clearOutput(this)
+            clearOutput@SSLMC_Result(this);
+            this.m_v = [];
+        end
+    
+        %% set_results
+        
         function set_results(this, resultSource, saveAllIterations)
             this.m_numIterations = SSLMC_Result.calcNumIterations( resultSource.mu );
             if saveAllIterations
@@ -19,15 +28,21 @@ classdef CSSLMC_Result < SSLMC_Result
             end
         end
         
+        %% add_vertex
+        
         function add_vertex(this)
             this.m_Y = SSLMC_Result.addVertexToMatrix( this.m_Y );
             this.m_v = SSLMC_Result.addVertexToMatrix( this.m_v );
         end
         
+        %% remove_vertex
+        
         function remove_vertex(this, vertex_i)
             this.m_Y(vertex_i,:,:) = [];
             this.m_v(vertex_i,:,:) = [];
         end
+        
+        %% asText
         
         function r = asText( this, vertex_i, iteration_i)
             mu.positive = this.m_Y( vertex_i, this.POSITIVE, iteration_i );
@@ -39,15 +54,21 @@ classdef CSSLMC_Result < SSLMC_Result
                 mu.positive, v.positive, mu.negative, v.negative);
         end
         
+        %% allColors 
+        
         function r = allColors(this, iteration_i)
             r = 0.5 * ( (-1) * this.m_Y(:, this.NEGATIVE, iteration_i) + ...
                                this.m_Y(:, this.POSITIVE, iteration_i));
         end
         
+        %% legend
+        
         function r = legend(~)
             r = '(mu,v) (+1) \newline(mu,v) (-1)';
         end
 
+        %% getConfidence
+        
         function r = getConfidence( this, vertex_i, class_i)
             confidenceMatrix = this.m_v(:,:,end);
             r = confidenceMatrix( vertex_i, class_i );

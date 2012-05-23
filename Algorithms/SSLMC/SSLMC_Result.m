@@ -23,6 +23,12 @@ methods (Access = public )
         this.POSITIVE = 2;
     end
     
+    %% clearOutput
+    
+    function clearOutput(this)
+        this.m_Y = [];
+    end
+    
     %% getParams
     function R = getParams(this)
         R = this.m_params;

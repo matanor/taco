@@ -4,6 +4,7 @@ properties (Access = public)
     m_constructionParams;
     m_graph;
     m_trunsductionSet;
+    m_clearAlgorithmOutput;
 end
     
 methods (Access = public)
@@ -13,6 +14,7 @@ methods (Access = public)
         this.m_constructionParams   = constructionParams;
         this.m_graph                = graph;
         this.m_trunsductionSet      = trunsductionSet;
+        this.m_clearAlgorithmOutput = 1;
     end
     
     %% set_graph
@@ -46,7 +48,10 @@ methods (Access = public)
         end
         
         singleRun.createCachedResults();
-                
+        
+        if (this.m_clearAlgorithmOutput)
+            singleRun.clearAlgorithmOutput();
+        end     
     end
     
     %% get_wnnGraph

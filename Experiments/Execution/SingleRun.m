@@ -112,6 +112,16 @@ classdef SingleRun < handle
             R = R.maxIterations;
         end
         
+        %% clearAlgorithmOutput
+    
+        function clearAlgorithmOutput(this)
+            algorithmRange = this.availableResultsAlgorithmRange();
+            for algorithm_i=algorithmRange
+                algorithmResults = this.getAlgorithmResults(algorithm_i);
+                algorithmResults.clearOutput();
+            end
+        end
+        
         %% set_results
         
         function set_results( this, R, algorithmType )
