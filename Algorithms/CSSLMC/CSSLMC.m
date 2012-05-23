@@ -38,11 +38,11 @@ function iteration = run( this )
     iteration_diff = 10^1000;
     diff_epsilon = 0.0001;
 
-    if this.DESCEND_MODE_AM == this.m_descendMode
-        vertexUpdateOrder = randperm(num_vertices);
-    else
+    %if this.DESCEND_MODE_AM == this.m_descendMode
+     %   vertexUpdateOrder = randperm(num_vertices);
+    %else
         vertexUpdateOrder = 1:num_vertices;
-    end
+    %end
 
     % note iteration index starts from 2
     for iter_i = 2:num_iterations
@@ -92,27 +92,28 @@ function iteration = run( this )
             denominator = diag(Q_i + P_i + isUsingL2Regularization * 1);
             
             if this.m_isUsingStructured
-                structured.previousVertex = this.m_structuredInfo.previous(vertex_i);
-                if this.STRUCTURED_NO_VERTEX ~= structured.previousVertex
-                    structured.prev_mu = prev_mu( :, structured.previousVertex );
-                    structured.prev_v  = prev_v ( :, structured.previousVertex);
-                    G_i = 1./v_i + 1./structured.prev_v;
+                structuredPreviousVertex = this.m_structuredInfo.previous(vertex_i);
+                if this.STRUCTURED_NO_VERTEX ~= structuredPreviousVertex
+                    structuredPrev_mu = prev_mu( :, structuredPreviousVertex );
+                    structuredPrev_v  = prev_v ( :, structuredPreviousVertex);
+                    G_i = 1./v_i + 1./structuredPrev_v;
                     denominator  = denominator + zeta * diag(G_i);
                     numerator    = numerator   + ...
-                                   zeta * (G_i .* (A * structured.prev_mu));
+                                   zeta * (diag(G_i) * (A * structuredPrev_mu));
                 end
 
-                structured.nextVertex     = this.m_structuredInfo.next(vertex_i);
-                if this.STRUCTURED_NO_VERTEX ~= structured.nextVertex;
-                    structured.next_mu = prev_mu( :, structured.nextVertex);
-                    structured.next_v  = prev_v ( :, structured.nextVertex);
-                    G_i_plus1 = 1./v_i + 1./structured.next_v;
+                structuredNextVertex     = this.m_structuredInfo.next(vertex_i);
+                if this.STRUCTURED_NO_VERTEX ~= structuredNextVertex;
+                    structuredNext_mu = prev_mu( :, structuredNextVertex);
+                    structuredNext_v  = prev_v ( :, structuredNextVertex);
+                    G_i_plus1 = 1./v_i + 1./structuredNext_v;
                     % This is what repmat does - only without all the time
                     % wasting if's
                     G_i_plus1_repmat = G_i_plus1(:, ones(num_labels, 1));
-                    denominator  = denominator + zeta * G_i_plus1_repmat .* A_squared;
+%                     denominator  = denominator + zeta * G_i_plus1_repmat .* A_squared;
+                    denominator  = denominator + zeta * A.' * diag(G_i_plus1) * A;
                     numerator    = numerator   + ...
-                                   zeta * (G_i_plus1 .* (A * structured.next_mu));
+                                    zeta * (A.' * diag(G_i_plus1) * structuredNext_mu);
                 end
             end
 
@@ -205,6 +206,7 @@ function calcObjective(this, current_mu, current_v)
     alpha               = this.m_alpha;
     beta                = this.m_beta;
     gamma               = this.m_labeledConfidence;
+    zeta                = this.m_zeta;
     numVertices = this.numVertices();
     Logger.log('calcObjective');
     Logger.log(['numVertices = ' num2str(numVertices)]);
@@ -219,9 +221,14 @@ function calcObjective(this, current_mu, current_v)
         for vertex_j=1:numVertices
             w_i_j = this.m_W(vertex_i, vertex_j);
             mu_j    = current_mu( :, vertex_j);
-            v_j     = current_v ( :, vertex_j);
-            objective = objective + ...
-                0.25 * w_i_j * sum((1./v_i + 1 ./ v_j) .* ((mu_i - mu_j).^2));
+            % Was a bug: v_j     = current_v ( :, vertex_i); %Note the i
+            % instead of j
+            % Did not affect the objective, since (mu_i-mu_j).^2 should be
+            % multiplied by 2(1./v_i + 1/.v_j) (fixed now) = 2./v_i +
+            % 2./v_j (was in the bug)
+            v_j     = current_v ( :, vertex_j); 
+            term = 0.25 * w_i_j * sum((1./v_i + 1 ./ v_j) .* ((mu_i - mu_j).^2));
+            objective = objective + term;
         end
         isLabeled_i = this.m_isLabeledVector(vertex_i);
 %         isLabeled_i = this.injectionProbability(vertex_i);
@@ -238,10 +245,11 @@ function calcObjective(this, current_mu, current_v)
                v_i_prev  = current_v ( :, structuredPreviousVertex);
                G_i = diag( 1./v_i + 1./v_i_prev );
                mu_i_diff = (mu_i - A * mu_i_prev);
-               objective = objective + mu_i_diff.' * G_i * mu_i_diff;
+               objective = objective + 0.5 * zeta * mu_i_diff.' * G_i * mu_i_diff;
             end
         end
     end
+    Logger.log(['Objective (without alpha, beta terms) = ' num2str(objective)]);
     objective = objective + alpha * sum(sum(current_v));
     objective = objective - beta  * sum(sum(log(current_v)));
     Logger.log(['Objective = ' num2str(objective)]);
