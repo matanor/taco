@@ -36,6 +36,8 @@ classdef SingleRun < handle
         m_algorithmsCollection;
         m_trunsductionSet;
         m_cachedResults;
+        
+        m_isCalcPRBEP;
     end
     
     methods (Access=public)
@@ -51,6 +53,7 @@ classdef SingleRun < handle
             this.m_unlabeled_num_mistakes = zeros( SingleRun.numAvailableAlgorithms(),1 );
             this.m_algorithmsCollection = AlgorithmsCollection;
             this.m_cachedResults = [];
+            this.m_isCalcPRBEP = 0;
         end
         
         %% availableResultsAlgorithmRange
@@ -208,6 +211,12 @@ classdef SingleRun < handle
         
         function [prbep precision recall] = calcPRBEP_testSet...
                 (this, algorithmType, labelIndex)
+            if 0 == this.m_isCalcPRBEP
+                prbep = 0;
+                precision = 0;
+                recall = 0;
+                return; 
+            end
             if this.hasCachedResults()
                 prbep       = this.m_cachedResults{algorithmType}.prbep{labelIndex}.value;
                 precision   = this.m_cachedResults{algorithmType}.prbep{labelIndex}.precision;
@@ -233,10 +242,10 @@ classdef SingleRun < handle
             if this.hasCachedResults()
                 MRR = this.m_cachedResults{algorithmType}.MRR;
             else
-            scoreMatrix = this.unlabeled_scoreMatrix_testSet(algorithmType);
-            correctLabels_testSet = this.testSetCorrectLabels();            
-            MRR = EvaluationUtilities.calcMRR( scoreMatrix, correctLabels_testSet);
-        end
+                scoreMatrix = this.unlabeled_scoreMatrix_testSet(algorithmType);
+                correctLabels_testSet = this.testSetCorrectLabels();            
+                MRR = EvaluationUtilities.calcMRR( scoreMatrix, correctLabels_testSet);
+            end
         end
         
         %% calc_macroMRR_testSet
@@ -245,8 +254,8 @@ classdef SingleRun < handle
             if this.hasCachedResults()
                 macroMRR = this.m_cachedResults{algorithmType}.macroMRR;
             else
-            scoreMatrix = this.unlabeled_scoreMatrix_testSet(algorithmType);
-            correctLabels_testSet = this.testSetCorrectLabels();            
+                scoreMatrix = this.unlabeled_scoreMatrix_testSet(algorithmType);
+                correctLabels_testSet = this.testSetCorrectLabels();            
                 macroMRR = EvaluationUtilities.calc_macroMRR( scoreMatrix, correctLabels_testSet);
             end;
         end
@@ -254,6 +263,10 @@ classdef SingleRun < handle
         %% calcAveragePRBEP_testSet
         
         function R = calcAveragePRBEP_testSet(this, algorithmType)
+            if 0 == this.m_isCalcPRBEP
+                R = 0; 
+                return;
+            end
             if this.hasCachedResults()
                 R = this.m_cachedResults{algorithmType}.avgPRBEP;
             else
@@ -273,18 +286,22 @@ classdef SingleRun < handle
         
         function [prbep] = estimatePRBEP_testSet...
                 (this, algorithmType, labelIndex)
+            if 0 == this.m_isCalcPRBEP
+                prbep = 0; 
+                return;
+            end
             if this.hasCachedResults()
                 prbep = this.m_cachedResults{algorithmType}.prbep{labelIndex}.estimated;
             else
-            testSet_prediction      = this.testSet_prediciton(algorithmType);
-            correctLabels_testSet   = this.testSetCorrectLabels();
+                testSet_prediction      = this.testSet_prediciton(algorithmType);
+                correctLabels_testSet   = this.testSetCorrectLabels();
             
-            isPredictedLabel = (testSet_prediction    == labelIndex);
-            isCurrentLabel   = (correctLabels_testSet == labelIndex);
-            p = EvaluationUtilities.calcPrecision(isPredictedLabel, isCurrentLabel );
-            r = EvaluationUtilities.calcRecall   (isPredictedLabel, isCurrentLabel );
-            prbep = (p + r)/2;
-        end
+                isPredictedLabel = (testSet_prediction    == labelIndex);
+                isCurrentLabel   = (correctLabels_testSet == labelIndex);
+                p = EvaluationUtilities.calcPrecision(isPredictedLabel, isCurrentLabel );
+                r = EvaluationUtilities.calcRecall   (isPredictedLabel, isCurrentLabel );
+                prbep = (p + r)/2;
+            end
         end
         
         %% num_mistakes_testSet
@@ -301,11 +318,11 @@ classdef SingleRun < handle
             if this.hasCachedResults()
                 r = this.m_cachedResults{algorithmType}.accuracy;
             else
-            numMistakes = this.num_mistakes_testSet(algorithmType);
-            testSetSize = this.testSetSize();
-            numCorrect = testSetSize - numMistakes;
-            r = numCorrect / testSetSize;
-        end
+                numMistakes = this.num_mistakes_testSet(algorithmType);
+                testSetSize = this.testSetSize();
+                numCorrect = testSetSize - numMistakes;
+                r = numCorrect / testSetSize;
+            end
         end
         
         %% macroAccuracy_testSet
@@ -314,18 +331,18 @@ classdef SingleRun < handle
             if this.hasCachedResults()
                 R = this.m_cachedResults{algorithmType}.macroAccuracy;
             else
-           testSet_prediction      = this.testSet_prediciton(algorithmType);
-           correctLabels_testSet   = this.testSetCorrectLabels();
-           numLabels = this.numLabels();
-           accuracyPerLabel = zeros(numLabels,1);
-           for label_i=1:numLabels
-               predictionPerLabel = testSet_prediction( correctLabels_testSet == label_i );
-               numCorrect = sum( predictionPerLabel == label_i );
-               numInstancesPerClass = sum( correctLabels_testSet == label_i );
-               accuracyPerLabel(label_i) = numCorrect / numInstancesPerClass;
-           end
-           R = mean(accuracyPerLabel);
-        end
+                testSet_prediction      = this.testSet_prediciton(algorithmType);
+                correctLabels_testSet   = this.testSetCorrectLabels();
+                numLabels = this.numLabels();
+                accuracyPerLabel = zeros(numLabels,1);
+                for label_i=1:numLabels
+                    predictionPerLabel = testSet_prediction( correctLabels_testSet == label_i );
+                    numCorrect = sum( predictionPerLabel == label_i );
+                    numInstancesPerClass = sum( correctLabels_testSet == label_i );
+                    accuracyPerLabel(label_i) = numCorrect / numInstancesPerClass;
+                end
+                R = mean(accuracyPerLabel);
+            end
         end
        
         %% unlabeled_binary_prediction
