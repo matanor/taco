@@ -165,7 +165,7 @@ methods (Static)
             idleTimeoutInSeconds = idleTimoutInMinutes * 60;
             idleTimeout = idleTimeoutInSeconds / sleepIntervalInSeconds;
             
-            numRunningJobsPerQueue = cellfun(@length, runningJobs).';
+            numRunningJobsPerQueue = cellfun(@length, runningJobs);
             numJobsToStart = maxJobs - numRunningJobsPerQueue;
             for queue_i=1:numQueues
                 queueName = JobManager.queueIDtoName(queue_i);
