@@ -106,7 +106,7 @@ methods (Static)
             jobToStart = jobsCollection(job_i);
             jobStatus = jobToStart.checkJobStatus();
             % Set the queue that the job belongs to.
-            job.startCommand = strrep(job.startCommand, JobManager.QUEUE_NAME_STUB, queueName);
+            jobToStart.startCommand = strrep(jobToStart.startCommand, JobManager.QUEUE_NAME_STUB, queueName);
             % In simulation (non-asyncrounous mode) the jobs are
             % run syncrounsly so they nay have been finished and should
             % never be started
