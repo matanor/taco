@@ -178,7 +178,7 @@ methods (Static)
                 clear runningJobsIDS;
             end
             numRunningJobsPerQueue = cellfun(@length, runningJobs);
-            Logger.log(['size(runningJobs) = ' num2str(numRunningJobsPerQueue)]);
+            Logger.log(['size(runningJobs) = ' num2str(numRunningJobsPerQueue.')]);
             Logger.log(['size(jobsCollection) = ' num2str(size(jobsCollection))]);
 
             if ParamsManager.ASYNC_RUNS == 1
