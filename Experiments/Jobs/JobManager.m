@@ -2,6 +2,14 @@ classdef JobManager
     %JOBMANAGER Summary of this class goes here
     %   Detailed explanation goes here
     
+properties( Constant)
+    QUEUE_NAME_STUB = 'QUEUE_NAME_STUB';
+    QUEUE_NAME_ALL = 'all.q';
+    QUEUE_NAME_MEM = 'mem.q';
+    QUEUE_ID_ALL = 1;
+    QUEUE_ID_MEM = 2;
+end
+
 methods (Static)
     
     %% createJob
@@ -18,12 +26,8 @@ methods (Static)
         errorFile   = outputManager.createFileNameAtCurrentFolder([fileName '.error.txt']);
         logFile     = JobManager.logFileFullPath( fileFullPath );
         asyncCodeFolder = '/Experiments/async';
-        if ParamsManager.USE_MEM_QUEUE
-            queueName = 'mem.q';
-        else
-            queueName = 'all.q';
-        end
-        command = ['qsub -N ' runName ' -wd ' codeRoot asyncCodeFolder ' -q ' queueName ' -b y -o ' ...
+        command = ['qsub -N ' runName ' -wd ' codeRoot asyncCodeFolder ...
+                   ' -q ' JobManager.QUEUE_NAME_STUB ' -b y -o ' ...
                    outputFile ' -e ' errorFile ' "matlab -nodesktop -r "\""' functionName '(''' ...
                    fileFullPath ''',''' codeRoot ''')"\"" -logfile ' logFile '"' ];
         
@@ -54,9 +58,9 @@ methods (Static)
     %% isJobFinished
     
     function r = isJobFinished( jobFileFullPath )
-        EXIST_RESURN_STATUS_FILE_EXITS = 2;
+        EXIST_RETURN_STATUS_FILE_EXITS = 2;
         finishedFileFullPath = JobManager.finishedFileFullPath(jobFileFullPath);
-        r = (EXIST_RESURN_STATUS_FILE_EXITS == exist(finishedFileFullPath, 'file'));
+        r = (EXIST_RETURN_STATUS_FILE_EXITS == exist(finishedFileFullPath, 'file'));
     end
     
     %% signalJobIsStarting
@@ -93,14 +97,16 @@ methods (Static)
     
     %% startJobs
     
-    function R = startJobs( jobsCollection, maxNumJobsToStart )
+    function R = startJobs( jobsCollection, maxNumJobsToStart, queueName )
         numInputJobs = length(jobsCollection) ;
         lastJobToStartIndex = min(numInputJobs, maxNumJobsToStart);
-        Logger.log(['Starting ' num2str(lastJobToStartIndex ) ' jobs']);
+        Logger.log(['Starting ' num2str(lastJobToStartIndex ) ' jobs on queue ' num2str(queueName)]);
         started = [];
         for job_i=1:lastJobToStartIndex
             jobToStart = jobsCollection(job_i);
             jobStatus = jobToStart.checkJobStatus();
+            % Set the queue that the job belongs to.
+            job.startCommand = strrep(job.startCommand, JobManager.QUEUE_NAME_STUB, queueName);
             % In simulation (non-asyncrounous mode) the jobs are
             % run syncrounsly so they nay have been finished and should
             % never be started
@@ -116,16 +122,42 @@ methods (Static)
         R = started;
     end
     
+    %% loadConfig
+    
+    function config = loadConfig(configManager)
+        config = configManager.read();
+        maxJobs(JobManager.QUEUE_ID_ALL) = config.maxJobs.all_queue;
+        maxJobs(JobManager.QUEUE_ID_MEM) = config.maxJobs.mem_queue;
+        config.maxJobs = maxJobs.';
+    end
+    
+    %% queueIDtoName
+    
+    function name = queueIDtoName(id)
+        switch id
+            case JobManager.QUEUE_ID_ALL
+                name = JobManager.QUEUE_NAME_ALL;
+            case JobManager.QUEUE_ID_MEM
+                name = JobManager.QUEUE_NAME_MEM; 
+            otherwise
+                Logger.log(['queueIDtoName::Error. unknown queue ID ' ...
+                        num2str( id ) ]);
+        end                
+    end
+    
     %% executeJobs
     
     function executeJobs( jobsCollection )
         configManager = ConfigManager.get();
-        config = configManager.read();
+        
+        config = JobManager.loadConfig(configManager);
+        maxJobs = config.maxJobs;
         
         sleepIntervalInSeconds = 30;
         finished = isempty(jobsCollection);
         
-        maxJobs = config.maxJobs;
+        numQueues = 2;
+        
         runningJobs = [];
         
         while ~finished
@@ -133,37 +165,49 @@ methods (Static)
             idleTimeoutInSeconds = idleTimoutInMinutes * 60;
             idleTimeout = idleTimeoutInSeconds / sleepIntervalInSeconds;
             
-            numRunningJobs = length(runningJobs);
-            numJobsToStart = maxJobs - numRunningJobs;
-            runningJobsIndices = JobManager.startJobs(jobsCollection, numJobsToStart);
-            Logger.log(['size(runningJobs) = ' num2str(size(runningJobs))]);
+            numRunningJobsPerQueue = cellfun(@length, runningJobs).';
+            numJobsToStart = maxJobs - numRunningJobsPerQueue;
+            for queue_i=1:numQueues
+                queueName = JobManager.queueIDtoName(queue_i);
+                numJobsToStartForQueue = numJobsToStart(queue_i);
+                runningJobsIDS = JobManager.startJobs...
+                                    (jobsCollection, numJobsToStartForQueue, queueName);
+                runningJobs{queue_i} = [runningJobs{queue_i};
+                                        jobsCollection(runningJobsIDS)]; %#ok<AGROW>
+                jobsCollection(runningJobsIDS) = [];
+                clear runningJobsIDS;
+            end
+            numRunningJobsPerQueue = cellfun(@length, runningJobs);
+            Logger.log(['size(runningJobs) = ' num2str(numRunningJobsPerQueue)]);
             Logger.log(['size(jobsCollection) = ' num2str(size(jobsCollection))]);
-            runningJobs = [runningJobs;jobsCollection(runningJobsIndices)]; %#ok<AGROW>
-            jobsCollection(runningJobsIndices) = [];
-            numRunningJobs = length(runningJobs);
 
             if ParamsManager.ASYNC_RUNS == 1
                 pause(sleepIntervalInSeconds);
             end
-            config = configManager.read();
+            config = JobManager.loadConfig(configManager);
             maxJobs = config.maxJobs;
 
-            finished_jobs = [];
             Logger.log(['**** Status check ****' ...
                   ' timeout (min) = ' num2str(idleTimoutInMinutes)...
                   ' max jobs = '      num2str(maxJobs)]);
-            for job_i=1:numRunningJobs
-                job = runningJobs(job_i);
-                jobStatus = job.checkJobStatus();
-                if jobStatus == Job.JOB_STATUS_FINISHED
-                    finished_jobs = [finished_jobs;job_i]; %#ok<AGROW>
-                elseif jobStatus == Job.JOB_STATUS_IDLE && ...
-                       job.idleCount > idleTimeout
-                    JobManager.restartJob( job );
+              
+            for queue_i=1:numQueues
+                runningJobsInQueue = runningJobs{queue_i};
+                finished_jobs = [];
+                for job_i=1:length(runningJobsInQueue)
+                    job = runningJobsInQueue(job_i);
+                    jobStatus = job.checkJobStatus();
+                    if jobStatus == Job.JOB_STATUS_FINISHED
+                        finished_jobs = [finished_jobs;job_i]; %#ok<AGROW>
+                    elseif jobStatus == Job.JOB_STATUS_IDLE && ...
+                           job.idleCount > idleTimeout
+                        JobManager.restartJob( job );
+                    end
                 end
+                runningJobsInQueue(finished_jobs) = [];
+                runningJobs{queue_i} = runningJobsInQueue; %#ok<AGROW>
             end
-            runningJobs(finished_jobs) = [];
-            finished = isempty( runningJobs ) && isempty(jobsCollection);
+            finished = (0 == sum(cellfun(@length, runningJobs))) && isempty(jobsCollection);
         end
     end  
     
