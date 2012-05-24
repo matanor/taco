@@ -3,7 +3,7 @@ outputDir=/u/matanorb/experiments/results/
 folderName=$2
 resultsDirectory=$outputDir$folderName
 logFile=$resultsDirectory/matlab.log
-codeRoot=/u/matanorb/matlab_async
+codeRoot=$3
 workingDirectory=$codeRoot/Experiments
 startDirectory="$(pwd)"
 
