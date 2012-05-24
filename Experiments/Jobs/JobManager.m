@@ -176,10 +176,11 @@ methods (Static)
                                         jobsCollection(runningJobsIDS)]; %#ok<AGROW>
                 jobsCollection(runningJobsIDS) = [];
                 clear runningJobsIDS;
+                
+                numRunningJobsPerQueue = cellfun(@length, runningJobs);
+                Logger.log(['size(runningJobs) = ' num2str(numRunningJobsPerQueue.')]);
+                Logger.log(['size(jobsCollection) = ' num2str(size(jobsCollection))]);
             end
-            numRunningJobsPerQueue = cellfun(@length, runningJobs);
-            Logger.log(['size(runningJobs) = ' num2str(numRunningJobsPerQueue.')]);
-            Logger.log(['size(jobsCollection) = ' num2str(size(jobsCollection))]);
 
             if ParamsManager.ASYNC_RUNS == 1
                 pause(sleepIntervalInSeconds);
