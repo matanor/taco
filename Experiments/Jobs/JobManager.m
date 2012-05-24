@@ -189,7 +189,7 @@ methods (Static)
 
             Logger.log(['**** Status check ****' ...
                   ' timeout (min) = ' num2str(idleTimoutInMinutes)...
-                  ' max jobs = '      num2str(maxJobs)]);
+                  ' max jobs = '      num2str(maxJobs.')]);
               
             for queue_i=1:numQueues
                 runningJobsInQueue = runningJobs{queue_i};
