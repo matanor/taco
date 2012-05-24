@@ -158,7 +158,7 @@ methods (Static)
         
         numQueues = 2;
         
-        runningJobs = [];
+        runningJobs = cell(2,1);
         
         while ~finished
             idleTimoutInMinutes = config.jobTimeoutInMinutes;
