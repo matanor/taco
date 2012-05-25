@@ -63,6 +63,7 @@ methods (Static)
     function job = scheduleAsyncKNN(inputFileFullPath, instancesRange, K,...
                                           outputManager ) %#ok<INUSL,INUSD>
         Logger.log('scheduleAsyncKNN');
+        Logger.log(['instancesRange = ' num2str([instancesRange(1) instancesRange(end)])]);
         firstInstance = instancesRange(1);
         fileName = ['KNN_' num2str(firstInstance) '.mat' ];
         fileFullPath = outputManager.createFileNameAtCurrentFolder(fileName);
