@@ -58,9 +58,7 @@ function iteration = run( this )
         Logger.log('Updating first order...');
 
         A = this.transitionMatrix();
-        if ~isempty(A)
-            A_squared = A * A;
-        end
+        zeta_times_A_tran = zeta * A.';
         
         for vertex_i=vertexUpdateOrder
             if ( mod(vertex_i, 100000) == 0 )
@@ -110,9 +108,10 @@ function iteration = run( this )
                     % This is what repmat does - only without all the time
                     % wasting if's
                     G_i_plus1_repmat = G_i_plus1(:, ones(num_labels, 1));
-                    denominator  = denominator + zeta * A.' * ( G_i_plus1_repmat .* A );
+                    denominator  = denominator + ...
+                                   zeta_times_A_tran * ( G_i_plus1_repmat .* A );
                     numerator    = numerator   + ...
-                                    zeta * (A.' * (G_i_plus1 .* structuredNext_mu));
+                                   zeta_times_A_tran * (G_i_plus1 .* structuredNext_mu);
                 end
             end
 
