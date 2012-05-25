@@ -6,7 +6,7 @@ function asyncCalcKnn( fileFullPath, codeRoot )
 	instancesRange      = runData.instancesRange;
     K                   = runData.K;
 
-    result = sparseKnn.calcKnn( inputFileFullPath, instancesRange, K);
+    result = sparseKnn.calcKnnFromInstances( inputFileFullPath, instancesRange, K);
     
     JobManager.saveJobOutput( result, fileFullPath);
     JobManager.signalJobIsFinished( fileFullPath );
