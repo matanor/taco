@@ -84,6 +84,9 @@ methods (Static)
         dummyContext = zeros(1, numFeatures) * 100; % some dummy value not likely to occur
         instances_with_context = zeros(numInstances, context * numFeatures );
         for instance_i=1:numInstances
+            if mod(instance_i,10000) == 0
+                Logger.log(['instances_i = ' num2str(instance_i)]);
+            end
             half_context = (context - 1)/2;
             context_range = (instance_i-half_context):(instance_i+half_context);
             contextPosition = 1:numFeatures;
