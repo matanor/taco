@@ -82,7 +82,7 @@ end
 function R = createInstancesWithContext(instances, context, segments)
     numInstances    = size(instances, 1);
     numFeatures     = size(instances, 2);
-    dummyContext = ones(1, numFeatures) * 100; % some dummy value not likely to occur
+    dummyContext = zeros(1, numFeatures); % some dummy value not likely to occur
     instances_with_context = zeros(numInstances, context * numFeatures );
     numSegments = size(segments, 1);
     
