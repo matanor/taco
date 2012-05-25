@@ -69,18 +69,16 @@ methods (Static)
         
         context = 1;
         graph = s.createGraph(states, output, context);
-        s.saveGraph( graph );
+%         s.saveGraph( graph );
         
         context = 7;
         graph = s.createGraph(states, output, context);
-        s.saveGraph( graph );
+%         s.saveGraph( graph );
     end
         
-    %% createGraph
+    %% createInstancesWithContext
     
-    function graph = createGraph( labels, instances, context )
-        graph.labels = labels;
-        graph.instances = instances;
+    function R = createInstancesWithContext(instances, context)
         numInstances    = size(instances, 1);
         numFeatures     = size(instances, 2);
         dummyContext = zeros(1, numFeatures) * 100; % some dummy value not likely to occur
@@ -99,6 +97,17 @@ methods (Static)
                 contextPosition = contextPosition + numFeatures;
             end
         end
+        R = instances_with_context;
+    end
+    
+    %% createGraph
+    
+    function graph = createGraph( labels, instances, context )
+        graph.labels = labels;
+        graph.instances = instances;
+        numInstances    = size(instances, 1);
+        instances_with_context = ...
+            StructuredGenerator.createInstancesWithContext(instances, context );
         weights = zeros(numInstances, numInstances);
         alpha = 2;
         for instance_i=1:numInstances
