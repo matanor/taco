@@ -82,6 +82,8 @@ methods (Static)
     %% calcKnnFromInstances
     
     function result = calcKnnFromInstances(inputFileFullPath, instancesRange, K)
+        isWhitened = 1;
+        Logger.log(['isWhitened = ' num2str(isWhitened)]);
         Logger.log(['Loading input file full path = ''' inputFileFullPath ''''])
         fileData = load(inputFileFullPath);
         Logger.log('Done');
@@ -98,7 +100,7 @@ methods (Static)
         numRows = length(instancesRange);
         result = sparse(numRows, numInstances);
         for instance_i=instancesRange
-            if mod(instance_i, 50) == 0
+            if mod(instance_i, 5) == 0
                 Logger.log(['instance_i = ' num2str(instance_i)]);
             end
             current_instance = graph.instances(:, instance_i);
@@ -110,7 +112,11 @@ methods (Static)
             end
             
             % This is fastest: (see below) sum((B.' * A).' .* B);
-            row_weights = exp(-sum((row_diffs.' * inverse_covariance).' .* row_diffs, 1));
+            if 0 == isWhitened
+                row_weights = exp(-sum((row_diffs.' * inverse_covariance).' .* row_diffs, 1));
+            else
+                row_weights = exp(-sum(row_diffs.^2, 1));
+            end
             clear row_diffs;
             assert( row_weights(instance_i) == 1);
             row_weights(instance_i) = 0;
