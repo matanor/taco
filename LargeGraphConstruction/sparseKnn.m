@@ -182,28 +182,31 @@ methods (Static)
     end
     
     %% makeSymetric
-    %  This was not used because it is very slow for sparse matrices.
     
     function weights = makeSymetric(weights)
         [rows,cols,values] = find(weights);
-        numEntries = length(rows);
-        allRows     = [rows;zeros(numEntries, 1)];
-        allColumns  = [cols;zeros(numEntries, 1)];
-        allValues   = [values;zeros(numEntries, 1)];
-        insertPosition = numEntries+1;
-        for entry_i=1:numEntries
-            if mod(entry_i, 1000) == 0
-                Logger.log(['entry_i = ' num2str(entry_i)]);
-            end
-            row_i = rows(entry_i);
-            col_i = cols(entry_i);
-            if weights(col_i, row_i) == 0
-                allRows     ( insertPosition ) = col_i;
-                allColumns  ( insertPosition ) = row_i;
-                allValues   ( insertPosition ) = values(entry_i);
-                insertPosition = insertPosition + 1;
-            end
-        end
+        [numRows numCols] = size(weights);
+        allRows     = [rows;cols];
+        allColumns  = [cols;rows];
+        allValues   = [values;values];
+        
+        indices = [allRows allColumns];
+        [uniqueIndices, usedRows,~] = unique(indices, 'rows');
+        uniqueValues = allValues(usedRows);
+        uniqueRows = uniqueIndices(:,1);
+        uniqueCols = uniqueIndices(:,2);
+        
+        weights = sparse(uniqueRows, uniqueCols, ...
+                         uniqueValues, numRows, numCols);
+    end
+    
+    %% testMakeSymetric
+    
+    function testMakeSymetric()
+        A = [1 2 3; 0 0 0; 0 0 0];
+        A = sparse(A);
+        sym = sparseKnn.makeSymetric(A);
+        A_sym = full(sym);
     end
     
     %% createDummy
