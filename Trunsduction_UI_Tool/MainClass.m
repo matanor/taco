@@ -894,6 +894,7 @@ methods (Access = private)
         algorithm.m_isUsingSecondOrder = 1;
         algorithm.setLabeledSet(this.graph.labeled());
         algorithm.m_isCalcObjective = this.m_isCalcObjective;
+        algorithm.m_save_all_iterations = 1;
 
         Y = MainClass.createLabeledY(this.graph);
         algorithm.m_priorY = Y;

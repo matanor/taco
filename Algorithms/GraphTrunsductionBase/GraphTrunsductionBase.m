@@ -10,12 +10,16 @@ classdef GraphTrunsductionBase < handle
         m_W;                % The weights of the graph.
         m_num_iterations;
         m_useClassPriorNormalization;
+        m_save_all_iterations; % 1 - save all iterations info in algorithm output
+                               % 0 - algorithm output is only the final
+                               % values.
     end
     
 methods
     
     function this = GraphTrunsductionBase()
         this.m_useClassPriorNormalization = 1; % use class prior normalization by default.
+        this.m_save_all_iterations = 0;
     end
     
     %% numVertices

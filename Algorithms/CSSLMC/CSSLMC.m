@@ -4,7 +4,7 @@ methods (Access=public)
 
 %% run
     
-function iteration = run( this )
+function R = run( this )
 
     ticID = tic;
 
@@ -29,8 +29,15 @@ function iteration = run( this )
     prev_mu     =  zeros( num_labels, num_vertices );
     current_mu  =  zeros( num_labels, num_vertices );
     prev_v      =  ones ( num_labels, num_vertices );
+    if this.m_save_all_iterations
+        allIterations.mu = zeros( num_labels, num_vertices, num_iterations );
+        allIterations.v  = ones ( num_labels, num_vertices, num_iterations );
+    end
     if 0 == isUsingSecondOrder
         prev_v = (beta / alpha ) * prev_v;
+        if this.m_save_all_iterations
+            allIterations.v = (beta / alpha ) * allIterations.v;
+        end
     end
 
     this.prepareGraph();
@@ -51,6 +58,10 @@ function iteration = run( this )
         if iteration_diff < diff_epsilon
             Logger.log([  'converged after '   num2str(iter_i-1) ' iterations'...
                           ' iteration_diff = ' num2str(iteration_diff)]);
+            if this.m_save_all_iterations
+                allIterations.mu(:,:, iter_i:end) = [];
+                allIterations.v(:,:, iter_i:end) = [];
+            end
             break;
         end
         iteration_diff = 0;
@@ -187,13 +198,26 @@ function iteration = run( this )
             iteration_diff = sum(sum((prev_mu - current_mu).^2));
             prev_mu = current_mu;
         end
+        if this.m_save_all_iterations
+            allIterations.mu( :, :, iter_i) = current_mu;
+            allIterations.v ( :, :, iter_i) = prev_v;
+        end
         if this.m_isCalcObjective
             this.calcObjective( current_mu, prev_v );
         end
     end
     
-    iteration.v = prev_v.';
-    iteration.mu = current_mu.';
+    if this.m_save_all_iterations
+        for iter_i=1:size(allIterations.mu,3)
+            iterationResult_mu = allIterations.mu(:,:,iter_i);
+            iterationResult_v  = allIterations.v(:,:,iter_i);
+            R.mu(:,:,iter_i) = iterationResult_mu.';
+            R.v (:,:,iter_i) = iterationResult_v.';
+        end
+    else
+        R.v = prev_v.';
+        R.mu = current_mu.';
+    end
 
     toc(ticID);
 end
