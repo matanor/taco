@@ -13,7 +13,7 @@ methods (Access=public)
         this.m_useClassPriorNormalization = 0;
     end
     
-	function iteration = run( this )
+	function R = run( this )
 
         ticID = tic;
         
@@ -27,12 +27,16 @@ methods (Access=public)
         
         this.displayParams(num_vertices);
 
-        iteration.p = zeros( num_vertices, num_labels, num_iterations );
-        iteration.q = zeros( num_vertices, num_labels, num_iterations );
-        
+        if this.m_save_all_iterations
+            allIterations.p = zeros( num_labels, num_vertices, num_iterations );
+            allIterations.q = zeros( num_labels, num_vertices, num_iterations );
+            allIterations.q(:,:,1) = ones(num_labels, num_vertices);
+        end
+
         % Initialization requirement is that q^{(0)}(y) > 0 for all y (all
         % labels). Page 5 in reference, top right.
-        iteration.q(:,:,1) = 1;
+        current_q = ones(num_labels, num_vertices);
+        current_p = zeros(num_labels, num_vertices);
         
         % Change W = W + alpha * I (page 5, top left).
         for vertex_i=1:num_vertices
@@ -46,46 +50,49 @@ methods (Access=public)
         % note iteration index starts from 2
         for iter_i = 2:num_iterations
 
-            if ( mod(iter_i, 2) == 0 )
-                Logger.log([ '#Iteration = '      num2str(iter_i)...
-                       ' iteration_diff = ' num2str(iteration_diff)]);
-            end
+            Logger.log([ '#Iteration = '      num2str(iter_i)...
+                         ' iteration_diff = ' num2str(iteration_diff)]);
             
             if iteration_diff < diff_epsilon
                 Logger.log([  'converged after '   num2str(iter_i-1) ' iterations'...
                         ' iteration_diff = ' num2str(iteration_diff)]);
-                iteration.p(:,:, iter_i:end) = [];
-                iteration.q(:,:, iter_i:end) = [];
+                if this.m_save_all_iterations
+                    allIterations.p(:,:, iter_i:end) = [];
+                    allIterations.q(:,:, iter_i:end) = [];
+                end
                 break;
             end
-
-            prev_q = iteration.q ( :, :, iter_i - 1) ;
+            
+            iteration_diff = 0;
 
             % Page 5 in reference (see top of this file), top right, see equations
 
             % calculate p_i^{(n)} for all i (i.e. all vertices)
             % from q_j^{(n-1)}
             for vertex_i=1:num_vertices
-                neighbours = getNeighbours( this.m_W, vertex_i);
+
+                col = this.m_W(:, vertex_i);
+                [neighbours_indices, ~, neighbours_weights] = find(col);
+                
+%                 neighbours = getNeighbours( this.m_W, vertex_i);
 
                 % calculate \beta_i^{(n-1)}(y) for all y (all labels)
                 beta = zeros(num_labels, 1);
                 for label_i = 1:num_labels
-                    q_neighbours = prev_q(neighbours.indices, label_i);
-                    beta(label_i) = -v + mu * sum( neighbours.weights .* (log( q_neighbours ) - 1) );
+                    q_neighbours = current_q(label_i, neighbours_indices).';
+                    beta(label_i) = -v + mu * sum( neighbours_weights .* (log( q_neighbours ) - 1) );
                 end
                 
-                gamma = v + mu * sum( neighbours.weights );
+                gamma = v + mu * sum( neighbours_weights );
                 
                 % from beta (vector) and gamma (scalar) calculate p_i^{(n)}
                 p_i = exp( beta / gamma );
                 p_i = p_i / sum(p_i); % normalize to probability.
                 
                 % save the calculation
-                iteration.p(vertex_i,:,iter_i) = p_i.';
+                iteration_diff = iteration_diff + sum((p_i - current_p(:,vertex_i)).^2);
+                current_p(:,vertex_i) = p_i;
             end
-
-            current_p = iteration.p( :, :, iter_i) ;
 
             % calculate q_j^{(n)} for all i (i.e. all vertices)
             % from p_i^{(n)}
@@ -98,7 +105,7 @@ methods (Access=public)
 
                 for label_i = 1:num_labels
                     y_i_l = this.priorLabelScore( vertex_i, label_i );
-                    p_neighbours = current_p(neighbours.indices, label_i);
+                    p_neighbours = current_p(label_i, neighbours.indices).';
                     q_i(label_i) = isLabeled * y_i_l + ...
                                    mu * sum( neighbours.weights .* p_neighbours);
                 end
@@ -107,13 +114,26 @@ methods (Access=public)
                 q_i = q_i / q_i_denominator;
                 
                 % save the calculation
-                iteration.q(vertex_i,:,iter_i) = q_i.';
+                current_q(:,vertex_i) = q_i;
             end
 
-            prev_p = iteration.p ( :, :, iter_i - 1) ;
-            iteration_diff = sum((prev_p(:) - current_p(:)).^2);
+            if this.m_save_all_iterations
+                allIterations.p(:,:, iter_i) = current_p;
+                allIterations.q(:,:, iter_i) = current_q;
+            end
         end
 
+        if this.m_save_all_iterations
+            for iter_i=1:size(allIterations.mu,3)
+                iterationResult_p  = allIterations.p(:,:,iter_i);
+                iterationResult_q  = allIterations.q(:,:,iter_i);
+                R.p(:,:,iter_i) = iterationResult_p.';
+                R.q(:,:,iter_i) = iterationResult_q.';
+            end 
+        else
+            R.p = current_p.';
+            R.q = current_q.';
+        end
         toc(ticID);
     end
     
