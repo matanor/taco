@@ -13,9 +13,7 @@ methods (Static)
                      num2str(paramsManager.SAVE_ALL_ITERATIONS_IN_RESULT)]);
         Logger.log(['REAL_RANDOMIZATION = ' ...
                      num2str(paramsManager.REAL_RANDOMIZATION)]);
-        Logger.log(['USE_MEM_QUEUE = ' ...
-                     num2str(paramsManager.USE_MEM_QUEUE)]);
-
+        
         if paramsManager.REAL_RANDOMIZATION
             rand('twister',sum(100*clock)); %#ok<RAND>
         end
