@@ -55,7 +55,6 @@ end
 properties (Constant)
     SAVE_ALL_ITERATIONS_IN_RESULT = 0;
     REAL_RANDOMIZATION = 0;
-    USE_MEM_QUEUE = 0;
 end
 
 properties (Constant)
@@ -107,7 +106,7 @@ methods (Access = public)
         phon_synth_context1  = [ rootDir 'StructureSynthetic/data/context_1.mat' ];
         phon_synth_context7  = [ rootDir 'StructureSynthetic/data/context_7.mat' ];
         dummy_timit          = [ rootDir 'timit/dummy.mat' ];
-        trainAndDev_timit    = [ rootDir 'timit/trainAndDev.k_10.mat' ];
+        trainAndDev_timit    = [ rootDir 'timit/trainAndDev/trainAndDev.k_10.mat' ];
 
         if isOnOdin
            fileNames = [ {webkb_constructed} ...
@@ -223,7 +222,6 @@ methods (Access = public)
         
         this = this.createParameter( 'makeSymetric', [1], isString, [] );     
         
-        %numIterations.range = [5 10 25 50 100];
         if isTesting
             this = this.createParameter( 'maxIterations', [10], isString, [] );    
             this = this.createParameter( 'numEvaluationRuns', [0], isString, [] );
