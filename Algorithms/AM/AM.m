@@ -74,14 +74,10 @@ methods (Access=public)
                 col = this.m_W(:, vertex_i);
                 [neighbours_indices, ~, neighbours_weights] = find(col);
                 
-%                 neighbours = getNeighbours( this.m_W, vertex_i);
-
-                % calculate \beta_i^{(n-1)}(y) for all y (all labels)
-                beta = zeros(num_labels, 1);
-                for label_i = 1:num_labels
-                    q_neighbours = current_q(label_i, neighbours_indices).';
-                    beta(label_i) = -v + mu * sum( neighbours_weights .* (log( q_neighbours ) - 1) );
-                end
+                % calculate \beta_i^{(n-1)}(y) for all y (all labels)                
+                q_neighbours = current_q(:, neighbours_indices);
+                neighbours_weights_repmat = repmat(neighbours_weights.', num_labels, 1);
+                beta = -v + mu * sum(neighbours_weights_repmat .* (log( q_neighbours ) - 1), 2);
                 
                 gamma = v + mu * sum( neighbours_weights );
                 
@@ -97,20 +93,22 @@ methods (Access=public)
             % calculate q_j^{(n)} for all i (i.e. all vertices)
             % from p_i^{(n)}
             for vertex_i=1:num_vertices
-                neighbours = getNeighbours( this.m_W, vertex_i);
                 
-                isLabeled = this.isLabeled(vertex_i );
+                col = this.m_W(:, vertex_i);
+                % neighbours_indices and neighbours_weights are column
+                % vectors
+                [neighbours_indices, ~, neighbours_weights] = find(col);
                 
-                q_i = zeros(num_labels, 1);
+                isLabeled = this.m_isLabeledVector(vertex_i);
+                
+                y_i = this.m_priorY( vertex_i, : ).';
+                neighbours_weights_repmat = repmat(neighbours_weights.', num_labels, 1);
+                p_neighbours = current_p(:, neighbours_indices);
 
-                for label_i = 1:num_labels
-                    y_i_l = this.priorLabelScore( vertex_i, label_i );
-                    p_neighbours = current_p(label_i, neighbours.indices).';
-                    q_i(label_i) = isLabeled * y_i_l + ...
-                                   mu * sum( neighbours.weights .* p_neighbours);
-                end
-                
-                q_i_denominator = isLabeled + mu * sum( neighbours.weights );
+                q_i = isLabeled * y_i + ...
+                      mu * sum( neighbours_weights_repmat .* p_neighbours, 2);
+                  
+                q_i_denominator = isLabeled + mu * sum( neighbours_weights );
                 q_i = q_i / q_i_denominator;
                 
                 % save the calculation
