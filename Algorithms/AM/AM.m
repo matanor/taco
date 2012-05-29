@@ -38,10 +38,24 @@ methods (Access=public)
         current_q = ones(num_labels, num_vertices);
         current_p = zeros(num_labels, num_vertices);
         
+        Logger.log('Adding alpha to main diagonal...');
+        
         % Change W = W + alpha * I (page 5, top left).
-        for vertex_i=1:num_vertices
-            this.m_W(vertex_i,vertex_i) = ...
-                this.m_W(vertex_i,vertex_i) + alpha;
+        if issparse(this.m_W)
+            [rows,cols,values] = find(this.m_W);
+            mainDiagonalRows   = (1:num_vertices).';
+            mainDiagonalCols   = (1:num_vertices).';
+            mainDiagonalValues = alpha * ones(num_vertices, 1);
+            allRows     = [rows;  mainDiagonalRows];
+            allColumns  = [cols;  mainDiagonalCols];
+            allValues   = [values;mainDiagonalValues];
+            this.m_W = sparse(allRows, allColumns, ...
+                              allValues, num_vertices, num_vertices);
+        else
+            for vertex_i=1:num_vertices
+                this.m_W(vertex_i,vertex_i) = ...
+                    this.m_W(vertex_i,vertex_i) + alpha;
+            end
         end
 
         iteration_diff = 10^1000;
@@ -67,16 +81,26 @@ methods (Access=public)
 
             % Page 5 in reference (see top of this file), top right, see equations
 
+            Logger.log('Updating p...');
+            
             % calculate p_i^{(n)} for all i (i.e. all vertices)
             % from q_j^{(n-1)}
             for vertex_i=1:num_vertices
 
+                if ( mod(vertex_i, 100000) == 0 )
+                    Logger.log([ 'vertex_i = ' num2str(vertex_i)]);
+                end
+                
                 col = this.m_W(:, vertex_i);
+                % neighbours_indices and neighbours_weights are column
+                % vectors
                 [neighbours_indices, ~, neighbours_weights] = find(col);
+                neighbours_weights = neighbours_weights.'; % make row vector
                 
                 % calculate \beta_i^{(n-1)}(y) for all y (all labels)                
                 q_neighbours = current_q(:, neighbours_indices);
-                neighbours_weights_repmat = repmat(neighbours_weights.', num_labels, 1);
+                %This is the same as repmat(neighbours_weights.', num_labels, 1);
+                neighbours_weights_repmat = neighbours_weights(ones(num_labels, 1), :); 
                 beta = -v + mu * sum(neighbours_weights_repmat .* (log( q_neighbours ) - 1), 2);
                 
                 gamma = v + mu * sum( neighbours_weights );
@@ -90,19 +114,27 @@ methods (Access=public)
                 current_p(:,vertex_i) = p_i;
             end
 
+            Logger.log('Updating q...');
+            
             % calculate q_j^{(n)} for all i (i.e. all vertices)
             % from p_i^{(n)}
             for vertex_i=1:num_vertices
+                
+                if ( mod(vertex_i, 100000) == 0 )
+                    Logger.log([ 'vertex_i = ' num2str(vertex_i)]);
+                end
                 
                 col = this.m_W(:, vertex_i);
                 % neighbours_indices and neighbours_weights are column
                 % vectors
                 [neighbours_indices, ~, neighbours_weights] = find(col);
+                neighbours_weights = neighbours_weights.'; % make row vector
                 
                 isLabeled = this.m_isLabeledVector(vertex_i);
                 
                 y_i = this.m_priorY( vertex_i, : ).';
-                neighbours_weights_repmat = repmat(neighbours_weights.', num_labels, 1);
+                %This is the same as repmat(neighbours_weights.', num_labels, 1);
+                neighbours_weights_repmat = neighbours_weights(ones(num_labels, 1), :); 
                 p_neighbours = current_p(:, neighbours_indices);
 
                 q_i = isLabeled * y_i + ...
