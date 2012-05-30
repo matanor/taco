@@ -136,7 +136,7 @@ function R = run( this )
             if this.DESCEND_MODE_AM == this.m_descendMode
                 % for true AM
                 iteration_diff = iteration_diff + ...
-                                 sum(current_mu(:, vertex_i) - prev_mu(:,vertex_i)).^2;
+                                 sum((current_mu(:, vertex_i) - prev_mu(:,vertex_i)).^2);
                 prev_mu(:,vertex_i) = current_mu( :, vertex_i);
             end
         end
