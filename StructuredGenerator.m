@@ -274,7 +274,7 @@ function combineInstanceFiles(filePaths, name, outputPath, context, ...
             % first is train
             Logger.log(['Calculating train covariance from file' currentFilePath]);
             trainCovariance = cov(fileData.phonemfcc.');
-            trainRange = numVerticesSoFar:numVerticesInFile;
+            trainRange = (numVerticesSoFar+1):numVerticesInFile;
             Logger.log(['trainRange = ' num2str(trainRange(1)) ' ' num2str(trainRange(end))]);
         end
         
