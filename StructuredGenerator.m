@@ -243,7 +243,8 @@ end
 %% combineInstanceFiles
 %  Used for generating the train+dev or train+test instance files.
 
-function combineInstanceFiles(filePaths, name, outputPath, context)
+function combineInstanceFiles(filePaths, name, outputPath, context, ...
+                              maxFeaturesToExtract)
     numFiles = length(filePaths);
     instances = [];
     phoneids48 = [];
@@ -271,7 +272,7 @@ function combineInstanceFiles(filePaths, name, outputPath, context)
         
         numVerticesSoFar = size(instances,2);
         
-        instances  = [instances   fileData.phonemfcc]; %#ok<AGROW>
+        instances  = [instances   fileData.phonemfcc(1:maxFeaturesToExtract,:)]; %#ok<AGROW>
         phoneids48 = [phoneids48; fileData.phoneids48.']; %#ok<AGROW>
         phoneids39 = [phoneids39; fileData.phoneids39.']; %#ok<AGROW>
         segments   = [segments;   fileData.seg + numVerticesSoFar]; %#ok<AGROW>
@@ -310,7 +311,9 @@ function createTrainAndDev(isOnOdin)
     name = 'train_and_dev_not_white';
     outputPath = [folderPath name '.mat'];
     context = 7;
-    StructuredGenerator.combineInstanceFiles(filePaths, name, outputPath, context);
+    maxFeaturesToExtract = 26;
+    StructuredGenerator.combineInstanceFiles(filePaths, name, outputPath, ...
+                                             context,   maxFeaturesToExtract );
 end
 
 end % methods (Static)
