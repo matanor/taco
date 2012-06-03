@@ -293,7 +293,13 @@ function combineInstanceFiles(filePaths, name, outputPath, context, ...
     if context ~=0
         graph.instances = ...
             StructuredGenerator.createInstancesWithContext(graph.instances, context, segments);
+        graph.covariance = cov(graph.instances.');
         save([outputPath 'context_' num2str(context)], 'graph');
+        
+        white_transform = sqrtm(inv(graph.covariance));
+        graph.instances = white_transform * graph.instances;
+        graph.covariance = cov(graph.instances.');
+        save([outputPath 'context_' num2str(context) '_whitened'], 'graph');
     end
     
 end
