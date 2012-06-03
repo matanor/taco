@@ -154,6 +154,7 @@ end
 %% estimateTransitionMatrix
 
 function R = estimateTransitionMatrix(correctLabels, segments)
+    Logger.log('estimateTransitionMatrix');
     numLabels = length(unique(correctLabels));
     Logger.log(['Number of classes = ' num2str(numLabels)]);
     transitions = zeros(numLabels, numLabels);
@@ -237,6 +238,75 @@ function R = sampleSegments(correctLabels, segments, precentToSample)
     end
 
     R = sampledLabels;
+end
+
+%% combineInstanceFiles
+%  Used for generating the train+dev or train+test instance files.
+
+function combineInstanceFiles(filePaths, name, outputPath, context)
+    numFiles = length(filePaths);
+    instances = [];
+    phoneids48 = [];
+    phoneids39 = [];
+    segments = [];
+    covariance = [];
+    for file_i=1:numFiles
+        currentFilePath = filePaths{file_i};
+        fileData = load(currentFilePath);
+        if isfield(fileData, 'trainData')
+            fileData = fileData.trainData;
+        elseif isfield(fileData, 'testData')
+            fileData = fileData.testData;
+        elseif isfield(fileData, 'devData')
+            fileData = fileData.devData;
+        else
+            Logger.log('combineInstanceFiles. Error, unknown file format');
+        end
+        
+        if file_i == 1
+            % first is train
+            Logger.log(['Calculating covariance from file' currentFilePath]);
+            covariance = cov(fileData.phonemfcc.');
+        end
+        
+        numVerticesSoFar = size(instances,2);
+        
+        instances  = [instances   fileData.phonemfcc]; %#ok<AGROW>
+        phoneids48 = [phoneids48; fileData.phoneids48.']; %#ok<AGROW>
+        phoneids39 = [phoneids39; fileData.phoneids39.']; %#ok<AGROW>
+        segments   = [segments;   fileData.seg + numVerticesSoFar]; %#ok<AGROW>
+    end
+    
+    graph.instances  = instances;
+    graph.name       = name;
+    graph.covariance = covariance;
+    graph.labels     = phoneids39;
+    graph.structuredEdges    = StructuredGenerator.segmentsToStructuredEdges(segments);
+    graph.phoneids48 = phoneids48;
+    graph.phoneids39 = phoneids39;
+    graph.transitionMatrix48 = StructuredGenerator.estimateTransitionMatrix(phoneids48, segments);
+    graph.segments   = segments;
+    graph.transitionMatrix39 = StructuredGenerator.estimateTransitionMatrix(phoneids39, segments); %#ok<STRNU>
+    save(outputPath, 'graph');
+    
+    if context ~=0
+        graph.instances = ...
+            StructuredGenerator.createInstancesWithContext(instances, context, segments);
+        save([outputPath 'context_' num2str(context)], 'graph');
+    end
+    
+end
+
+%% createTrainAndDev
+
+function createTrainAndDev()
+    folderPath = 'C:\technion\theses\experiments\timit\';
+    filePaths{1} = [folderPath 'timitTrainMFCC.mat'];
+    filePaths{2} = [folderPath 'timitDevMFCC.mat'];
+    name = 'train_and_dev_not_white';
+    outputPath = [folderPath name '.mat'];
+    context = 7;
+    StructuredGenerator.combineInstanceFiles(filePaths, name, outputPath, context);
 end
 
 end % methods (Static)
