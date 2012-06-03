@@ -250,12 +250,14 @@ function combineInstanceFiles(filePaths, name, outputPath, context, ...
     phoneids48 = [];
     phoneids39 = [];
     segments = [];
-    covariance = [];
+    trainCovariance = [];
     for file_i=1:numFiles
+        isTrainFile = 0;
         currentFilePath = filePaths{file_i};
         fileData = load(currentFilePath);
         if isfield(fileData, 'trainData')
             fileData = fileData.trainData;
+            isTrainFile = 1;
         elseif isfield(fileData, 'testData')
             fileData = fileData.testData;
         elseif isfield(fileData, 'devData')
@@ -264,13 +266,17 @@ function combineInstanceFiles(filePaths, name, outputPath, context, ...
             Logger.log('combineInstanceFiles. Error, unknown file format');
         end
         
-        if file_i == 1
-            % first is train
-            Logger.log(['Calculating covariance from file' currentFilePath]);
-            covariance = cov(fileData.phonemfcc.');
-        end
+        numVerticesInFile = size(fileData.phonemfcc, 2);
         
         numVerticesSoFar = size(instances,2);
+        
+        if isTrainFile
+            % first is train
+            Logger.log(['Calculating train covariance from file' currentFilePath]);
+            trainCovariance = cov(fileData.phonemfcc.');
+            trainRange = numVerticesSoFar:numVerticesInFile;
+            Logger.log(['trainRange = ' num2str(trainRange(1)) ' ' num2str(trainRange(end))]);
+        end
         
         instances  = [instances   fileData.phonemfcc(1:maxFeaturesToExtract,:)]; %#ok<AGROW>
         phoneids48 = [phoneids48; fileData.phoneids48.']; %#ok<AGROW>
@@ -280,7 +286,7 @@ function combineInstanceFiles(filePaths, name, outputPath, context, ...
     
     graph.instances  = instances;
     graph.name       = name;
-    graph.covariance = covariance;
+    graph.covariance = trainCovariance;
     graph.labels     = phoneids39;
     graph.structuredEdges    = StructuredGenerator.segmentsToStructuredEdges(segments);
     graph.phoneids48 = phoneids48;
@@ -292,13 +298,17 @@ function combineInstanceFiles(filePaths, name, outputPath, context, ...
     
     if context ~=0
         graph.instances = ...
-            StructuredGenerator.createInstancesWithContext(graph.instances, context, segments);
+            StructuredGenerator.createInstancesWithContext...
+                (graph.instances, context, segments);
         graph.covariance = cov(graph.instances.');
+        trainCovariance  = cov(graph.instances(:,trainRange).');
+        graph.trainCovariance = trainCovariance;
         save([outputPath '.context_' num2str(context) '.mat'], 'graph');
         
-        white_transform = sqrtm(inv(graph.covariance));
-        graph.instances = white_transform * graph.instances;
-        graph.covariance = cov(graph.instances.');
+        white_transform  = sqrtm(inv(trainCovariance));
+        graph.instances  = white_transform * graph.instances;
+        graph.covariance      = cov(graph.instances.');
+        graph.trainCovariance = cov(graph.instances(:,trainRange).');
         save([outputPath '.context_' num2str(context) '_whitened.mat'], 'graph');
     end
     
