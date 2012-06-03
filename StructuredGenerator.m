@@ -299,8 +299,12 @@ end
 
 %% createTrainAndDev
 
-function createTrainAndDev()
-    folderPath = 'C:\technion\theses\experiments\timit\';
+function createTrainAndDev(isOnOdin)
+    if isOnOdin
+        folderPath = '/u/matanorb/experiments/timit/';
+    else
+        folderPath = 'C:\technion\theses\experiments\timit\';
+    end
     filePaths{1} = [folderPath 'timitTrainMFCC.mat'];
     filePaths{2} = [folderPath 'timitDevMFCC.mat'];
     name = 'train_and_dev_not_white';
