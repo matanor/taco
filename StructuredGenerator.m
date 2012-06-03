@@ -80,8 +80,8 @@ end
 %% createInstancesWithContext
 
 function R = createInstancesWithContext(instances, context, segments)
-    numInstances    = size(instances, 1);
-    numFeatures     = size(instances, 2);
+    numInstances    = size(instances, 2);
+    numFeatures     = size(instances, 1);
     dummyContext = zeros(1, numFeatures); % some dummy value not likely to occur
     instances_with_context = zeros(numInstances, context * numFeatures );
     numSegments = size(segments, 1);
@@ -106,7 +106,7 @@ function R = createInstancesWithContext(instances, context, segments)
                 if context_i < segmentStart || context_i > segmentEnd
                     contextInstance = dummyContext;
                 else
-                    contextInstance = instances(context_i, :);
+                    contextInstance = instances(:, context_i);
                 end
                 instances_with_context(instance_i, contextPosition) = contextInstance;
                 contextPosition = contextPosition + numFeatures;
@@ -291,7 +291,7 @@ function combineInstanceFiles(filePaths, name, outputPath, context)
     
     if context ~=0
         graph.instances = ...
-            StructuredGenerator.createInstancesWithContext(instances, context, segments);
+            StructuredGenerator.createInstancesWithContext(graph.instances, context, segments);
         save([outputPath 'context_' num2str(context)], 'graph');
     end
     
