@@ -83,7 +83,7 @@ function R = createInstancesWithContext(instances, context, segments)
     numInstances    = size(instances, 2);
     numFeatures     = size(instances, 1);
     dummyContext = zeros(1, numFeatures); % some dummy value not likely to occur
-    instances_with_context = zeros(numInstances, context * numFeatures );
+    instances_with_context = zeros(context * numFeatures, numInstances);
     numSegments = size(segments, 1);
     
     Logger.log(['numInstances = ' num2str(numInstances)]);
@@ -108,7 +108,7 @@ function R = createInstancesWithContext(instances, context, segments)
                 else
                     contextInstance = instances(:, context_i);
                 end
-                instances_with_context(instance_i, contextPosition) = contextInstance;
+                instances_with_context(contextPosition, instance_i) = contextInstance;
                 contextPosition = contextPosition + numFeatures;
             end
             instanceCount = instanceCount + 1;
