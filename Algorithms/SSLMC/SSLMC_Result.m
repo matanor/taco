@@ -5,6 +5,7 @@ properties (Access=public)
     m_Y; % vertices X labels X iterations
     m_params;
     m_numIterations; % number of iterations that the algorithm had run
+    m_prediction;
 end
 
 properties (Access = protected)
@@ -26,6 +27,8 @@ methods (Access = public )
     %% clearOutput
     
     function clearOutput(this)
+        % Keep only the prediction.
+        this.m_prediction = this.prediction();
         this.m_Y = [];
     end
     
