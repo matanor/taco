@@ -122,8 +122,34 @@ methods
             end
         end
     end
-
-end
     
+end
+
+methods (Static)
+    
+    %% calcPhiRatio
+    % calculate the ratio between edges connecting disagreeing enigbhours
+    % and all edges.
+    % reference "Using the Mutual k-Nearest Neighbor Graphs for
+    % Semi-supervised Classification of Natural Language Data"
+    % Ozaki, 2011
+    
+    function calcPhiRatio(weights, correctLabels)
+        [rows, cols, values] = find(weights);
+        numEdges = length(rows);
+        rowLabels    = correctLabels(rows);
+        columnLabels = correctLabels(cols);
+        disagreeIndices = rowLabels ~= columnLabels;
+        disagreeCount  = sum(disagreeIndices);
+        disagreeAmount = sum(values(disagreeIndices));
+        phiRatio = disagreeCount / numEdges;
+        weightedPhiRatio = disagreeAmount / sum(values);
+        Logger.log(['calcPhiRatio. ' ...
+                    'phiRatio = '           num2str(phiRatio) ...
+                    ' weightedPhiRatio = '   num2str(weightedPhiRatio) ...
+                    ]);
+    end
+end % static methods
+
 end
 
