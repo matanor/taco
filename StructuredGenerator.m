@@ -368,9 +368,9 @@ function calculateRbfScale(allInstances, allCorrectLabels, sampledInstances)
     isSameLabel = (correctLabels == correctLabels.');
     isDifferentLabel = ~isSameLabel;
     d_withinClass  = sum(distances(isSameLabel));
-    N_withinClass  = sum(isSameLabel) - numInstances; % reduce count of main diagonal
+    N_withinClass  = sum(isSameLabel(:)) - numInstances; % reduce count of main diagonal
     d_betweenClass = sum(distances(isDifferentLabel));
-    N_betweenClass = sum(isDifferentLabel);
+    N_betweenClass = sum(isDifferentLabel(:));
 %     for instance_i=1:numInstances
 %         for instance_j=1:numInstances
 %             isSameLabel = (correctLabels(instance_i) == correctLabels(instance_j));
