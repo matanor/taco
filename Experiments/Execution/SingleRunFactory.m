@@ -14,7 +14,7 @@ methods (Access = public)
         this.m_constructionParams   = constructionParams;
         this.m_graph                = graph;
         this.m_trunsductionSet      = trunsductionSet;
-        this.m_clearAlgorithmOutput = 1;
+        this.m_clearAlgorithmOutput = ParamsManager.CLEAR_ALGORITHM_OUTPUT;
     end
     
     %% set_graph

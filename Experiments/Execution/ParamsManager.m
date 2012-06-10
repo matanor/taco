@@ -55,6 +55,7 @@ end
 properties (Constant)
     SAVE_ALL_ITERATIONS_IN_RESULT = 0;
     REAL_RANDOMIZATION = 0;
+    CLEAR_ALGORITHM_OUTPUT = 0;
 end
 
 properties (Constant)
@@ -107,6 +108,8 @@ methods (Access = public)
         phon_synth_context7  = [ rootDir 'StructureSynthetic/data/context_7.mat' ];
         dummy_timit          = [ rootDir 'timit/dummy.mat' ];
         trainAndDev_timit    = [ rootDir 'timit/trainAndDev/trainAndDev.k_10.mat' ];
+        trainAndDev_timit_scaled = [ rootDir 'timit/trainAndDev/trainAndDev.k_10.scaled.mat' ];
+        trainAndDev_timit_not_white = [ rootDir 'timit/trainAndDev_notWhitenedFeatures/train_and_dev_not_white.context_7_whitened.k_10.mat' ];
 
         if isOnOdin
            fileNames = [ {webkb_constructed} ...
@@ -168,10 +171,20 @@ methods (Access = public)
             this = this.createParameter( 'isUsingSecondOrder', [1], isString, [] );
         end
         
+        if isTesting
+            this = this.createParameter( 'isCalculateKNN',    [0], isString, [] );
+        else
         this = this.createParameter( 'isCalculateKNN',    [0], isString, [] );
-        this = this.createParameter( 'isUsingStructured', [1], isString, [] );
+        end
+        
+        if isTesting
+            this = this.createParameter( 'isUsingStructured',    [0], isString, [] );
+        else
+            this = this.createParameter( 'isUsingStructured',    [0], isString, [] );
+        end
+        
         this = this.createParameter( 'descendMethodCSSL', ...
-                                     [CSSLBase.DESCEND_MODE_AM], isString, [] );
+                                     [CSSLBase.DESCEND_MODE_2], isString, [] );
         
         this.m_defaultParamsCSSL.K = 1000;
         this.m_defaultParamsCSSL.alpha = 1;
@@ -230,10 +243,19 @@ methods (Access = public)
             this = this.createParameter( 'numEvaluationRuns', [0], isString, [] );
         end
         
-        this = this.createParameter( 'numLabeled', [48], isString, [] );    
+        if isTesting
+            this = this.createParameter( 'numLabeled', [11411], isString, [] );    
+        else
+            this = this.createParameter( 'numLabeled', [11411 1105455], isString, [] );    
+        end
         %11411
+        %1105455
         
-        this = this.createParameter( 'numFolds', [4], isString, [] );    
+        if isTesting
+            this = this.createParameter( 'numFolds', [1], isString, [] );    
+        else
+            this = this.createParameter( 'numFolds', [1], isString, [] );    
+        end
         
         if isTesting
             this = this.createParameter( 'useGraphHeuristics', [0], isString, [] );
