@@ -10,6 +10,9 @@ properties
 end
 
 methods
+    
+    %% createSequence
+    
     function [output, states] = createSequence(this)
         minSequenceLength = 1000;
         sequenceLength = minSequenceLength + randi(1000,1);
@@ -330,6 +333,60 @@ function createTrainAndDev(isOnOdin)
     maxFeaturesToExtract = 26;
     StructuredGenerator.combineInstanceFiles(filePaths, name, outputPath, ...
                                              context,   maxFeaturesToExtract );
+end
+
+%% calculateRbfScale
+% reference: andrei alexandrescu Phd, section 5.7, page 103
+
+function calculateRbfScale(allInstances, allCorrectLabels, sampledInstances)
+    instances = allInstances(:,sampledInstances);
+    numInstances = size(instances,2);
+%     distances = zeros(numInstances, numInstances );
+    D = pdist(instances.', 'euclidean');
+    distances = squareform(D);
+    distances = distances.^2;
+%     for instance_i=1:numInstances
+%         if mod(instance_i, 100) == 0
+%             Logger.log(['calculateRbfScale. instance_i = ' num2str(instance_i)]);
+%         end
+%         row_diffs = zeros(size(instances));
+%         current_instance = instances(:,instance_i);
+%         % this is faster then repmat, see test in sparseKnn.m
+%         for row_j=1:numInstances
+%             row_diffs(:,row_j) = current_instance - instances(:,row_j);
+%         end
+%         distances_per_instance  = sum(row_diffs.^2, 1);
+%         distances(:,instance_i) = distances_per_instance;
+%     end
+    
+    correctLabels = allCorrectLabels(sampledInstances);
+%     d_betweenClass = 0;
+%     N_betweenClass = 0;
+%     d_withinClass = 0;
+%     N_withinClass = 0;
+    correctLabels = repmat(correctLabels, 1, numInstances);
+    isSameLabel = (correctLabels == correctLabels.');
+    isDifferentLabel = ~isSameLabel;
+    d_withinClass  = sum(distances(isSameLabel));
+    N_withinClass  = sum(isSameLabel) - numInstances; % reduce count of main diagonal
+    d_betweenClass = sum(distances(isDifferentLabel));
+    N_betweenClass = sum(isDifferentLabel);
+%     for instance_i=1:numInstances
+%         for instance_j=1:numInstances
+%             isSameLabel = (correctLabels(instance_i) == correctLabels(instance_j));
+%             if isSameLabel
+%                 d_withinClass = d_withinClass + distances(instance_i,instance_j);
+%                 N_withinClass = N_withinClass + 1;
+%             else
+%                 d_betweenClass = d_betweenClass + distances(instance_i,instance_j);
+%                 N_betweenClass = N_betweenClass + 1;
+%             end
+%         end
+%     end
+    d_withinClass  = d_withinClass  / N_withinClass;
+    d_betweenClass = d_betweenClass / N_betweenClass;
+    rbfScale = (d_withinClass + d_betweenClass) / (2 *ln(2));
+    Logger.log(['calculateRbfScale. rbfScale = ' num2str(rbfScale)]);
 end
 
 end % methods (Static)
