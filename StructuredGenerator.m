@@ -385,7 +385,7 @@ function calculateRbfScale(allInstances, allCorrectLabels, sampledInstances)
 %     end
     d_withinClass  = d_withinClass  / N_withinClass;
     d_betweenClass = d_betweenClass / N_betweenClass;
-    rbfScale = (d_withinClass + d_betweenClass) / (2 *ln(2));
+    rbfScale = (d_withinClass + d_betweenClass) / (2 * log(2));
     Logger.log(['calculateRbfScale. rbfScale = ' num2str(rbfScale)]);
 end
 
