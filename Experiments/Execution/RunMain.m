@@ -13,6 +13,8 @@ methods (Static)
                      num2str(paramsManager.SAVE_ALL_ITERATIONS_IN_RESULT)]);
         Logger.log(['REAL_RANDOMIZATION = ' ...
                      num2str(paramsManager.REAL_RANDOMIZATION)]);
+         Logger.log(['CLEAR_ALGORITHM_OUTPUT = ' ...
+                     num2str(paramsManager.CLEAR_ALGORITHM_OUTPUT)]);
         
         if paramsManager.REAL_RANDOMIZATION
             rand('twister',sum(100*clock)); %#ok<RAND>
@@ -32,7 +34,7 @@ methods (Static)
         experimentRuns = experimentRunFactory.run( algorithmsToRun );
 
         %% Define which result figures to display
-        outputManager.m_showSingleRuns = 1;
+        outputManager.m_showSingleRuns = 0;
         outputManager.m_showAccumulativeLoss = 0;
 
         %% save results to file.
