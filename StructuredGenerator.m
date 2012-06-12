@@ -181,19 +181,23 @@ function R = estimateTransitionMatrix(correctLabels, segments)
 end
 
 %% sampleSegments
+%  method: sample segments until at least <minNumSamplesPerLabel> frames 
+%  per label are selected, label sample order is random.
+%  Then, sample more segments until <precentToSample> frames are selected.
 
 function R = sampleSegments(correctLabels, segments, precentToSample)
-    numLabels = length(unique(correctLabels));
+    numUniqueLabels = length(unique(correctLabels));
     minNumSamplesPerLabel = 1;
-    numSampledFromEachLabel = zeros(numLabels, 1);
+    numSampledFromEachLabel = zeros(numUniqueLabels, 1);
     numSegments = size(segments, 1);
     numFrames = length(correctLabels);
-    Logger.log(['numLabels = ' num2str(numLabels)]);
+    Logger.log(['numLabels = ' num2str(numUniqueLabels)]);
     Logger.log(['numSegments = ' num2str(numSegments)]);
     Logger.log(['numFrames = '   num2str(numFrames)]);
     allSampledSegments = [];
     numLabeledSamples = 0;
-    labelsSampleOrder = randperm(numLabels);
+    labelsSampleOrder = randperm(numUniqueLabels);
+    Logger.log(['Sampling at least ' num2str(minNumSamplesPerLabel) ' frames per label']);
     for label_i=labelsSampleOrder
         finished = (numSampledFromEachLabel(label_i) >= minNumSamplesPerLabel);
         while ~finished
@@ -217,6 +221,8 @@ function R = sampleSegments(correctLabels, segments, precentToSample)
         end
     end
 
+    Logger.log('Adding additional segments');
+    
     finished = numLabeledSamples > precentToSample * numFrames;
 
     while ~finished
@@ -225,6 +231,7 @@ function R = sampleSegments(correctLabels, segments, precentToSample)
             segmentStart = segments(sampledSegment, 1);
             segmentEnd   = segments(sampledSegment, 2);
             labelsInSegment = correctLabels(segmentStart:segmentEnd);
+            Logger.log(['Adding segment ' num2str(sampledSegment)]);
             allSampledSegments = [allSampledSegments; sampledSegment]; %#ok<AGROW>
             numLabeledSamples = numLabeledSamples + length(labelsInSegment);
         end
@@ -240,6 +247,10 @@ function R = sampleSegments(correctLabels, segments, precentToSample)
         sampledLabels = [sampledLabels; (segmentStart:segmentEnd).']; %#ok<AGROW>
     end
 
+    Logger.log(['Sampled ' num2str(length(allSampledSegments)) ' segments' ...
+                ' out of ' num2str(numSegments)]);
+    Logger.log(['Sampled ' num2str(length(sampledLabels)) ' labels' ...
+                ' out of ' num2str(length(correctLabels))]);
     R = sampledLabels;
 end
 
