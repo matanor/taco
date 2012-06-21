@@ -81,11 +81,17 @@ function main()
 end
 
 %% createInstancesWithContext
+%  instances is numfeatures X numinstances.
+%  from it create instances with structure:
+%  instance_with_context(i) = [ ... instance(i-1) instance(i) instance(i+1) ...]
+%  Use segments to avoid generating sontext across different segments.
+%  context - the amount of context to generate around a single instance.
+%  should be odd, e.g. 7 will take -+3 from the middle instance
 
 function R = createInstancesWithContext(instances, context, segments)
     numInstances    = size(instances, 2);
     numFeatures     = size(instances, 1);
-    dummyContext = zeros(1, numFeatures); % some dummy value not likely to occur
+    dummyContext = zeros(1, numFeatures); % some dummy value
     instances_with_context = zeros(context * numFeatures, numInstances);
     numSegments = size(segments, 1);
     
@@ -317,31 +323,35 @@ function combineInstanceFiles(filePaths, name, outputPath, context, ...
         graph.covariance = cov(graph.instances.');
         trainCovariance  = cov(graph.instances(:,trainRange).');
         graph.trainCovariance = trainCovariance;
-        save([outputPath '.context_' num2str(context) '.mat'], 'graph');
+        save([outputPath '.context' num2str(context) '.mat'], 'graph');
         
         white_transform  = sqrtm(inv(trainCovariance));
         graph.instances  = white_transform * graph.instances;
         graph.covariance      = cov(graph.instances.');
         graph.trainCovariance = cov(graph.instances(:,trainRange).');
-        save([outputPath '.context_' num2str(context) '_whitened.mat'], 'graph');
+        save([outputPath '.context' num2str(context) '_whitened.mat'], 'graph');
     end
     
 end
 
 %% createTrainAndDev
 
-function createTrainAndDev(isOnOdin)
+function createTrainAndDev(isOnOdin, context, maxFeaturesToExtract)
     if isOnOdin
         folderPath = '/u/matanorb/experiments/timit/';
     else
-        folderPath = 'C:\technion\theses\experiments\timit\';
+        folderPath = 'C:/technion/theses/experiments/timit/';
     end
     filePaths{1} = [folderPath 'timitTrainMFCC.mat'];
     filePaths{2} = [folderPath 'timitDevMFCC.mat'];
-    name = 'train_and_dev_not_white';
+    name = 'trainAndDev_notWhite';
+    
+%     context = 7;
+%     maxFeaturesToExtract = 39;
+    
+    folderPath = [folderPath '_' num2str(maxFeaturesToExtract) '/'];
     outputPath = [folderPath name '.mat'];
-    context = 7;
-    maxFeaturesToExtract = 26;
+
     StructuredGenerator.combineInstanceFiles(filePaths, name, outputPath, ...
                                              context,   maxFeaturesToExtract );
 end
