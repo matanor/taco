@@ -95,6 +95,7 @@ function R = createInstancesWithContext(instances, context, segments)
     instances_with_context = zeros(context * numFeatures, numInstances);
     numSegments = size(segments, 1);
     
+    Logger.log('createInstancesWithContext')
     Logger.log(['numInstances = ' num2str(numInstances)]);
     Logger.log(['numFeatures = '  num2str(numFeatures)]);
     Logger.log(['numSegments = '  num2str(numSegments)]);
@@ -314,6 +315,7 @@ function combineInstanceFiles(filePaths, name, outputPath, context, ...
     graph.transitionMatrix48 = StructuredGenerator.estimateTransitionMatrix(phoneids48, segments);
     graph.segments   = segments;
     graph.transitionMatrix39 = StructuredGenerator.estimateTransitionMatrix(phoneids39, segments); %#ok<STRNU>
+    Logger.log(['Saving instances to ''' outputPath ''''])
     save(outputPath, 'graph');
     
     if context ~=0
@@ -323,13 +325,18 @@ function combineInstanceFiles(filePaths, name, outputPath, context, ...
         graph.covariance = cov(graph.instances.');
         trainCovariance  = cov(graph.instances(:,trainRange).');
         graph.trainCovariance = trainCovariance;
-        save([outputPath '.context' num2str(context) '.mat'], 'graph');
+        outputFileFullPath = [outputPath '.context' num2str(context)];
+        Logger.log(['Saving instances with context to '''  outputFileFullPath '''' ])
+        save([outputFileFullPath '.mat'], 'graph','-v7.3');
         
+        Logger.log('Whitening instances ...');
         white_transform  = sqrtm(inv(trainCovariance));
         graph.instances  = white_transform * graph.instances;
         graph.covariance      = cov(graph.instances.');
         graph.trainCovariance = cov(graph.instances(:,trainRange).');
-        save([outputPath '.context' num2str(context) '_whitened.mat'], 'graph');
+        outputFileFullPath = [outputFileFullPath '_whitened'];
+        Logger.log(['Saving whitened instances with context to '''  outputFileFullPath '''' ])
+        save([outputFileFullPath '.mat'], 'graph','-v7.3');
     end
     
 end
@@ -337,6 +344,7 @@ end
 %% createTrainAndDev
 
 function createTrainAndDev(isOnOdin, context, maxFeaturesToExtract)
+    Logger.log('createTrainAndDev')
     if isOnOdin
         folderPath = '/u/matanorb/experiments/timit/';
     else
