@@ -28,7 +28,6 @@ methods (Static)
         save(jobsOutputFile, 'allJobs');
         JobManager.executeJobs( allJobs );
         
-%         allWeights = sparse(numInstances, numInstances);
         Logger.log('Connecting all results to one graph');
         tic;
         allRowIndices       = [];
@@ -37,8 +36,8 @@ methods (Static)
         for job_i=1:numJobs
             Logger.log(['job_i = ' num2str(job_i)]);
             job = allJobs(job_i);
-            partialWeights = JobManager.loadJobOutput(job.fileFullPath);
-            [rows_indices,column_indices,value] = find(partialWeights);
+            partialDistances = JobManager.loadJobOutput(job.fileFullPath);
+            [rows_indices,column_indices,value] = find(partialDistances);
             allRowIndices    = [allRowIndices;rows_indices]; %#ok<AGROW>
             allColumnIndices = [allColumnIndices; column_indices]; %#ok<AGROW>
             allValues        = [allValues; value]; %#ok<AGROW>
@@ -47,14 +46,14 @@ methods (Static)
                                             num2str(instancesRange(end))]);
         end
         
-        allWeights = sparse(allRowIndices,allColumnIndices, allValues, ...
+        allDistances = sparse(allRowIndices,allColumnIndices, allValues, ...
                             numInstances, numInstances);
         toc;
         
         outputFileFullPath = [inputFileFullPath '.k_' num2str(K) '.mat'];
         graph.name = [inputGraph.name '_K_' num2str(K)];
         %outputGraph
-        graph.weights = allWeights; %#ok<STRNU>
+        graph.distances = allDistances; %#ok<STRNU>
         save(outputFileFullPath, 'graph');
     end
     
@@ -80,10 +79,17 @@ methods (Static)
     end
     
     %% calcKnnFromInstances
+    %  Read input file <inputFileFullPath>
+    %  For every instane in <instancesRange>
+    %      calculate distance to all other instances.
+    %      Keep only distances to <K>-Nearest Neighbours,
+    %      other distances are zeroed.
     
     function result = calcKnnFromInstances(inputFileFullPath, instancesRange, K)
-        isWhitened = 1;
-        Logger.log(['isWhitened = ' num2str(isWhitened)]);
+        isPerformWhitening = 0;
+        createWeights      = 0;
+        Logger.log(['isPerformWhitening = ' num2str(isPerformWhitening)]);
+        Logger.log(['createWeights = '      num2str(createWeights)]);
         Logger.log(['Loading input file full path = ''' inputFileFullPath ''''])
         fileData = load(inputFileFullPath);
         Logger.log('Done');
@@ -112,26 +118,35 @@ methods (Static)
             end
             
             % This is fastest: (see below) sum((B.' * A).' .* B);
-            if 0 == isWhitened
-                row_weights = exp(-sum((row_diffs.' * inverse_covariance).' .* row_diffs, 1));
+            if 1 == isPerformWhitening
+                row_distances = sum((row_diffs.' * inverse_covariance).' .* row_diffs, 1);
             else
-                row_weights = exp(-sum(row_diffs.^2, 1));
+                row_distances = sum(row_diffs.^2, 1);
             end
             clear row_diffs;
-            assert( row_weights(instance_i) == 1);
-            row_weights(instance_i) = 0;
+            assert( row_distances(instance_i) == 0);
+%             row_weights(instance_i) = 0;
             
             % Sort row <i> in W. Get the indices for the sort.
-            [~,j] = sort(row_weights, 2);
+            [~,j] = sort(row_distances, 2);
             
-            % Get indices for N-K smallest values per row.
-            n = length(row_weights);
-            small_nums_indexes = j( 1:(n - K) );
-         
-            row_weights( small_nums_indexes ) = 0;
-            row_weights = sparse(row_weights);
+            % Get indices for N-K largest values per row.
+            % use K+2 because the smallest distance is 0 (from
+            % a vertex to itself)
+            large_nums_indexes = j( (K+2):end );
+
+            % delete largest distances.
+            row_distances( large_nums_indexes ) = 0;
+            
+%             if createWeights
+%                 singleInstanceData = exp(-row_distances);
+%                 singleInstanceData(instance_i) = 0;
+%             else
+%             singleInstanceData = row_distances;
+%             end
+            row_distances = sparse(row_distances);
             % Profiling shows this is not the bottleneck
-            result( instance_i, :) = row_weights; %#ok<SPRIX>
+            result( instance_i, :) = row_distances; %#ok<SPRIX>
         end
         toc;
     end
