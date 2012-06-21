@@ -338,9 +338,9 @@ end
 
 function createTrainAndDev(isOnOdin, context, maxFeaturesToExtract)
     if isOnOdin
-        folderPath = '/u/matanorb/experiments/timit/';
+        folderPath = '/u/matanorb/experiments/timit';
     else
-        folderPath = 'C:/technion/theses/experiments/timit/';
+        folderPath = 'C:/technion/theses/experiments/timit';
     end
     filePaths{1} = [folderPath 'timitTrainMFCC.mat'];
     filePaths{2} = [folderPath 'timitDevMFCC.mat'];
