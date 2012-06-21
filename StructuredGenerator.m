@@ -316,7 +316,7 @@ function combineInstanceFiles(filePaths, name, outputPath, context, ...
     graph.segments   = segments;
     graph.transitionMatrix39 = StructuredGenerator.estimateTransitionMatrix(phoneids39, segments); %#ok<STRNU>
     Logger.log(['Saving instances to ''' outputPath ''''])
-    save(outputPath, 'graph');
+    save([outputPath '.mat'], 'graph');
     
     if context ~=0
         graph.instances = ...
@@ -359,7 +359,7 @@ function createTrainAndDev(isOnOdin, context, maxFeaturesToExtract)
     
     folderPath = [folderPath 'features_' num2str(maxFeaturesToExtract) '/'];
     mkdir(folderPath);
-    outputPath = [folderPath name '.mat'];
+    outputPath = [folderPath name];
 
     StructuredGenerator.combineInstanceFiles(filePaths, name, outputPath, ...
                                              context,   maxFeaturesToExtract );
