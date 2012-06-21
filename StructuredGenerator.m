@@ -338,9 +338,9 @@ end
 
 function createTrainAndDev(isOnOdin, context, maxFeaturesToExtract)
     if isOnOdin
-        folderPath = '/u/matanorb/experiments/timit';
+        folderPath = '/u/matanorb/experiments/timit/';
     else
-        folderPath = 'C:/technion/theses/experiments/timit';
+        folderPath = 'C:/technion/theses/experiments/timit/';
     end
     filePaths{1} = [folderPath 'timitTrainMFCC.mat'];
     filePaths{2} = [folderPath 'timitDevMFCC.mat'];
@@ -349,7 +349,8 @@ function createTrainAndDev(isOnOdin, context, maxFeaturesToExtract)
 %     context = 7;
 %     maxFeaturesToExtract = 39;
     
-    folderPath = [folderPath '_' num2str(maxFeaturesToExtract) '/'];
+    folderPath = [folderPath 'features_' num2str(maxFeaturesToExtract) '/'];
+    mkdir(folderPath);
     outputPath = [folderPath name '.mat'];
 
     StructuredGenerator.combineInstanceFiles(filePaths, name, outputPath, ...
