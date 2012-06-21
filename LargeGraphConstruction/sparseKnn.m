@@ -87,9 +87,7 @@ methods (Static)
     
     function result = calcKnnFromInstances(inputFileFullPath, instancesRange, K)
         isPerformWhitening = 0;
-        createWeights      = 0;
         Logger.log(['isPerformWhitening = ' num2str(isPerformWhitening)]);
-        Logger.log(['createWeights = '      num2str(createWeights)]);
         Logger.log(['Loading input file full path = ''' inputFileFullPath ''''])
         fileData = load(inputFileFullPath);
         Logger.log('Done');
@@ -145,6 +143,7 @@ methods (Static)
 %             singleInstanceData = row_distances;
 %             end
             row_distances = sparse(row_distances);
+            assert (nnz(row_distances) == K);
             % Profiling shows this is not the bottleneck
             result( instance_i, :) = row_distances; %#ok<SPRIX>
         end
