@@ -403,6 +403,7 @@ function calculateRbfScale(allInstances, allCorrectLabels, sampledInstances)
     Logger.log(['calculateRbfScale. d_betweenClass = ' num2str(d_betweenClass)]);
     d_withinClass  = d_withinClass  / N_withinClass;
     d_betweenClass = d_betweenClass / N_betweenClass;
+    Logger.log('after normalizaiton')
     Logger.log(['calculateRbfScale. d_withinClass = ' num2str(d_withinClass)]);
     Logger.log(['calculateRbfScale. N_withinClass = ' num2str(N_withinClass)]);
     Logger.log(['calculateRbfScale. d_betweenClass = ' num2str(d_betweenClass)]);
