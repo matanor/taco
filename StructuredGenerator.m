@@ -414,7 +414,7 @@ end
 
 %% createWeightsFromDistances
 
-function createWeightsFromDistances(graph, rbfScale)
+function graph = createWeightsFromDistances(graph, rbfScale)
     squared_distances = graph.distances;
     [rows,cols,values] = find(squared_distances);
     values = exp( - values / rbfScale );
