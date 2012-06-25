@@ -412,6 +412,15 @@ function calculateRbfScale(allInstances, allCorrectLabels, sampledInstances)
     Logger.log(['calculateRbfScale. rbfScale = ' num2str(rbfScale)]);
 end
 
+%% createWeightsFromDistances
+
+function createWeightsFromDistances(graph, rbfScale)
+    squared_distances = graph.distances;
+    [rows,cols,values] = find(squared_distances);
+    values = exp( - values / rbfScale );
+    graph.weights = sparse(rows,cols,values);
+end
+
 end % methods (Static)
     
 end
