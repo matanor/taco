@@ -365,6 +365,16 @@ function createTrainAndDev(isOnOdin, context, maxFeaturesToExtract)
                                              context,   maxFeaturesToExtract );
 end
 
+%% calculateRbfScaleFromGraph
+
+function calculateRbfScaleFromGraph( graph )
+    allInstances = graph.instances;
+    allCorrectLabels = graph.labels;
+    numInstances = length(allCorrectLabels);
+    sampledInstances = randi(numInstances, 1, floor(precentToSample * numInstances));
+    StructuredGenerator.calculateRbfScale(allInstances, allCorrectLabels, sampledInstances);
+end 
+
 %% calculateRbfScale
 % reference: andrei alexandrescu Phd, section 5.7, page 103
 
