@@ -381,9 +381,9 @@ end
 function calculateRbfScale(allInstances, allCorrectLabels, sampledInstances)
     instances = allInstances(:,sampledInstances);
     numInstances = size(instances,2);
+    Logger.log(['Calling pdist for ' num2str(numInstances) ' instances']);
     D = pdist(instances.', 'euclidean');
     distances = squareform(D);
-%     distances = distances.^2;
     Logger.log(['calculateRbfScale. distances max = '  num2str(max(distances(:)))]);
     Logger.log(['calculateRbfScale. distances min = '  num2str(min(distances(:)))]);
     Logger.log(['calculateRbfScale. distances mean = ' num2str(mean(distances(:)))]);
