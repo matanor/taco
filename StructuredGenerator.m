@@ -367,7 +367,7 @@ end
 
 %% calculateRbfScaleFromGraph
 
-function calculateRbfScaleFromGraph( graph )
+function calculateRbfScaleFromGraph( graph, precentToSample )
     allInstances = graph.instances;
     allCorrectLabels = graph.labels;
     numInstances = length(allCorrectLabels);
