@@ -395,11 +395,15 @@ function calculateRbfScale(allInstances, allCorrectLabels, sampledInstances)
     Logger.log('calculateRbfScale. finished repmat.');
     
     isSameLabel = (correctLabels == correctLabels.');
-    isDifferentLabel = ~isSameLabel;
+    clear correctLabels;
+    
     d_withinClass  = sum(distances(isSameLabel));
     N_withinClass  = sum(isSameLabel(:)) - numInstances; % reduce count of main diagonal
+    isDifferentLabel = ~isSameLabel;
+    clear isSameLabel;
     d_betweenClass = sum(distances(isDifferentLabel));
     N_betweenClass = sum(isDifferentLabel(:));
+    clear isDifferentLabel ;
 
     Logger.log('before normalizaiton')
     Logger.log(['calculateRbfScale. d_withinClass = ' num2str(d_withinClass)]);
