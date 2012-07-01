@@ -380,6 +380,7 @@ end
 
 function calculateRbfScale(allInstances, allCorrectLabels, sampledInstances)
     instances = allInstances(:,sampledInstances);
+    clear allInstances;
     numInstances = size(instances,2);
     Logger.log(['Calling pdist for ' num2str(numInstances) ' instances']);
     D = pdist(instances.', 'euclidean');
@@ -389,8 +390,10 @@ function calculateRbfScale(allInstances, allCorrectLabels, sampledInstances)
     Logger.log(['calculateRbfScale. distances mean = ' num2str(mean(distances(:)))]);
     
     correctLabels = allCorrectLabels(sampledInstances);
-
+    Logger.log(['calculateRbfScale. numLabels = ' num2str(length(correctLabels))]);
     correctLabels = repmat(correctLabels, 1, numInstances);
+    Logger.log('calculateRbfScale. finished repmat.');
+    
     isSameLabel = (correctLabels == correctLabels.');
     isDifferentLabel = ~isSameLabel;
     d_withinClass  = sum(distances(isSameLabel));
@@ -419,6 +422,37 @@ function graph = createWeightsFromDistances(graph, rbfScale)
     [rows,cols,values] = find(squared_distances);
     values = exp( - values / rbfScale );
     graph.weights = sparse(rows,cols,values);
+end
+
+%% createWeightsFromDistances_lihi
+
+function graph = createWeightsFromDistances_lihi(graph, K)
+    squared_distances = sparseKnn.makeSymetric(graph.distances);
+    numInstances = size(squared_distances,1);
+
+    sigma = zeros(numInstances, 1);
+    Logger.log('Calculating local sigma...');
+    for instance_i=1:numInstances
+        [~,~,squared_distance_i] = find(squared_distances(:,instance_i));
+        [~, sortOrder] = sort(squared_distance_i, 1, 'ascend' ); % ascending order
+        sigma(instance_i) = sqrt(squared_distance_i(sortOrder(K)));
+    end
+    
+    allRows = [];
+    allCols = [];
+    allValues = [];
+    Logger.log('Calculating weights...');
+    for instance_i=1:numInstances
+        [rows,~,values] = find(squared_distances(:,instance_i));
+        sigma_for_instance = sigma(instance_i) * sigma(rows);
+        allRows   = [allRows;   rows]; %#ok<AGROW>
+        cols      = instance_i * ones(size(rows));
+        allCols   = [allCols;   cols]; %#ok<AGROW>
+        values    = exp( -values ./ sigma_for_instance );
+        allValues = [allValues; values]; %#ok<AGROW>
+    end
+    w = sparse(allRows, allCols, allValues);
+    graph.weights = w;
 end
 
 end % methods (Static)
