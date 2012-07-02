@@ -383,7 +383,7 @@ function calculateRbfScale(allInstances, allCorrectLabels, sampledInstances)
     clear allInstances;
     numInstances = size(instances,2);
     Logger.log(['Calling pdist for ' num2str(numInstances) ' instances']);
-    D = pdist(instances.', 'euclidean');
+    D = pdist(instances.', 'euclidean'); % sqrt(sum(x_i-x_j).^2), checked with 2x2 example
     distances = squareform(D);
     Logger.log(['calculateRbfScale. distances max = '  num2str(max(distances(:)))]);
     Logger.log(['calculateRbfScale. distances min = '  num2str(min(distances(:)))]);
@@ -447,6 +447,9 @@ function graph = createWeightsFromDistances_lihi(graph, K)
     allValues = [];
     Logger.log('Calculating weights...');
     for instance_i=1:numInstances
+        if mod(numInstances, 1000) == 0
+            Logger.log(['createWeightsFromDistances_lihi. numInstances = ' num2str(numInstances)]);
+        end
         [rows,~,values] = find(squared_distances(:,instance_i));
         sigma_for_instance = sigma(instance_i) * sigma(rows);
         allRows   = [allRows;   rows]; %#ok<AGROW>
