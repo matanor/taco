@@ -2,7 +2,7 @@ classdef LevenshteinDistance
     %LEVENSHTEINDISTANCE Calculate levenshtein distance using sclite tool.
     
 properties (Constant)
-    SCLITE_EXEC_FILE = './sclite';
+    SCLITE_EXEC_FILE = '/u/matanorb/code/tools/sctk-2.4.0/bin/sclite';
 end
 
 methods (Static)
