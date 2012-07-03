@@ -49,12 +49,13 @@ methods (Access = private)
     %% runSclite
     
     function runSclite(~, referenceFilePath, hypothesisFilePath, outputPrefix)
-        outputFilePath = [outputPrefix '.sclite.out'];
+        [~, prefixName, ~] = fileparts(outputPrefix);
+        outputFilePrefix = [prefixName '.sclite.out'];
         scliteCommand = [LevenshteinDistance.SCLITE_EXEC_FILE ...
                             ' -r ' referenceFilePath  ' trn'...
                             ' -h ' hypothesisFilePath ' trn'...
                             ' -i rm -o spk'...
-                            ' -n ' outputFilePath];
+                            ' -n ' outputFilePrefix];
         Logger.log(['sclite command = "' scliteCommand '"']);
         [status, result] = system(scliteCommand);
         if status ~= 0
@@ -102,7 +103,7 @@ methods (Access = private)
     function writeSegmentToTrnFile( ~, outputFile, data, segment_i)
         data = data .';
         assert( size(data, 1) == 1) ; % must be row vector;
-        fprintf(outputFile, [num2str(data) ' (segment_' num2str(segment_i) ')\n']);
+        fprintf(outputFile, [num2str(data) ' (segment' num2str(segment_i) ')\n']);
     end
 
 end % methods (Access = private)
