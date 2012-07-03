@@ -11,14 +11,14 @@ methods (Static)
     
     function testOnDesktop()
         outputPrefix = 'c:\technion\theses\test_levenshtein';
-        this.test(outputPrefix);
+        LevenshteinDistance.test(outputPrefix);
     end
     
     %% testOnOdin
     
     function testOnOdin()
         outputPrefix = '/u/matanorb/test_levenshtein';
-        this.test(outputPrefix);
+        LevenshteinDistance.test(outputPrefix);
     end
     
     %% test
@@ -50,7 +50,7 @@ methods (Access = private)
     
     function runSclite(~, referenceFilePath, hypothesisFilePath, outputPrefix)
         outputFilePath = [outputPrefix '.sclite.out'];
-        scliteCommand = [this.SCLITE_EXEC_FILE ...
+        scliteCommand = [LevenshteinDistance.SCLITE_EXEC_FILE ...
                             ' -r ' referenceFilePath  ' trn'...
                             ' -h ' hypothesisFilePath ' trn'...
                             ' -i rm -o spk'...
