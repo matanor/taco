@@ -4,7 +4,7 @@ folderName=$2
 resultsDirectory=$outputDir$folderName
 logFile=$resultsDirectory/matlab.log
 startDirectory="$(pwd)"
-codeRoot=startDirectory/..
+codeRoot=$startDirectory/..
 workingDirectory=$codeRoot/Experiments
 
 echo codeRoot = $codeRoot
