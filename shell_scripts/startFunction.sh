@@ -3,9 +3,9 @@ outputDir=/u/matanorb/experiments/results/
 folderName=$2
 resultsDirectory=$outputDir$folderName
 logFile=$resultsDirectory/matlab.log
-codeRoot=$3
-workingDirectory=$codeRoot/Experiments
 startDirectory="$(pwd)"
+codeRoot=startDirectory/..
+workingDirectory=$codeRoot/Experiments
 
 echo codeRoot = $codeRoot
 echo workingDirectory = $workingDirectory

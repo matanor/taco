@@ -1,4 +1,3 @@
-folderName=2012_05_23_01_structured_test_no_iterations
-codeRoot=/u/matanorb/matlab_async
+folderName=2012_07_04_01_trainAndDev_scaled_with_structure_identity_10precent
 
-sh ./startFunction.sh runOnOdin $folderName $codeRoot
+sh ./startFunction.sh runOnOdin $folderName
