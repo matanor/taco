@@ -1,16 +1,28 @@
 classdef LevenshteinDistance
     %LEVENSHTEINDISTANCE Calculate levenshtein distance using sclite tool.
     
-properties (Constant)
-    SCLITE_EXEC_FILE = '/u/matanorb/code/tools/sctk-2.4.0/bin/sclite';
+properties (Constant)    
 end
 
 methods (Static)
     
+    %% scliteExecScript
+    
+    function R = scliteExecScript()
+        configManager = ConfigManager.get();
+        config = configManager.read();
+        if config.isOnOdin
+            R = '/u/matanorb/code/tools/sctk-2.4.0/sclite.sh';
+        else
+            R = 'C:\technion\theses\code\tools\sctk-2.4.0\sclite.win.bat';
+        end
+    end
+    
     %% testOnDesktop
     
     function testOnDesktop()
-        outputPrefix = 'c:\technion\theses\test_levenshtein';
+        ConfigManager.initOnDesktop();
+        outputPrefix = 'c:\technion\theses\code\tools\sctk-2.4.0\test_data\test_levenshtein';
         LevenshteinDistance.test(outputPrefix);
     end
     
@@ -46,16 +58,38 @@ end % methods (Access = public)
 
 methods (Access = private)
     
+    %% updatePathIfRequired
+    
+    function R = updatePathIfRequired(this, filePath)
+        configManager = ConfigManager.get();
+        config = configManager.read();
+        if config.isOnOdin
+            R = filePath;
+        else
+            R = this.toCygwinFilePath(filePath);
+        end
+    end
+    
+    %% toCygwinFilePath
+    
+    function R = toCygwinFilePath(~, filePath)
+        filePath(filePath == '\') = '/';
+        R = strrep(filePath, 'c:', '/cygdrive/c');
+    end
+    
     %% runSclite
     
-    function runSclite(~, referenceFilePath, hypothesisFilePath, outputPrefix)
+    function runSclite(this, referenceFilePath, hypothesisFilePath, outputPrefix)
         [~, prefixName, ~] = fileparts(outputPrefix);
         outputFilePrefix = [prefixName '.sclite.out'];
-        scliteCommand = [LevenshteinDistance.SCLITE_EXEC_FILE ...
-                            ' -r ' referenceFilePath  ' trn'...
-                            ' -h ' hypothesisFilePath ' trn'...
-                            ' -i rm -o spk'...
-                            ' -n ' outputFilePrefix];
+        scliteScript = LevenshteinDistance.scliteExecScript();
+        referenceFilePath  = this.updatePathIfRequired(referenceFilePath);
+        hypothesisFilePath = this.updatePathIfRequired(hypothesisFilePath);
+        outputFilePrefix   = this.updatePathIfRequired(outputFilePrefix);
+        scliteCommand = [scliteScript ...
+                         ' ' referenceFilePath ...
+                         ' ' hypothesisFilePath ...
+                         ' ' outputFilePrefix];
         Logger.log(['sclite command = "' scliteCommand '"']);
         [status, result] = system(scliteCommand);
         if status ~= 0
@@ -69,14 +103,16 @@ methods (Access = private)
     
     function R = createReferenceFile(this, correct, segments, outputPrefix)
         referenceFilePath = [outputPrefix '.ref'];
+        Logger.log(['createReferenceFile. path = ' referenceFilePath]);
         this.writeToTrnFile(referenceFilePath, correct, segments);
         R = referenceFilePath;
     end
     
-    %% createHeypothesisFile
+    %% createHypothesisFile
     
     function R = createHypothesisFile(this, correct, segments, outputPrefix)
         hypothesisFilePath = [outputPrefix '.hyp'];
+        Logger.log(['createHypothesisFile. path = ' hypothesisFilePath]);
         this.writeToTrnFile(hypothesisFilePath, correct, segments);
         R = hypothesisFilePath;
     end
