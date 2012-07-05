@@ -7,8 +7,6 @@ function outputManager = initRunOnOdin( resultsDirectory, codeRoot )
     Configurations.clearEverything();
     
     ConfigManager.init([codeRoot '/config.mat']);
-    configManager = ConfigManager.get();
-    configManager.createWithDefaultsIfMissing();
 
     outputManager = OutputManager;
     outputManager.set_currentFolder( resultsDirectory );

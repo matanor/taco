@@ -27,9 +27,7 @@ methods (Static)
     function runOnDesktop()
         Configurations.clearEverything();
         
-        ConfigManager.init('C:/technion/theses/matlab/config.mat');
-        configManager = ConfigManager.get();
-        configManager.createWithDefaultsIfMissing();
+        ConfigManager.initOnDesktop();
         
         folderName = '2012_05_10_1_structured';
         resultsDir = 'C:/technion/theses/Experiments/results/';
