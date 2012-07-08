@@ -429,6 +429,9 @@ function graph = createWeightsFromDistances(graph, rbfScale)
 end
 
 %% createWeightsFromDistances_lihi
+%  This works well on dektop (~3 minutes) but is very alow on odin
+%  (over a day and didn't finish). Might be because the difference
+%  in matlab version.
 
 function graph = createWeightsFromDistances_lihi(graph, K)
     squared_distances = sparseKnn.makeSymetric(graph.distances);
@@ -445,9 +448,10 @@ function graph = createWeightsFromDistances_lihi(graph, K)
     allRows = [];
     allCols = [];
     allValues = [];
+    Logger.log(['Number of non zeros distances = ' num2str(nnz(squared_distances))]);
     Logger.log('Calculating weights...');
     for instance_i=1:numInstances
-        if mod(numInstances, 1000) == 0
+        if mod(numInstances, 10) == 0
             Logger.log(['createWeightsFromDistances_lihi. numInstances = ' num2str(numInstances)]);
         end
         [rows,~,values] = find(squared_distances(:,instance_i));
