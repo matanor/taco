@@ -150,6 +150,20 @@ methods
         stddev  = sqrt(var(scorePerRun));
     end
     
+    %% calcAverage_levenshtein_testSet
+    
+    function [m stddev] = calcAverage_levenshtein_testSet...
+                                (this, algorithmType)
+        scorePerRun = zeros(this.num_runs(), 1);
+        for run_i=1:this.num_runs()
+            singleRun = this.getRun(run_i);
+            scorePerRun (run_i) = singleRun.levenshteinDistance_testSet(algorithmType);
+            Logger.log(['run ' num2str(run_i) ' levenshtein = ' num2str(scorePerRun(run_i))]);
+        end
+        m       = mean(scorePerRun);
+        stddev  = sqrt(var(scorePerRun));
+    end
+    
 end
         
 methods (Access = private)        

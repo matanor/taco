@@ -69,6 +69,7 @@ properties (Constant)
     OPTIMIZE_BY_MRR = 4;
     OPTIMIZE_BY_MACRO_MRR = 5;
     OPTIMIZE_BY_MACRO_ACCURACY = 6;
+    OPTIMIZE_BY_LEVENSHTEIN = 7;
 end
 
 methods (Access = public)
@@ -293,7 +294,8 @@ methods (Access = public)
                  ParamsManager.OPTIMIZE_ALL_1 ...
                  ParamsManager.OPTIMIZE_BY_MRR...
                  ParamsManager.OPTIMIZE_BY_MACRO_MRR ...
-                 ParamsManager.OPTIMIZE_BY_MACRO_ACCURACY], isString, [] );
+                 ParamsManager.OPTIMIZE_BY_MACRO_ACCURACY ...
+                 ParamsManager.OPTIMIZE_BY_LEVENSHTEIN], isString, [] );
         end
     end
     

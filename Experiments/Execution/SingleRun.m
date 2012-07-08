@@ -38,6 +38,17 @@ classdef SingleRun < handle
         m_cachedResults;
         
         m_isCalcPRBEP;
+        
+        m_structuredSegments; % a <numSegments X 2> array, 
+                              % with <segment start> <segment end> values
+                              % per row. e.g. in speech each segment is a
+                              % sentence.
+        m_fileFullPath;       % path to file location where this single run
+                              % result will be saved.
+                              % temporary files paths are based on this
+                              % parameter. (e.g. for levenshtein distance,
+                              % the reference file path will be 
+                              % <m_fileFullPath>.ref)
     end
     
     methods (Access=public)
@@ -208,6 +219,7 @@ classdef SingleRun < handle
                 testSetResults{algorithm_i}.macroMRR      = this.calc_macroMRR_testSet(algorithm_i); %#ok<AGROW>
                 testSetResults{algorithm_i}.accuracy      = this.accuracy_testSet(algorithm_i); %#ok<AGROW>
                 testSetResults{algorithm_i}.macroAccuracy = this.macroAccuracy_testSet(algorithm_i); %#ok<AGROW>
+                testSetResults{algorithm_i}.levenshteinDistance = this.levenshteinDistance_testSet(algorithm_i);     %#ok<AGROW>
             end
             this.m_cachedResults = testSetResults;
         end
@@ -354,6 +366,54 @@ classdef SingleRun < handle
                 end
                 R = mean(accuracyPerLabel);
             end
+        end
+        
+        %% hasStructuredSegments
+        
+        function R = hasStructuredSegments(this)
+            R = ~isempty(this.m_structuredSegments);
+        end
+        
+        %% levenshteinDistance_testSet
+        %  calculate the levenshtein distance, on the test set.
+        %  This applies to structured prediiction.
+        
+        function R = levenshteinDistance_testSet(this, algorithmType)
+            if ~this.hasStructuredSegments()
+                R = 0;
+                return;
+            end
+            if this.hasCachedResults()
+                R = this.m_cachedResults{algorithmType}.levenshteinDistance;
+            else
+                testSet_prediction      = this.testSet_prediciton(algorithmType);
+                testSet_correctLabels   = this.testSetCorrectLabels();
+                [path,fileName,~] = fileparts(this.m_fileFullPath);
+                outputPrefix = [path fileName];
+                testSet_segments        = this.testSet_segments();
+                R = LevenshteinDistance.calculate...
+                        (testSet_prediction, testSet_correctLabels, ...
+                         testSet_segments,   outputPrefix);
+            end
+        end
+        
+        %% testSet_segments
+        
+        function R = testSet_segments(this)
+            numSegments = size(this.m_structuredSegments,1);
+            SEGMENT_START_POSITION = 1;
+            SEGMENT_END_POSITION   = 2;
+            testSet = this.testSet();
+            testSegments = [];
+            for segment_i=1:numSegments
+                segmentStart = segments(segment_i, SEGMENT_START_POSITION);
+                segmentEnd   = segments(segment_i, SEGMENT_END_POSITION);
+                if ismemebr(segmentStart,testSet)
+                    assert( ismember( segmentEnd, testSet ) );
+                    testSegments = [testSegments; segmentStart segmentEnd]; %#ok<AGROW>
+                end
+            end
+            R = testSegments;
         end
        
         %% unlabeled_binary_prediction

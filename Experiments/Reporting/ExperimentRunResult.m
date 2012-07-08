@@ -156,11 +156,13 @@ methods (Static)
         T = [T 'avg macro accuracy (stddev)' SEPERATOR];
         T = [T 'avg MRR (stddev)' SEPERATOR];
         T = [T 'avg macro MRR (stddev)' SEPERATOR];
+        T = [T 'avg levenshtein (stddev)' SEPERATOR];
         T = [T 'optimized PRBEP' SEPERATOR];
         T = [T 'optimized accuracy' SEPERATOR];
         T = [T 'optimized macro accuracy' SEPERATOR];
         T = [T 'optimized MRR' SEPERATOR];
         T = [T 'optimized macro MRR' SEPERATOR];
+        T = [T 'optimized levenshtein' SEPERATOR];
         T = [T 'alpha' SEPERATOR];
         T = [T 'beta' SEPERATOR];
         T = [T 'gamma' SEPERATOR];

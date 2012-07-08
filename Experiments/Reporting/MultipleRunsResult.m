@@ -15,6 +15,7 @@ methods
             this.createAverage_macroAccuracy_testSet(multipleRuns, algorithm_i);
             this.createAverageMRR_testSet           (multipleRuns, algorithm_i);
             this.createAverage_macroMRR_testSet     (multipleRuns, algorithm_i);
+            this.createAverage_levenshtein_testSet  (multipleRuns, algorithm_i);
         end
     end
     
@@ -82,6 +83,17 @@ methods
         this.m_algorithmResults{algorithm_i}.macroMRR.stddev = stddev;
     end
     
+    %% createAverage_levenshtein_testSet
+    
+    function createAverage_levenshtein_testSet(this, multipleRuns, algorithm_i)
+        [mean stddev] = multipleRuns.calcAverage_levenshtein_testSet( algorithm_i);
+        algorithmName = AlgorithmTypeToStringConverter.convert( algorithm_i );
+        Logger.log(['Algorithm ' algorithmName ...
+              ' avg (stddev) levenshtein = ' num2str(mean) ' (' num2str(stddev) ')']);
+        this.m_algorithmResults{algorithm_i}.levenshtein.mean   = mean;
+        this.m_algorithmResults{algorithm_i}.levenshtein.stddev = stddev;
+    end
+    
     %% avgPRBEP_allLabels
     
     function R = avgPRBEP_allLabels( this, algorithmType, isEstimated )
@@ -140,6 +152,13 @@ methods
     function [mean stddev] = avg_macroMRR_testSet(this, algorithmType)
         mean   = this.m_algorithmResults{algorithmType}.macroMRR.mean; 
         stddev = this.m_algorithmResults{algorithmType}.macroMRR.stddev; 
+    end
+    
+    %% avg_levenshtein_testSet
+    
+    function [mean stddev] = avg_levenshtein_testSet(this, algorithmType)
+        mean   = this.m_algorithmResults{algorithmType}.levenshtein.mean; 
+        stddev = this.m_algorithmResults{algorithmType}.levenshtein.stddev; 
     end
         
     %% avgAccuracy_testSet_perAlgorithm

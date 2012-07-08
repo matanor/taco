@@ -162,6 +162,8 @@ methods (Static)
                 optimizationScores = [scores.macroMRR];
             case ParamsManager.OPTIMIZE_BY_MACRO_ACCURACY
                 optimizationScores = [scores.macroAccuracy];
+            case ParamsManager.OPTIMIZE_BY_LEVENSHTEIN
+                optimizationScores = [scores.levenshtein];
             otherwise
                 Logger.log(['calcOptimalParams::error. unknown optimization method ' ...
                         num2str(optimizeBy)]);
@@ -175,6 +177,7 @@ methods (Static)
         R.avgPRBEP      = bestRun.calcAveragePRBEP_testSet(algorithmType);
         R.MRR           = bestRun.calcMRR_testSet(algorithmType);
         R.macroMRR      = bestRun.calc_macroMRR_testSet(algorithmType);
+        R.levenshtein   = bestRun.levenshteinDistance_testSet(algorithmType);
         R.values        = bestRun.getParams( algorithmType );
         Logger.log('Optimal run statistics: ');
         Logger.log(['Accuracy = '         num2str(R.accuracy)]);
@@ -182,6 +185,7 @@ methods (Static)
         Logger.log(['Average PRBEP = '    num2str(R.avgPRBEP)]);
         Logger.log(['MRR = '              num2str(R.MRR)]);
         Logger.log(['macro MRR = '        num2str(R.macroMRR)]);
+        Logger.log(['Levenshtein = '      num2str(R.levenshtein)]);
     end
     
     %% evaluateOptimizationRun

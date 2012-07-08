@@ -144,6 +144,10 @@ methods
             this.m_results{optimization_method_i}.avg_macroMRR_testSet(algorithmType);
         R = [R num2str(avg_macroMRR) ' (' num2str(stddev_macroMRR) ')' SEPERATOR ];
         
+        [avg_levenshtein stddev_levenshtein] = ...
+            this.m_results{optimization_method_i}.avg_levenshtein_testSet(algorithmType);
+        R = [R num2str(avg_levenshtein) ' (' num2str(stddev_levenshtein) ')' SEPERATOR ];
+
         optimal = this.get_optimalParams(optimization_method_i, algorithmType);
         
         R = [R num2str(optimal.avgPRBEP) SEPERATOR ];
@@ -151,6 +155,7 @@ methods
         R = [R num2str(optimal.macroAccuracy) SEPERATOR ];
         R = [R num2str(optimal.MRR) SEPERATOR ];
         R = [R num2str(optimal.macroMRR) SEPERATOR ];
+        R = [R num2str(optimal.levenshtein) SEPERATOR ];
         
         O = OptimalParamsToStringConverter.convert ...
                     (optimal, algorithmType, EMPTY_CELL, SEPERATOR );
