@@ -109,7 +109,12 @@ methods (Access = public)
         dummy_timit          = [ rootDir 'timit/dummy.mat' ];
         trainAndDev_timit    = [ rootDir 'timit/trainAndDev/trainAndDev.k_10.mat' ];
         trainAndDev_timit_scaled = [ rootDir 'timit/trainAndDev/trainAndDev.k_10.scaled.mat' ];
-        trainAndDev_timit_not_white = [ rootDir 'timit/trainAndDev_notWhitenedFeatures/train_and_dev_not_white.context_7_whitened.k_10.mat' ];
+        trainAndDev_timit_scaled_identity   = [ rootDir 'timit/trainAndDev/trainAndDev.k_10.scaled.identity.mat' ];
+        trainAndDev_timit_not_white         = [ rootDir 'timit/trainAndDev_notWhitenedFeatures/train_and_dev_not_white.context_7_whitened.k_10.mat' ];
+        trainAndDev_notWhite_c7_alex = [ rootDir 'timit/features_39/trainAndDev_notWhite.context7.k_10.alex.mat' ];
+        trainAndDev_notWhite_c7_lihi = [ rootDir 'timit/features_39/trainAndDev_notWhite.context7.k_10.lihi.mat' ];
+        trainAndDev_notWhite_alex = [ rootDir 'timit/features_39/trainAndDev_notWhite.k_10.alex.mat' ];
+        trainAndDev_notWhite_lihi = [ rootDir 'timit/features_39/trainAndDev_notWhite.k_10.lihi.mat' ];
 
         if isOnOdin
            fileNames = [ {webkb_constructed} ...
