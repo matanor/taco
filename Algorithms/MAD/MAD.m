@@ -37,17 +37,9 @@ classdef MAD < GraphTrunsductionBase
             mu3 = this.m_mu3;
             useGraphHeuristics  = this.m_useGraphHeuristics;
             maxIterations       = this.m_num_iterations;
+            numVertices         = this.numVertices();
             
-            paramsString = ...
-                [' useGraphHeuristics = '   num2str(useGraphHeuristics) ...
-                 ' mu1 = '                  num2str(mu1) ...
-                 ' mu2 = '                  num2str(mu2) ...
-                 ' mu3 = '                  num2str(mu3) ...
-                 ' maximum iterations = '   num2str(maxIterations)];                
-            Logger.log(['Running MAD.' paramsString]);
-
-            numVertices = this.numVertices();
-            Logger.log(['numVertices = ' num2str(numVertices)]);
+            this.logParams();
 
             Logger.log('Calculating probabilities...');
             if (useGraphHeuristics ~=0)
@@ -65,17 +57,17 @@ classdef MAD < GraphTrunsductionBase
             numLabels = this.numLabels();
 
             % Line (2) of MAD page 10 in reference 
-
-            Logger.log('Calculating M(v)...');
             M = MAD.calcM(this.m_W, p, mu1, mu2, mu3);
-            Logger.log('done');
 
-            D = zeros( size(this.m_priorY) );
+            D = zeros( size(this.m_priorY.') );
             r = zeros(numLabels, 1);
             r(end) = 1;
 
-            Y_hat = this.m_priorY;
-            result.Y(:,:,1) = Y_hat;
+            Y_hat = this.m_priorY.'; % size: numLabels X numVertices
+            if this.m_save_all_iterations
+                allIterations.Y = zeros( numLabels, numVertices, maxIterations );
+            end
+%             current_Y = Y_hat;
             
             iteration_diff = 10^1000;
             diff_epsilon = 0.00001;
@@ -83,20 +75,23 @@ classdef MAD < GraphTrunsductionBase
             % note iteration index starts from 2
             for iter_i=2:maxIterations
 
+                Logger.log([ '#Iteration = '      num2str(iter_i)...
+                             ' iteration_diff = ' num2str(iteration_diff)]);
+
                 if iteration_diff < diff_epsilon
-                    Logger.log(['converged after ' num2str(iter_i) ' iterations']);
+                    Logger.log(['converged after ' num2str(iter_i-1) ' iterations']);
+                    if this.m_save_all_iterations
+                        allIterations.Y(:,:, iter_i:end) = []; %#ok<STRNU>
+                    end
                     break;
                 end
-                
-                if ( mod(iter_i, 2) == 0 )
-                    Logger.log([  '#Iteration = '      num2str(iter_i)...
-                            ' iteration_diff = ' num2str(iteration_diff)]);
-                end
+
+                iteration_diff = 0; %#ok<NASGU>
 
                 % line (4) of MAD page 10 in reference 
                 for vertex_i=1:numVertices
                     Dv = MAD.calcDv(this.m_W, p, Y_hat, vertex_i);
-                    D( vertex_i, :) = Dv.';
+                    D( :, vertex_i) = Dv;
                 end
 
                 Y_hat_pre = Y_hat; % only used for convergence test.
@@ -105,65 +100,107 @@ classdef MAD < GraphTrunsductionBase
                     p_inject   = p.inject(vertex_i); 
                     p_abandon  = p.abandon(vertex_i); 
 
-                    Yv = this.priorVector( vertex_i );
-                    Dv = D( vertex_i, : ).';
+                    Yv = this.m_priorY(vertex_i,:).';
+%                     Yv = this.priorVector( vertex_i );
+                    Dv = D( :, vertex_i );
                     Mv = M( vertex_i );
                     Yv_hat = (1/Mv) * ...
                          (mu1 * p_inject * Yv + ... 
                           mu2 * Dv + ...
                           mu3 * p_abandon * r);
-                    Y_hat(vertex_i,:) = Yv_hat .';
+                    Y_hat(:,vertex_i) = Yv_hat;
                 end
                 iteration_diff = sum((Y_hat_pre(:) - Y_hat(:)).^2);
-                result.Y(:,:,iter_i) = Y_hat;
+                if this.m_save_all_iterations
+                    allIterations.Y(:,:,iter_i) = Y_hat;
+                end
+            end
+            
+            if this.m_save_all_iterations
+                for iter_i=1:size(allIterations.Y,3)
+                    iterationResult_Y  = allIterations.Y(:,:,iter_i);
+                    result.Y(:,:,iter_i) = iterationResult_Y.';
+                end 
+            else
+                result.Y = Y_hat.';
             end
 
             toc;
         end
     end %     methods (Access=public)
     
+    methods (Access=private)
+            
+        %% logParams
+    
+        function logParams(this)
+            paramsString = ...
+                [' useGraphHeuristics = '   num2str(this.m_useGraphHeuristics) ...
+                 ' mu1 = '                  num2str(this.m_mu1) ...
+                 ' mu2 = '                  num2str(this.m_mu2) ...
+                 ' mu3 = '                  num2str(this.m_mu3) ...
+                 ' maximum iterations = '   num2str(this.m_num_iterations)...
+                 ' num vertices '           num2str(this.numVertices())];                
+            Logger.log(['Running ' this.name() '.' paramsString]);            
+        end
+    end % methods (Acess=private)
+    
     methods(Static)
+        
+        %% calcDv
+        
         function Dv = calcDv( W, p, Y_hat, vertex_i )
             %CALCDV Summary of this function goes here
             %   Detailed explanation goes here
 
-            neighbours = getNeighbours(W, vertex_i);
+            col = W(:, vertex_i);
+            % neighbours_indices and neighbours_weights are column
+            % vectors
+            [neighbours_indices, ~, neighbours_weights] = find(col);
+%             neighbours = getNeighbours(W, vertex_i);
             p_continue = p.continue(vertex_i); 
 
-            numLabels = size( Y_hat, 2 );
-            Dv = zeros( numLabels, 1);
+            numLabels = size( Y_hat, 1 );
+            Dv = zeros(numLabels,1);
 
-            numNeighbours = length(neighbours.indices);
+            numNeighbours = length(neighbours_indices);
             for neighbour_i=1:numNeighbours
-                neighbour_weight = neighbours.weights(neighbour_i);
-                neighbour_id    = neighbours.indices(neighbour_i);
+                neighbour_weight = neighbours_weights(neighbour_i);
+                neighbour_id    = neighbours_indices(neighbour_i);
                 outgoing = neighbour_weight;
                 incoming = W(neighbour_id, vertex_i);
                 p_continue_neighbour = p.continue(neighbour_id);
                 avg_weight = p_continue * outgoing + ...
                              p_continue_neighbour * incoming;
-                Y_neighbour = Y_hat( neighbour_id, : ).';
+                Y_neighbour = Y_hat( :, neighbour_id );
                 Dv = Dv + avg_weight * Y_neighbour;
             end
         end
         
+        %% calcM
+        
         function M = calcM( W, p, mu1, mu2, mu3 )
-            %CALCM Summary of this function goes here
-            %   Detailed explanation goes here
+            % Line (2) of MAD page 10 in reference 
 
+            Logger.log('MAD::calcM. Calculating M(v)...');
+            
             numVertices = size(W, 1);
             M = zeros( numVertices, 1);
 
             for vertex_i=1:numVertices
                 p_inject   = p.inject(vertex_i); 
                 p_continue = p.continue(vertex_i); 
-                neighbours = getNeighbours(W, vertex_i);
-
-                numNeighbours = length(neighbours.indices);
+                
+                col = W(:, vertex_i);
+                % neighbours_indices and neighbours_weights are column
+                % vectors
+                [neighbours_indices, ~, neighbours_weights] = find(col);
+                
+                numNeighbours = length(neighbours_indices);
                 sumNeighbours = 0;
                 for neighbour_i=1:numNeighbours
-                    neighbour_weight = neighbours.weights(neighbour_i);
-                    neighbour_idx    = neighbours.indices(neighbour_i);
+                    neighbour_weight = neighbours_weights(neighbour_i);
+                    neighbour_idx    = neighbours_indices(neighbour_i);
                     outgoing = neighbour_weight;
                     incoming = W(neighbour_idx, vertex_i);
                     p_continue_neighbour = p.continue(neighbour_idx);
@@ -175,7 +212,11 @@ classdef MAD < GraphTrunsductionBase
                                 mu2 * sumNeighbours + ...
                                 mu3;
             end
+            
+            Logger.log('MAD::calcM. done.');
         end
+        
+        %% calcProbabilities
         
         function p = calcProbabilities( W, labeledVertices )
             %CALCPROBABILITIES Calculate continue, injection and abandon
@@ -189,8 +230,11 @@ classdef MAD < GraphTrunsductionBase
             p.abandon   = zeros(numVertices, 1);
             beta = 2;
             for vertex_i=1:numVertices
-                neighbours = getNeighbours( W, vertex_i );
-                transitions = MAD.calcTransitions( neighbours.weights );
+                col = W(:, vertex_i);
+                % neighbours_indices and neighbours_weights are column
+                % vectors
+                [~, ~, neighbours_weights] = find(col);
+                transitions = MAD.calcTransitions( neighbours_weights );
                 % entropy calculation using log2 as in vertex.java::GetNeighborhoodEntropy
                 entropy = - sum( transitions .* log2(transitions) );
                 % natural logarithm and no exp is done in junto_1_0_0
@@ -208,6 +252,8 @@ classdef MAD < GraphTrunsductionBase
             end
         end
         
+        %% constantProbabilities
+        
         function p = constantProbabilities(numVertices)
             % Set to 1, so the parameter mu1 will control
             % injection
@@ -219,6 +265,8 @@ classdef MAD < GraphTrunsductionBase
             % no dummy label.
             p.abandon   = zeros(numVertices, 1);
         end
+        
+        %% calcTransitions
         
         function transitions = calcTransitions(neighboursWeigths )
             %CALCTRANSITIONS Calculate transition probabilitis from neighbours weights
