@@ -105,8 +105,13 @@ methods (Static)
         for job_i=1:lastJobToStartIndex
             jobToStart = jobsCollection(job_i);
             jobStatus = jobToStart.checkJobStatus();
-            % Set the queue that the job belongs to.
-            jobToStart.startCommand = strrep(jobToStart.startCommand, JobManager.QUEUE_NAME_STUB, queueName);
+            if ~isempty(jobToStart.startCommand)
+                % Set the queue that the job belongs to.
+                jobToStart.startCommand = strrep(jobToStart.startCommand, JobManager.QUEUE_NAME_STUB, queueName);
+            %else
+                % we are in dektop simulation mode - this is why the start
+                % command is empty
+            end
             % In simulation (non-asyncrounous mode) the jobs are
             % run syncrounsly so they nay have been finished and should
             % never be started
