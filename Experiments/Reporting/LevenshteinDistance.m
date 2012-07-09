@@ -22,7 +22,7 @@ methods (Static)
     
     function testOnDesktop()
         ConfigManager.initOnDesktop();
-        outputPrefix = 'c:\technion\theses\code\tools\sctk-2.4.0\test_data\test_levenshtein';
+        outputPrefix = 'c:\technion\theses\code\tools\sctk-2.4.0\test_data\test.levenshtein';
         LevenshteinDistance.test(outputPrefix);
     end
     
@@ -80,8 +80,7 @@ methods (Access = private)
     %% runSclite
     
     function R = runSclite(this, referenceFilePath, hypothesisFilePath, outputPrefix)
-        [~, prefixName, ~] = fileparts(outputPrefix);
-        outputFilePrefix = [prefixName '.sclite.out'];
+        outputFilePrefix = this.outputFilePrefix(outputPrefix);
         scliteScript = LevenshteinDistance.scliteExecScript();
         referenceFilePath  = this.updatePathIfRequired(referenceFilePath);
         hypothesisFilePath = this.updatePathIfRequired(hypothesisFilePath);
@@ -97,7 +96,34 @@ methods (Access = private)
                         ' status = ' num2str(status)]);
         end
         Logger.log(result);
-        R = 0;
+        wordAccuracy = this.parseOutput( outputPrefix );
+        R = wordAccuracy ;
+    end
+    
+    %% outputFilePrefix
+    
+    function R = outputFilePrefix(this, outputPrefix)
+        [~, prefixName, prefixExtension] = fileparts(outputPrefix);
+        R = [prefixName prefixExtension this.outputFilePrefixExtenion()];
+    end
+    
+    %% outputExtenion
+    
+    function R = outputFilePrefixExtenion(~)
+        R = '.sclite.out';
+    end
+    
+    %% parseOutput
+    
+    function R = parseOutput( this, outputPrefix)
+        outputFile = [outputPrefix this.outputFilePrefixExtenion() '.spk.txt'];
+        Logger.log(['LevenshteinDistance::parseOutput. Reading output from file ''' outputFile ''''])
+        output = fileread(outputFile);
+        wordAccuracyLine = regexp(output, 'Percent Word Accuracy\s+=\s+\d+.\d+%', 'match');
+        wordAccuracy = regexp(wordAccuracyLine, '\d+.\d+', 'match');
+        wordAccuracy = wordAccuracy{1};
+        R = str2num(wordAccuracy{1}); %#ok<ST2NM>
+        Logger.log(['LevenshteinDistance::parseOutput. word accuracy =  ' num2str(R) ])
     end
     
     %% createReferenceFile
