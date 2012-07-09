@@ -289,17 +289,17 @@ methods (Access = public)
     %% runAndSaveSingleRun
     
     function job = runAndSaveSingleRun...
-        ( this, singleRunFactory, singleOption, algorithmsToRun, fileName )
+        ( this, singleRunFactory, singleOption, algorithmsToRun, jobFileFullPath )
         if ParamsManager.ASYNC_RUNS == 0
-            singleRun = singleRunFactory.run(singleOption, algorithmsToRun );
-            JobManager.saveJobOutput( singleRun, fileName);
-            JobManager.signalJobIsFinished( fileName );
+            singleRun = singleRunFactory.run(singleOption, algorithmsToRun, jobFileFullPath );
+            JobManager.saveJobOutput( singleRun, jobFileFullPath);
+            JobManager.signalJobIsFinished( jobFileFullPath );
             job = Job;
-            job.fileFullPath = fileName;
+            job.fileFullPath = jobFileFullPath;
         else
             job = singleRunFactory.scheduleAsyncRun...
                 (singleOption, algorithmsToRun, ...
-                 fileName, this.m_outputManager );
+                 jobFileFullPath, this.m_outputManager );
         end
     end
 end

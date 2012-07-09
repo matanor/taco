@@ -124,16 +124,23 @@ methods
         if isfield(fileData,'structuredEdges')
             structuredEdges = fileData.structuredEdges;
             numStructuredEdges = size(structuredEdges, 1);
-            Logger.log(['Loading ' num2str(numStructuredEdges) ' structured edges']);
+            Logger.log(['GraphBase::loadFromStruct. Loading ' num2str(numStructuredEdges) ' structured edges']);
             this.m_structuredInfo.structuredEdges = structuredEdges;
         else
-            Logger.log('No structured info in graph');
+            Logger.log('GraphBase::loadFromStruct. No structured edges in graph');
         end
         if isfield(fileData,'transitionMatrix')
             this.m_structuredInfo.transitionMatrix = fileData.transitionMatrix;
         else
-            Logger.log('No transition matrix in graph');
-        end        
+            Logger.log('GraphBase::loadFromStruct. No transition matrix in graph');
+        end
+        if isfield(fileData,'segments')
+            numStructuredSegments = size(fileData.segments, 1);
+            Logger.log(['GraphBase::loadFromStruct. Loading ' num2str(numStructuredSegments) ' segments']);
+            this.m_structuredInfo.structuredSegments = fileData.segments;
+        else
+            Logger.log('GraphBase::loadFromStruct. No structured segments in graph');
+        end
     end
     
     %% correctLabels
@@ -218,6 +225,16 @@ methods
     function R = structuredEdges(this)
         if isfield(this.m_structuredInfo,'structuredEdges')
             R = this.m_structuredInfo.structuredEdges;
+        else
+            R = [];
+        end
+    end
+    
+    %% structuredSegments
+    
+    function R = structuredSegments(this)
+        if isfield(this.m_structuredInfo,'structuredSegments')
+            R = this.m_structuredInfo.structuredSegments;
         else
             R = [];
         end

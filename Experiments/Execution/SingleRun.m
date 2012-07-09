@@ -67,6 +67,18 @@ classdef SingleRun < handle
             this.m_isCalcPRBEP = 0;
         end
         
+        %% set_fileFullPath
+        
+        function set_fileFullPath(this, value)
+            this.m_fileFullPath = value;
+        end
+        
+        %% set_structuredSegments
+        
+        function set_structuredSegments(this, value)
+            this.m_structuredSegments = value;
+        end
+        
         %% availableResultsAlgorithmRange
         
         function R = availableResultsAlgorithmRange(this)
@@ -199,7 +211,7 @@ classdef SingleRun < handle
         %% createCachedResults
         
         function createCachedResults(this)
-            Logger.log('createCachedResults');
+            Logger.log('singleRun::createCachedResults');
             numLabels = this.numLabels();
             algorithmRange = this.availableResultsAlgorithmRange();
             for algorithm_i=algorithmRange
@@ -376,10 +388,11 @@ classdef SingleRun < handle
         
         %% levenshteinDistance_testSet
         %  calculate the levenshtein distance, on the test set.
-        %  This applies to structured prediiction.
+        %  This applies to structured prediction.
         
         function R = levenshteinDistance_testSet(this, algorithmType)
             if ~this.hasStructuredSegments()
+                Logger.log('singleRun::levenshteinDistance_testSet. No structured segmments, skipping...')
                 R = 0;
                 return;
             end
@@ -389,9 +402,10 @@ classdef SingleRun < handle
                 testSet_prediction      = this.testSet_prediciton(algorithmType);
                 testSet_correctLabels   = this.testSetCorrectLabels();
                 [path,fileName,~] = fileparts(this.m_fileFullPath);
-                outputPrefix = [path fileName];
+                outputPrefix = [path '/' fileName];
                 testSet_segments        = this.testSet_segments();
-                R = LevenshteinDistance.calculate...
+                levenshteinDistance = LevenshteinDistance;
+                R = levenshteinDistance.calculate...
                         (testSet_prediction, testSet_correctLabels, ...
                          testSet_segments,   outputPrefix);
             end
@@ -401,6 +415,8 @@ classdef SingleRun < handle
         
         function R = testSet_segments(this)
             numSegments = size(this.m_structuredSegments,1);
+            Logger.log(['SingleRun::testSet_segments. total number of segments = ' num2str(numSegments)]);
+            segments = this.m_structuredSegments;
             SEGMENT_START_POSITION = 1;
             SEGMENT_END_POSITION   = 2;
             testSet = this.testSet();
@@ -408,11 +424,19 @@ classdef SingleRun < handle
             for segment_i=1:numSegments
                 segmentStart = segments(segment_i, SEGMENT_START_POSITION);
                 segmentEnd   = segments(segment_i, SEGMENT_END_POSITION);
-                if ismemebr(segmentStart,testSet)
+                if ismember(segmentStart,testSet)
                     assert( ismember( segmentEnd, testSet ) );
                     testSegments = [testSegments; segmentStart segmentEnd]; %#ok<AGROW>
                 end
             end
+            numTestSegments = size(testSegments, 1);
+            Logger.log(['SingleRun::testSet_segments. Number of test segments = ' num2str(numTestSegments)]);
+            
+            testSetStartOffset = testSet(1);
+            testSegments = testSegments - testSetStartOffset + 1;
+            Logger.log(['SingleRun::testSet_segments. First test segment starts at = ' num2str(testSegments(1,1))]);
+            Logger.log(['SingleRun::testSet_segments. Last test segment ends at = ' num2str(testSegments(end,end))]);
+            
             R = testSegments;
         end
        

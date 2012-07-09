@@ -12,7 +12,7 @@ function asyncSingleRun(fileFullPath, codeRoot)
         ( singleRunFactory.m_constructionParams.numFolds);
     singleRunFactory.set_graph(graph);
     
-    singleRun = singleRunFactory.run( algorithmParams, algorithmsToRun );
+    singleRun = singleRunFactory.run( algorithmParams, algorithmsToRun, fileFullPath );
     
     JobManager.saveJobOutput( singleRun, fileFullPath);
     JobManager.signalJobIsFinished( fileFullPath );

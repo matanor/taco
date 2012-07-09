@@ -37,11 +37,13 @@ methods (Access = public)
     
     %% run
     
-    function singleRun = run(this, algorithmParams, algorithmsToRun)
+    function singleRun = run(this, algorithmParams, algorithmsToRun, jobFileFullPath)
         %% create singleRun results object
         singleRun = SingleRun(this.m_graph.correctLabels(), ...
                               this.m_constructionParams, ...
                               this.m_trunsductionSet);
+        singleRun.set_structuredSegments(this.m_graph.structuredSegments());
+        singleRun.set_fileFullPath(jobFileFullPath);
         
         for algorithm_i=algorithmsToRun.algorithmsRange()
             this.runAlgorithm( singleRun, algorithm_i, algorithmParams{algorithm_i} );

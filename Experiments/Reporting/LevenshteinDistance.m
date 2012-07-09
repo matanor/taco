@@ -48,10 +48,10 @@ methods (Access = public)
     
     %% calculate
     
-    function calculate(this, prediction, correct, segments, outputPrefix)
+    function R = calculate(this, prediction, correct, segments, outputPrefix)
         referenceFilePath  = this.createReferenceFile (correct,    segments, outputPrefix);
         hypothesisFilePath = this.createHypothesisFile(prediction, segments, outputPrefix);
-        this.runSclite(referenceFilePath, hypothesisFilePath, outputPrefix);
+        R = this.runSclite(referenceFilePath, hypothesisFilePath, outputPrefix);
     end
     
 end % methods (Access = public)
@@ -79,7 +79,7 @@ methods (Access = private)
     
     %% runSclite
     
-    function runSclite(this, referenceFilePath, hypothesisFilePath, outputPrefix)
+    function R = runSclite(this, referenceFilePath, hypothesisFilePath, outputPrefix)
         [~, prefixName, ~] = fileparts(outputPrefix);
         outputFilePrefix = [prefixName '.sclite.out'];
         scliteScript = LevenshteinDistance.scliteExecScript();
@@ -97,6 +97,7 @@ methods (Access = private)
                         ' status = ' num2str(status)]);
         end
         Logger.log(result);
+        R = 0;
     end
     
     %% createReferenceFile
