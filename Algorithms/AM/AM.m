@@ -154,7 +154,7 @@ methods (Access=public)
         end
 
         if this.m_save_all_iterations
-            for iter_i=1:size(allIterations.mu,3)
+            for iter_i=1:size(allIterations.p,3)
                 iterationResult_p  = allIterations.p(:,:,iter_i);
                 iterationResult_q  = allIterations.q(:,:,iter_i);
                 R.p(:,:,iter_i) = iterationResult_p.';
