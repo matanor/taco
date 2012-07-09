@@ -12,6 +12,8 @@ classdef MAD < GraphTrunsductionBase
         end
     end
     
+    %% run
+    
     methods (Access=public)
         function    result = run( this )
             %MAD Modified ADsorption
@@ -52,7 +54,7 @@ classdef MAD < GraphTrunsductionBase
 
             % add dummy label. initialy no vertex is
             % associated with the dummy label.
-            Logger.log(['size(Y) = ' num2str(size(this.m_priorY))]);
+            Logger.log(['size(Y) = ' num2str(size(this.m_priorY.'))]);
             this.m_priorY = [this.m_priorY zeros(numVertices, 1) ];
             numLabels = this.numLabels();
 
@@ -67,10 +69,10 @@ classdef MAD < GraphTrunsductionBase
             if this.m_save_all_iterations
                 allIterations.Y = zeros( numLabels, numVertices, maxIterations );
             end
-%             current_Y = Y_hat;
             
             iteration_diff = 10^1000;
             diff_epsilon = 0.00001;
+            W_transposed = this.m_W.';
             
             % note iteration index starts from 2
             for iter_i=2:maxIterations
@@ -88,20 +90,43 @@ classdef MAD < GraphTrunsductionBase
 
                 iteration_diff = 0; %#ok<NASGU>
 
+                Logger.log('MAD::run. Calculating D...');
                 % line (4) of MAD page 10 in reference 
                 for vertex_i=1:numVertices
-                    Dv = MAD.calcDv(this.m_W, p, Y_hat, vertex_i);
+                    if mod(vertex_i,100000) == 0
+                        Logger.log(['MAD::run. vertex_i = ' num2str(vertex_i)]);
+                    end
+                    
+                    % neighbours_indices and neighbours_weights are column
+                    % vectors
+                    [neighbours_indices, ~, outgoing] = find(this.m_W(:, vertex_i));
+                    p_continue = p.continue(vertex_i);
+
+                    [~,~,incoming] = find(W_transposed(:, vertex_i));
+                    p_continue_neighbour = p.continue(neighbours_indices);
+
+                    avg_weight = p_continue * outgoing + ...       % Column vector
+                                 p_continue_neighbour .* incoming; % numNeighbours X 1
+            
+                    Y_neighbour = Y_hat( :, neighbours_indices );  % numLabels X numNeighbours
+                    Y_neighbour = repmat(avg_weight.', numLabels, 1) .* Y_neighbour;
+                    Dv = sum(Y_neighbour, 2);
                     D( :, vertex_i) = Dv;
                 end
+                Logger.log('MAD::run. Calculating D... Done.');
 
+                Logger.log('MAD::run. Updating scores...');
                 Y_hat_pre = Y_hat; % only used for convergence test.
                 % lines (5)-(6)-(7) of MAD page 10 in reference 
                 for vertex_i = 1:numVertices
+                    if mod(vertex_i,10000) == 0
+                        Logger.log(['MAD::run. vertex_i = ' num2str(vertex_i)]);
+                    end
+
                     p_inject   = p.inject(vertex_i); 
                     p_abandon  = p.abandon(vertex_i); 
 
                     Yv = this.m_priorY(vertex_i,:).';
-%                     Yv = this.priorVector( vertex_i );
                     Dv = D( :, vertex_i );
                     Mv = M( vertex_i );
                     Yv_hat = (1/Mv) * ...
@@ -110,6 +135,7 @@ classdef MAD < GraphTrunsductionBase
                           mu3 * p_abandon * r);
                     Y_hat(:,vertex_i) = Yv_hat;
                 end
+                Logger.log('MAD::run. Updating scores... Done.');
                 iteration_diff = sum((Y_hat_pre(:) - Y_hat(:)).^2);
                 if this.m_save_all_iterations
                     allIterations.Y(:,:,iter_i) = Y_hat;
@@ -147,36 +173,6 @@ classdef MAD < GraphTrunsductionBase
     
     methods(Static)
         
-        %% calcDv
-        
-        function Dv = calcDv( W, p, Y_hat, vertex_i )
-            %CALCDV Summary of this function goes here
-            %   Detailed explanation goes here
-
-            col = W(:, vertex_i);
-            % neighbours_indices and neighbours_weights are column
-            % vectors
-            [neighbours_indices, ~, neighbours_weights] = find(col);
-%             neighbours = getNeighbours(W, vertex_i);
-            p_continue = p.continue(vertex_i); 
-
-            numLabels = size( Y_hat, 1 );
-            Dv = zeros(numLabels,1);
-
-            numNeighbours = length(neighbours_indices);
-            for neighbour_i=1:numNeighbours
-                neighbour_weight = neighbours_weights(neighbour_i);
-                neighbour_id    = neighbours_indices(neighbour_i);
-                outgoing = neighbour_weight;
-                incoming = W(neighbour_id, vertex_i);
-                p_continue_neighbour = p.continue(neighbour_id);
-                avg_weight = p_continue * outgoing + ...
-                             p_continue_neighbour * incoming;
-                Y_neighbour = Y_hat( :, neighbour_id );
-                Dv = Dv + avg_weight * Y_neighbour;
-            end
-        end
-        
         %% calcM
         
         function M = calcM( W, p, mu1, mu2, mu3 )
@@ -186,28 +182,25 @@ classdef MAD < GraphTrunsductionBase
             
             numVertices = size(W, 1);
             M = zeros( numVertices, 1);
+            W_transposed = W.';
 
             for vertex_i=1:numVertices
+                if mod(vertex_i,100000) == 0
+                    Logger.log(['MAD::calcM. vertex_i = ' num2str(vertex_i)]);
+                end
                 p_inject   = p.inject(vertex_i); 
                 p_continue = p.continue(vertex_i); 
                 
-                col = W(:, vertex_i);
                 % neighbours_indices and neighbours_weights are column
                 % vectors
-                [neighbours_indices, ~, neighbours_weights] = find(col);
+                [neighbours_indices, ~, neighbours_weights] = find(W(:, vertex_i));
                 
-                numNeighbours = length(neighbours_indices);
-                sumNeighbours = 0;
-                for neighbour_i=1:numNeighbours
-                    neighbour_weight = neighbours_weights(neighbour_i);
-                    neighbour_idx    = neighbours_indices(neighbour_i);
-                    outgoing = neighbour_weight;
-                    incoming = W(neighbour_idx, vertex_i);
-                    p_continue_neighbour = p.continue(neighbour_idx);
-                    sumNeighbours = sumNeighbours + ...
-                                    p_continue * outgoing + ...
-                                    p_continue_neighbour * incoming;
-                end
+                outgoing = neighbours_weights;
+                [~,~,incoming] = find(W_transposed(:, vertex_i));
+                p_continue_neighbour = p.continue(neighbours_indices);
+                sumNeighbours = sum(p_continue * outgoing + ...
+                                p_continue_neighbour .* incoming);
+
                 M (vertex_i) =  mu1 * p_inject + ...
                                 mu2 * sumNeighbours + ...
                                 mu3;
@@ -228,13 +221,19 @@ classdef MAD < GraphTrunsductionBase
             p.inject    = zeros(numVertices, 1);
             p.continue  = zeros(numVertices, 1);
             p.abandon   = zeros(numVertices, 1);
+            isLabeled   = zeros(numVertices, 1);
+            isLabeled(labeledVertices) = 1;
             beta = 2;
             for vertex_i=1:numVertices
+                if mod(vertex_i,100000) == 0
+                    Logger.log(['MAD::calcProbabilities. vertex_i = ' num2str(vertex_i)]);
+                end
                 col = W(:, vertex_i);
                 % neighbours_indices and neighbours_weights are column
                 % vectors
                 [~, ~, neighbours_weights] = find(col);
-                transitions = MAD.calcTransitions( neighbours_weights );
+                sumNeighboursWeights = sum( neighbours_weights );
+                transitions = neighbours_weights / sumNeighboursWeights;
                 % entropy calculation using log2 as in vertex.java::GetNeighborhoodEntropy
                 entropy = - sum( transitions .* log2(transitions) );
                 % natural logarithm and no exp is done in junto_1_0_0
@@ -242,8 +241,8 @@ classdef MAD < GraphTrunsductionBase
                 % we follow the paper - use the exp (not sure it matters much)
                 cv = log(beta) / log( beta + exp( entropy) ) ;
 %                 cv = log(beta) / log( beta + entropy ) ;
-                isLabeled = ismember( vertex_i, labeledVertices );
-                dv = isLabeled * (1-cv) * sqrt( entropy ) ;
+%                 isLabeled = ismember( vertex_i, labeledVertices );
+                dv = isLabeled(vertex_i) * (1-cv) * sqrt( entropy ) ;
                 zv = max( cv + dv, 1 );
                 p.continue(vertex_i) = cv / zv;
                 p.inject  (vertex_i) = dv / zv;
@@ -264,15 +263,6 @@ classdef MAD < GraphTrunsductionBase
             p.continue  = 0.5 * ones(numVertices, 1);
             % no dummy label.
             p.abandon   = zeros(numVertices, 1);
-        end
-        
-        %% calcTransitions
-        
-        function transitions = calcTransitions(neighboursWeigths )
-            %CALCTRANSITIONS Calculate transition probabilitis from neighbours weights
-
-            s = sum( neighboursWeigths );
-            transitions = neighboursWeigths / s;
         end
         
     end % methods(Static)
