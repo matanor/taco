@@ -109,7 +109,12 @@ classdef MAD < GraphTrunsductionBase
                                  p_continue_neighbour .* incoming; % numNeighbours X 1
             
                     Y_neighbour = Y_hat( :, neighbours_indices );  % numLabels X numNeighbours
-                    Y_neighbour = repmat(avg_weight.', numLabels, 1) .* Y_neighbour;
+                    avg_weight  = avg_weight.'; % make row vector.
+                    % This is what repmat does - only without all the time
+                    % wasting if's. This is equivalent to 
+                    % avg_weight = repmat(avg_weight, numLabels, 1)
+                    avg_weight  = avg_weight(ones(numLabels,1),:);
+                    Y_neighbour = avg_weight .* Y_neighbour;
                     Dv = sum(Y_neighbour, 2);
                     D( :, vertex_i) = Dv;
                 end
