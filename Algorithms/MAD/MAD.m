@@ -88,7 +88,7 @@ classdef MAD < GraphTrunsductionBase
                     break;
                 end
 
-                iteration_diff = 0; %#ok<NASGU>
+                iteration_diff = 0;
 
                 Logger.log('MAD::run. Calculating D...');
                 % line (4) of MAD page 10 in reference 
@@ -121,10 +121,9 @@ classdef MAD < GraphTrunsductionBase
                 Logger.log('MAD::run. Calculating D... Done.');
 
                 Logger.log('MAD::run. Updating scores...');
-                Y_hat_pre = Y_hat; % only used for convergence test.
                 % lines (5)-(6)-(7) of MAD page 10 in reference 
                 for vertex_i = 1:numVertices
-                    if mod(vertex_i,10000) == 0
+                    if mod(vertex_i,100000) == 0
                         Logger.log(['MAD::run. vertex_i = ' num2str(vertex_i)]);
                     end
 
@@ -138,10 +137,10 @@ classdef MAD < GraphTrunsductionBase
                          (mu1 * p_inject * Yv + ... 
                           mu2 * Dv + ...
                           mu3 * p_abandon * r);
+                    iteration_diff = iteration_diff + sum((Yv_hat - Y_hat(:,vertex_i)).^2);
                     Y_hat(:,vertex_i) = Yv_hat;
                 end
                 Logger.log('MAD::run. Updating scores... Done.');
-                iteration_diff = sum((Y_hat_pre(:) - Y_hat(:)).^2);
                 if this.m_save_all_iterations
                     allIterations.Y(:,:,iter_i) = Y_hat;
                 end
