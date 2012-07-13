@@ -68,6 +68,7 @@ methods (Static)
     %% init
     
     function init(configFileFullPath)
+        Logger.log(['ConfigManager::init. config file full path = ''' configFileFullPath '''']);
         configManager = ConfigManager(configFileFullPath);
         configManager.createWithDefaultsIfMissing();
     end
