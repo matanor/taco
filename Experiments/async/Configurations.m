@@ -13,6 +13,8 @@ methods (Static)
     
         codeFolders = genpath(codeRoot);
         addpath(codeFolders);
+        
+        ConfigManager.init([codeRoot '/config.mat']);
     end
     
     %% clearEverything
