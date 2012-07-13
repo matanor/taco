@@ -210,6 +210,9 @@ methods (Static)
             case ParamsManager.OPTIMIZE_BY_MACRO_ACCURACY
                 R.macroAccuracy = singleRun.macroAccuracy_testSet(algorithmType);
                 Logger.log(['macro accuracy = ' num2str(R.macroAccuracy)]);
+            case ParamsManager.OPTIMIZE_BY_LEVENSHTEIN
+                R.levenshtein = singleRun.levenshteinDistance_testSet(algorithmType);
+                Logger.log(['levenshtein = ' num2str(R.levenshtein)]);
             otherwise
                 Logger.log(['evaluateOptimizationRun::error. unknown optimization method ' ...
                         num2str(optimizeBy)]);
