@@ -92,7 +92,7 @@ methods (Access = private)
         Logger.log(['sclite command = "' scliteCommand '"']);
         [status, result] = system(scliteCommand);
         if status ~= 0
-            Logger.log(['Error starting sclite. outputPrefix: ' outputPrefix...
+            Logger.log(['Error starting sclite. outputPrefix: ''' outputPrefix ''''...
                         ' status = ' num2str(status)]);
         end
         Logger.log(result);
