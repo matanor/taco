@@ -39,7 +39,7 @@ methods (Access = public)
             experimentRun.constructGraph();
             trunsductionSetsFileName = ...
                 this.m_outputManager.trunsductionSetsFileName(constructionParams);
-            experimentRun.loadTrunsductionSets(trunsductionSetsFileName );
+            experimentRun.loadTrunsductionSets(trunsductionSetsFileName, constructionParams.numLabeled);
             
             progressParams.set_currentExperiment( construction_i );
             

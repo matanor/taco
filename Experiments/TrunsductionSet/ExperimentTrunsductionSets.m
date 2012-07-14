@@ -33,6 +33,24 @@ methods
         R = this.m_optimizationSets(set_i);
     end
     
+    %% hasOptimizationSets
+    
+    function R = hasOptimizationSets(this)
+        R = ~isempty(this.m_optimizationSets); 
+    end
+    
+    %% hasEvaluationSets
+    
+    function R = hasEvaluationSets(this)
+        R = ~isempty(this.m_evaluationSets); 
+    end
+    
+    %% numEvaluationSets
+    
+    function R = numEvaluationSets(this)
+        R = length(this.m_evaluationSets);
+    end
+
     %% setCorrectLabels
     
     function setCorrectLabels(this, value)

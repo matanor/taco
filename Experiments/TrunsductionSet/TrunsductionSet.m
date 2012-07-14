@@ -49,6 +49,12 @@ methods
         R = this.m_labeled;
     end
     
+    %% numLabeled
+    
+    function R = numLabeled (this)
+        R = length(this.m_labeled);
+    end
+    
 end
     
 end

@@ -52,10 +52,27 @@ methods (Access = public)
     
     %% loadTrunsductionSets
     
-    function loadTrunsductionSets(this, fileFullPath)
+    function loadTrunsductionSets(this, fileFullPath, numLabeledRequired)
         Logger.log(['Loading trunsduction sets from ' fileFullPath '''']);
         fileData = load(fileFullPath);
-        this.m_trunsductionSets = fileData.trunsductionSets;
+        experimentTrunsductionSet = fileData.trunsductionSets;
+        if (experimentTrunsductionSet.hasOptimizationSets())
+            numLabeledFromFile = trunsductionSets.optimizationSet(1).numLabeled();
+            Logger.log(['ExperimentRun::loadTrunsductionSets. num labeled in optimization' ...
+                        ' trunsduction set (from file) = ' num2str(numLabeledFromFile)]);
+            assert(numLabeledFromFile == numLabeledRequired);
+        end
+        if (experimentTrunsductionSet.hasEvaluationSets())
+            for evaluation_set_i=1:experimentTrunsductionSet.numEvaluationSets()
+                numLabeledFromFile = trunsductionSets.evaluationSet(1).numLabeled();
+                Logger.log(['ExperimentRun::loadTrunsductionSets. num labeled in evaluation' ...
+                            ' trunsduction set ' num2str(evaluation_set_i) ...
+                            ' (from file) = ' num2str(numLabeledFromFile)]);
+                assert(numLabeledFromFile == numLabeledRequired);
+            end
+        end
+        
+        this.m_trunsductionSets = experimentTrunsductionSet;
     end
     
     %% createParameterRun
