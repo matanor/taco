@@ -57,14 +57,14 @@ methods (Access = public)
         fileData = load(fileFullPath);
         experimentTrunsductionSet = fileData.trunsductionSets;
         if (experimentTrunsductionSet.hasOptimizationSets())
-            numLabeledFromFile = trunsductionSets.optimizationSet(1).numLabeled();
+            numLabeledFromFile = experimentTrunsductionSet.optimizationSet(1).numLabeled();
             Logger.log(['ExperimentRun::loadTrunsductionSets. num labeled in optimization' ...
                         ' trunsduction set (from file) = ' num2str(numLabeledFromFile)]);
             assert(numLabeledFromFile == numLabeledRequired);
         end
         if (experimentTrunsductionSet.hasEvaluationSets())
             for evaluation_set_i=1:experimentTrunsductionSet.numEvaluationSets()
-                numLabeledFromFile = trunsductionSets.evaluationSet(1).numLabeled();
+                numLabeledFromFile = experimentTrunsductionSet.evaluationSet(1).numLabeled();
                 Logger.log(['ExperimentRun::loadTrunsductionSets. num labeled in evaluation' ...
                             ' trunsduction set ' num2str(evaluation_set_i) ...
                             ' (from file) = ' num2str(numLabeledFromFile)]);
