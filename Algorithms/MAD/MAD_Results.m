@@ -12,9 +12,21 @@ classdef MAD_Results < SSLMC_Result
     
     methods (Access = public)
 
+        %% Constructor
+        
         function this = MAD_Results() % Constructor
             this.DUMMY = 3;
         end
+        
+        %% clearOutput
+    
+        function clearOutput(this)
+            Logger.log('MAD_Results::clearOutput.');
+            clearOutput@SSLMC_Result(this);
+            this.m_probabilities = [];
+        end
+        
+        %% set_results
         
         function set_results(this, resultSource, saveAllIterations)
             this.m_numIterations = ...
@@ -26,6 +38,8 @@ classdef MAD_Results < SSLMC_Result
             end
             this.m_probabilities = resultSource.p;
         end
+        
+        %% add_vertex
         
         function add_vertex(this)
             new_m_Y = zeros( size(this.m_Y,1) + 1, ...
@@ -44,9 +58,13 @@ classdef MAD_Results < SSLMC_Result
                                             0 ];
         end
         
+        %% remove_vertex
+        
         function remove_vertex(this, vertex_i)
             this.m_Y(vertex_i, :, :) = [];
         end
+        
+        %% asText
         
         function r = asText( this, vertex_i, iteration_i)
             y = this.m_Y( vertex_i, :, iteration_i );
@@ -59,15 +77,21 @@ classdef MAD_Results < SSLMC_Result
                         y(this.NEGATIVE), y(this.POSITIVE), y(this.DUMMY) );
         end
         
+        %% allColors
+        
         function r = allColors(this, iter_i)
             r = 0.5 * ( (-1) * this.m_Y(:, this.NEGATIVE, iter_i) + ...
                                this.m_Y(:, this.POSITIVE, iter_i));
         end
         
+        %% legend
+        
         function r = legend(~)
             r = ['(p\_inject,p\_continue, p\_abandon)\newline' ... 
                  '(y(NEGATIVE), y(POSITIVE), y(DUMMY))' ];
         end
+        
+        %% getFinalScoreMatrix
         
         function r = getFinalScoreMatrix(this)
 %             Logger.log('MAD::getFinalPredictionMatrix');
@@ -75,9 +99,13 @@ classdef MAD_Results < SSLMC_Result
             r(:,end) = [];
         end
         
+        %% probabilities
+        
         function r = probabilities(this)
             r = this.m_probabilities;
         end
+        
+        %% numLabelsIncludingDummy
         
         function r = numLabelsIncludingDummy(this)
             r = this.numLabels();
