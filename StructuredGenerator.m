@@ -361,7 +361,7 @@ end
 %% createTrainAndTest
 
 function createTrainAndTest(isOnOdin, context, maxFeaturesToExtract)
-    Logger.log('createTrainAndDev')
+    Logger.log('createTrainAndTest')
     folderPath = StructuredGenerator.timitGraphsFolder(isOnOdin);
     filePaths{1} = [folderPath 'timitTrainMFCC.mat'];
     filePaths{2} = [folderPath 'timitTestMFCC.mat'];
