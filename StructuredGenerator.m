@@ -322,7 +322,9 @@ function combineInstanceFiles(filePaths, name, outputPath, context, ...
         graph.instances = ...
             StructuredGenerator.createInstancesWithContext...
                 (graph.instances, context, segments);
+        Logger.log('Calculating covariance for all instances' );
         graph.covariance = cov(graph.instances.');
+        Logger.log('Calculating covariance for train instances' );
         trainCovariance  = cov(graph.instances(:,trainRange).');
         graph.trainCovariance = trainCovariance;
         outputFileFullPath = [outputPath '.context' num2str(context)];
@@ -332,7 +334,9 @@ function combineInstanceFiles(filePaths, name, outputPath, context, ...
         Logger.log('Whitening instances ...');
         white_transform  = sqrtm(inv(trainCovariance));
         graph.instances  = white_transform * graph.instances;
+        Logger.log('Calculating covariance for all instances');
         graph.covariance      = cov(graph.instances.');
+        Logger.log('Calculating covariance for train instances');
         graph.trainCovariance = cov(graph.instances(:,trainRange).');
         outputFileFullPath = [outputFileFullPath '_whitened'];
         Logger.log(['Saving whitened instances with context to '''  outputFileFullPath '''' ])
