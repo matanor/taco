@@ -271,30 +271,31 @@ function combineInstanceFiles(filePaths, name, outputPath, context, ...
     phoneids48 = [];
     phoneids39 = [];
     segments = [];
-    trainCovariance = [];
     for file_i=1:numFiles
         isTrainFile = 0;
         currentFilePath = filePaths{file_i};
         fileData = load(currentFilePath);
         if isfield(fileData, 'trainData')
+            Logger.log('StructuredGenerator::combineInstanceFiles. Found train data');
             fileData = fileData.trainData;
             isTrainFile = 1;
         elseif isfield(fileData, 'testData')
+            Logger.log('StructuredGenerator::combineInstanceFiles. Found test data');
             fileData = fileData.testData;
         elseif isfield(fileData, 'devData')
+            Logger.log('StructuredGenerator::combineInstanceFiles. Found dev data');
             fileData = fileData.devData;
         else
             Logger.log('combineInstanceFiles. Error, unknown file format');
         end
         
         numVerticesInFile = size(fileData.phonemfcc, 2);
+        Logger.log(['StructuredGenerator::combineInstanceFiles. num vertices in file = ' num2str(numVerticesInFile)]);
         
         numVerticesSoFar = size(instances,2);
         
         if isTrainFile
-            % first is train
             Logger.log(['Calculating train covariance from file' currentFilePath]);
-            trainCovariance = cov(fileData.phonemfcc.');
             trainRange = (numVerticesSoFar+1):numVerticesInFile;
             Logger.log(['trainRange = ' num2str(trainRange(1)) ' ' num2str(trainRange(end))]);
         end
@@ -307,7 +308,6 @@ function combineInstanceFiles(filePaths, name, outputPath, context, ...
     
     graph.instances  = instances;
     graph.name       = name;
-    graph.covariance = trainCovariance;
     graph.labels     = phoneids39;
     graph.structuredEdges    = StructuredGenerator.segmentsToStructuredEdges(segments);
     graph.phoneids48 = phoneids48;
@@ -345,17 +345,10 @@ end
 
 function createTrainAndDev(isOnOdin, context, maxFeaturesToExtract)
     Logger.log('createTrainAndDev')
-    if isOnOdin
-        folderPath = '/u/matanorb/experiments/timit/';
-    else
-        folderPath = 'C:/technion/theses/experiments/timit/';
-    end
+    folderPath = StructuredGenerator.timitGraphsFolder(isOnOdin);
     filePaths{1} = [folderPath 'timitTrainMFCC.mat'];
     filePaths{2} = [folderPath 'timitDevMFCC.mat'];
     name = 'trainAndDev_notWhite';
-    
-%     context = 7;
-%     maxFeaturesToExtract = 39;
     
     folderPath = [folderPath 'features_' num2str(maxFeaturesToExtract) '/'];
     mkdir(folderPath);
@@ -364,6 +357,36 @@ function createTrainAndDev(isOnOdin, context, maxFeaturesToExtract)
     StructuredGenerator.combineInstanceFiles(filePaths, name, outputPath, ...
                                              context,   maxFeaturesToExtract );
 end
+
+%% createTrainAndTest
+
+function createTrainAndTest(isOnOdin, context, maxFeaturesToExtract)
+    Logger.log('createTrainAndDev')
+    folderPath = StructuredGenerator.timitGraphsFolder(isOnOdin);
+    filePaths{1} = [folderPath 'timitTrainMFCC.mat'];
+    filePaths{2} = [folderPath 'timitTestMFCC.mat'];
+    name = 'trainAndTest_notWhite';
+    
+    folderPath = [folderPath 'features_' num2str(maxFeaturesToExtract) '/'];
+    mkdir(folderPath);
+    outputPath = [folderPath name];
+
+    StructuredGenerator.combineInstanceFiles(filePaths, name, outputPath, ...
+                                             context,   maxFeaturesToExtract );
+end
+
+%% timitGraphsFolder
+
+function R = timitGraphsFolder(isOnOdin)
+    if isOnOdin
+        R = '/u/matanorb/experiments/timit/';
+    else
+        R = 'C:/technion/theses/experiments/timit/';
+    end
+end
+    
+%     context = 7;
+%     maxFeaturesToExtract = 39;
 
 %% calculateRbfScaleFromGraph
 
