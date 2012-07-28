@@ -98,7 +98,9 @@ methods (Static)
         Logger.log(['Instances range = ' num2str(instancesRange(1)) ' ' ...
                     num2str(instancesRange(end)) ...
                     ', K = ' num2str(K)])
-        inverse_covariance = inv(graph.covariance);
+        if 1 == isPerformWhitening
+            inverse_covariance = inv(graph.covariance);
+        end
 
         tic;
         numRows = length(instancesRange);
