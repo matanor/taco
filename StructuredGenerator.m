@@ -454,21 +454,24 @@ function createWeightsFromDistances_alex(filePrefix)
     instancesFilePath = [filePrefix '.mat'];
     Logger.log(['Loading instances from ''' instancesFilePath '''']);
     fileData = load(instancesFilePath,'graph');
+    Logger.log('Done');
     instancesFile = fileData.graph;
     clear fileData;
     precentToSample = 0.025;
-    rbfScale = calculateRbfScaleFromGraph(instancesFile, precentToSample);
+    rbfScale = StructuredGenerator.calculateRbfScaleFromGraph(instancesFile, precentToSample);
     knnGraphPath = [filePrefix '.k_10.mat'];
     Logger.log(['Loading K-NN graph from ''' knnGraphPath '''']);
     fileData = load(knnGraphPath,'graph');
+    Logger.log('Done');
     graph = fileData.graph;
     clear fileData;
-    graph = createWeightsFromDistances(graph, rbfScale);
+    graph = StructuredGenerator.createWeightsFromDistances(graph, rbfScale);
     graph.weights = sparseKnn.makeSymetric(graph.weights);
     graph.name = [graph.name '_alex'];
     outputFilePath = [filePrefix '.k_10.alex.mat'];
     Logger.log(['Saving scaled output graph to ''' outputFilePath '''']);
     save(outputFilePath,'graph','-v7.3');
+    Logger.log('Done');
 end
 
 %% createWeightsFromDistances
