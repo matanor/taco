@@ -394,18 +394,19 @@ end
 
 %% calculateRbfScaleFromGraph
 
-function calculateRbfScaleFromGraph( graph, precentToSample )
+function R = calculateRbfScaleFromGraph( graph, precentToSample )
     allInstances = graph.instances;
     allCorrectLabels = graph.labels;
     numInstances = length(allCorrectLabels);
     sampledInstances = randi(numInstances, 1, floor(precentToSample * numInstances));
-    StructuredGenerator.calculateRbfScale(allInstances, allCorrectLabels, sampledInstances);
+    rbfScale = StructuredGenerator.calculateRbfScale(allInstances, allCorrectLabels, sampledInstances);
+    R = rbfScale;
 end 
 
 %% calculateRbfScale
 % reference: andrei alexandrescu Phd, section 5.7, page 103
 
-function calculateRbfScale(allInstances, allCorrectLabels, sampledInstances)
+function R = calculateRbfScale(allInstances, allCorrectLabels, sampledInstances)
     instances = allInstances(:,sampledInstances);
     clear allInstances;
     numInstances = size(instances,2);
@@ -444,6 +445,24 @@ function calculateRbfScale(allInstances, allCorrectLabels, sampledInstances)
     Logger.log(['calculateRbfScale. N_betweenClass = ' num2str(N_betweenClass)]);
     rbfScale = (d_withinClass + d_betweenClass) / (2 * sqrt(log(2)));
     Logger.log(['calculateRbfScale. rbfScale = ' num2str(rbfScale)]);
+    R = rbfScale;
+end
+
+%% createWeightsFromDistances_alex
+
+function createWeightsFromDistances_alex(filePrefix)
+    fileData = load([filePrefix '.mat'],'graph');
+    instancesFile = fileData.graph;
+    clear fileData;
+    precentToSample = 0.025;
+    rbfScale = calculateRbfScaleFromGraph(instancesFile, precentToSample);
+    fileData = load([filePrefix '.k_10.mat'],'graph');
+    graph = fileData.graph;
+    clear fileData;
+    graph = createWeightsFromDistances(graph, rbfScale);
+    graph.weights = sparseKnn.makeSymetric(graph.weights);
+    graph.name = [graph.name '_alex'];
+    save([filePrefix '.k_10.alex.mat'],'graph','-v7.3');
 end
 
 %% createWeightsFromDistances
