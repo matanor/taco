@@ -14,7 +14,7 @@ methods (Static)
         if config.isOnOdin
             R = '/u/matanorb/code/tools/sctk-2.4.0/sclite.sh';
         else
-            R = 'C:\technion\theses\code\tools\sctk-2.4.0\sclite.win.bat';
+            R = 'C:/technion/theses/code/tools/sctk-2.4.0/sclite.win.bat';
         end
     end
     
@@ -89,13 +89,14 @@ methods (Access = private)
                          ' ' referenceFilePath ...
                          ' ' hypothesisFilePath ...
                          ' ' outputFilePrefix];
-        Logger.log(['sclite command = "' scliteCommand '"']);
+        Logger.log(['LevenshteinDistance::runSclite. sclite command = "' scliteCommand '"']);
         [status, result] = system(scliteCommand);
         if status ~= 0
-            Logger.log(['Error starting sclite. outputPrefix: ''' outputPrefix ''''...
+            Logger.log(['LevenshteinDistance::runSclite. Error starting sclite. outputPrefix: ''' outputPrefix ''''...
                         ' status = ' num2str(status)]);
         end
-        Logger.log(result);
+        result = strrep(result,'\','/');
+        Logger.log(['LevenshteinDistance::runSclite. ' result]);
         wordAccuracy = this.parseOutput( outputPrefix );
         R = wordAccuracy ;
     end

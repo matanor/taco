@@ -7,6 +7,7 @@ classdef ParameterRunResult < handle
         m_parameterValues;
         m_constructionParams;
         m_optimalParams;
+        m_graphFileFullPath;
     end
     
 methods
@@ -19,9 +20,10 @@ methods
     %% create
     
     function create(this, parameterRun, constructionParams)
-        this.m_constructionParams = constructionParams;
-        this.m_parameterValues = parameterRun.get_paramValues();
-        this.m_optimalParams = parameterRun.get_optimalParams();
+        this.m_constructionParams   = constructionParams;
+        this.m_parameterValues      = parameterRun.get_paramValues();
+        this.m_optimalParams        = parameterRun.get_optimalParams();
+        this.m_graphFileFullPath    = parameterRun.evaluationGraph().fileFullPath();
         
         optimizationMethods = this.optimizationMethodsCollection();
         for optimization_method_i=optimizationMethods
@@ -106,7 +108,7 @@ methods
     %% toString
     
     function R = toString(this, optimization_method_i, algorithmType)
-        fileName = FileHelper.fileName(this.m_constructionParams.fileName);
+        fileName = FileHelper.fileName(this.m_graphFileFullPath);
         SEPERATOR = ',';
         EMPTY_CELL = SEPERATOR ;
         R = [];

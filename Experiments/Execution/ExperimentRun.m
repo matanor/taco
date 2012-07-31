@@ -7,7 +7,8 @@ classdef ExperimentRun < handle
     end %(Access = public)
     
     properties (SetAccess = public, GetAccess=public)
-        m_graph;
+        m_developmentGraph;
+        m_testGraph;
         m_parameterRuns;
         m_trunsductionSets;
     end
@@ -17,7 +18,6 @@ methods (Access = public)
     %% constructor
     
     function this = ExperimentRun(constructionParams)
-        this.m_graph = ExperimentGraph;
         this.m_constructionParams = constructionParams;
     end
 
@@ -30,37 +30,82 @@ methods (Access = public)
     %% constructGraph
     
     function constructGraph(this)
-        this.m_graph.load                    ( this.m_constructionParams.fileName );
-        this.m_graph.removeExtraSplitVertices( this.m_constructionParams.numFolds);        
+        this.m_developmentGraph = ExperimentGraph;
+        developmentGraphFilePath = this.m_constructionParams.fileProperties.development;
+        this.m_developmentGraph.load                    ( developmentGraphFilePath );
+        this.m_developmentGraph.removeExtraSplitVertices( this.m_constructionParams.numFolds);        
+        testGraphFilePath = this.m_constructionParams.fileProperties.test;
+        if ~isempty(testGraphFilePath)
+            Logger.log('ExperimentRun::constructGraph. Using seperate dev/test graphs');
+            this.m_testGraph        = ExperimentGraph;
+            this.m_testGraph.load( testGraphFilePath );
+            this.m_testGraph.removeExtraSplitVertices( this.m_constructionParams.numFolds);
+        end
     end
     
     %% createTrunstuctionSets
     
-    function createTrunstuctionSets(this)
-        trunsductionSetsFactory = ...
-            ExperimentTrunsductionSetsFactory( this.m_constructionParams, this.m_graph );
-        this.m_trunsductionSets = trunsductionSetsFactory.create();
-    end
+%     function createTrunstuctionSets(this)
+%         trunsductionSetsFactory = ...
+%             ExperimentTrunsductionSetsFactory( this.m_constructionParams, this.m_graph );
+%         this.m_trunsductionSets = trunsductionSetsFactory.create();
+%     end
     
     %% saveTrunsductionSets
     
-    function saveTrunsductionSets(this, outputFileFullPath )
-        Logger.log(['Saving trunsduction sets to ' outputFileFullPath '''']);
-        trunsductionSets = this.m_trunsductionSets; %#ok<NASGU>
-        save(outputFileFullPath, 'trunsductionSets');
+%     function saveTrunsductionSets(this, outputFileFullPath )
+%         Logger.log(['Saving trunsduction sets to ' outputFileFullPath '''']);
+%         trunsductionSets = this.m_trunsductionSets; %#ok<NASGU>
+%         save(outputFileFullPath, 'trunsductionSets');
+%     end
+    
+    %% trunsductionSetsFileName
+    
+    function R = trunsductionSetsFileName(this)
+        transductionSetFilePath = this.m_constructionParams.fileProperties.transductionSetFilePath;
+        if ~isempty(transductionSetFilePath)
+            R = transductionSetFilePath;
+        else
+            R = this.constructTransductionSetFilePath...
+                (this.m_constructionParams.fileProperties.development,...
+                 this.m_constructionParams.numLabeled,...
+                 this.m_constructionParams.balanced);
+        end
+    end
+    
+    %% constructTransductionSetFilePath
+    
+    function R = constructTransductionSetFilePath(~, graphFileFullPath, numLabeled, isBalanced)
+        [path, name, ~] = fileparts(graphFileFullPath);
+        numLabeledStr = num2str(numLabeled);
+        if isBalanced 
+            isBalancedStr = 'balanced';
+        else
+            isBalancedStr = 'unbalanced';
+        end
+        trunsductionFileName = [path '/' name '_TrunsSet_' isBalancedStr '_' numLabeledStr '.mat'];
+        R = trunsductionFileName;
     end
     
     %% loadTrunsductionSets
     
-    function loadTrunsductionSets(this, fileFullPath, numLabeledRequired)
-        Logger.log(['Loading trunsduction sets from ' fileFullPath '''']);
+    function loadTrunsductionSets(this)
+        fileFullPath = this.trunsductionSetsFileName();
+        Logger.log(['Loading trunsduction sets from ''' fileFullPath '''']);
+        
+        numLabeledRequired = this.m_constructionParams.numLabeled;
         fileData = load(fileFullPath);
         experimentTrunsductionSet = fileData.trunsductionSets;
         if (experimentTrunsductionSet.hasOptimizationSets())
             numLabeledFromFile = experimentTrunsductionSet.optimizationSet(1).numLabeled();
             Logger.log(['ExperimentRun::loadTrunsductionSets. num labeled in optimization' ...
                         ' trunsduction set (from file) = ' num2str(numLabeledFromFile)]);
-            assert(numLabeledFromFile == numLabeledRequired);
+            if numLabeledFromFile ~= numLabeledRequired
+                Logger.log(['ExperimentRun::loadTrunsductionSets. WARNING ' ...
+                            ' num labeled required (' num2str(numLabeledRequired) ...
+                            ') is different from num labeled in file (' num2str(numLabeledFromFile)...
+                            ')' ]);
+            end
         end
         if (experimentTrunsductionSet.hasEvaluationSets())
             for evaluation_set_i=1:experimentTrunsductionSet.numEvaluationSets()
@@ -68,7 +113,12 @@ methods (Access = public)
                 Logger.log(['ExperimentRun::loadTrunsductionSets. num labeled in evaluation' ...
                             ' trunsduction set ' num2str(evaluation_set_i) ...
                             ' (from file) = ' num2str(numLabeledFromFile)]);
-                assert(numLabeledFromFile == numLabeledRequired);
+                if numLabeledFromFile ~= numLabeledRequired
+                    Logger.log(['ExperimentRun::loadTrunsductionSets. WARNING ' ...
+                                ' num labeled required (' num2str(numLabeledRequired) ...
+                                ') is different from num labeled in file (' num2str(numLabeledFromFile)...
+                                ')' ]);
+                end
             end
         end
         
@@ -78,8 +128,8 @@ methods (Access = public)
     %% createParameterRun
     
     function R = createParameterRun(this, parameterValues)
-        R = ParameterRun(this.m_constructionParams, this.m_graph, ...
-                         this.m_trunsductionSets,   parameterValues);
+        R = ParameterRun(this.m_constructionParams, this.m_developmentGraph, ...
+                         this.m_testGraph, this.m_trunsductionSets,   parameterValues);
     end
     
     %% addParameterRun

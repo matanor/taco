@@ -24,7 +24,7 @@ properties (GetAccess = public, SetAccess = private)
     m_numLabeled;
     m_numFolds;
     m_useGraphHeuristics;
-    m_fileName;
+    m_fileProperties;
     m_numEvaluationRuns;
     m_labeledInitMode;
     m_balanced;
@@ -55,7 +55,7 @@ end
 properties (Constant)
     SAVE_ALL_ITERATIONS_IN_RESULT = 0;
     REAL_RANDOMIZATION = 0;
-    CLEAR_ALGORITHM_OUTPUT = 0;
+    CLEAR_ALGORITHM_OUTPUT = 1;
 end
 
 properties (Constant)
@@ -77,8 +77,6 @@ methods (Access = public)
         
         isTesting = 1;
         optimize = ~isTesting;
-        
-        isString = 1;
         
         if isOnOdin
             rootDir = '/u/matanorb/experiments/';
@@ -112,13 +110,22 @@ methods (Access = public)
         trainAndDev_timit_scaled = [ rootDir 'timit/trainAndDev/trainAndDev.k_10.scaled.mat' ];
         trainAndDev_timit_scaled_identity   = [ rootDir 'timit/trainAndDev/trainAndDev.k_10.scaled.identity.mat' ];
         trainAndDev_timit_not_white         = [ rootDir 'timit/trainAndDev_notWhitenedFeatures/train_and_dev_not_white.context_7_whitened.k_10.mat' ];
-        trainAndDev_notWhite_c7_alex = [ rootDir 'timit/features_39/trainAndDev_notWhite.context7.k_10.alex.mat' ];
-        trainAndDev_notWhite_c7_lihi = [ rootDir 'timit/features_39/trainAndDev_notWhite.context7.k_10.lihi.mat' ];
-        trainAndDev_notWhite_alex = [ rootDir 'timit/features_39/trainAndDev_notWhite.k_10.alex.mat' ];
-        trainAndDev_notWhite_lihi = [ rootDir 'timit/features_39/trainAndDev_notWhite.k_10.lihi.mat' ];
+        trainAndDev_notWhite_c7_alex = [ rootDir 'timit/features_39_trainAndDev/trainAndDev_notWhite.context7.k_10.alex.mat' ];
+        trainAndDev_notWhite_c7_lihi = [ rootDir 'timit/features_39_trainAndDev/trainAndDev_notWhite.context7.k_10.lihi.mat' ];
+        trainAndDev_notWhite_alex    = [ rootDir 'timit/features_39_trainAndDev/trainAndDev_notWhite.k_10.alex.mat' ];
+        trainAndDev_notWhite_lihi    = [ rootDir 'timit/features_39_trainAndDev/trainAndDev_notWhite.k_10.lihi.mat' ];
+        
+        trainAndTest_notWhite_c7_alex = [ rootDir 'timit/features_39_trainAndTest/trainAndTest_notWhite.context7.k_10.alex.mat' ];
+        trainAndTest_notWhite_c7_lihi = [ rootDir 'timit/features_39_trainAndTest/trainAndTest_notWhite.context7.k_10.lihi.mat' ];
+        trainAndTest_notWhite_alex    = [ rootDir 'timit/features_39_trainAndTest/trainAndTest_notWhite.k_10.alex.mat' ];
+        trainAndTest_notWhite_lihi    = [ rootDir 'timit/features_39_trainAndTest/trainAndTest_notWhite.k_10.lihi.mat' ];
+        
+        timit_notWhite_c7_alex.development = [ rootDir 'timit/features_39/trainAndDev/trainAndDev_notWhite.context7.k_10.alex.mat' ];
+        timit_notWhite_c7_alex.test        = [ rootDir 'timit/features_39/trainAndTest/trainAndTest_notWhite.context7.k_10.alex.mat' ];
+        timit_notWhite_c7_alex.transductionSetFilePath = [ rootDir 'timit/features_39/notWhite.TrunsSet_001.mat' ];
 
         if isOnOdin
-           fileNames = [ {webkb_constructed} ...
+           fileProperties = [ {timit_notWhite_c7_alex} ...
                          ];
 %                          {webkb_amar} ...
 %                          {webkb_html} ...
@@ -126,23 +133,25 @@ methods (Access = public)
 %                          {sentiment_10k} ...
 %                          {twentyNG_4715} ];
         else
-           fileNames = [ {webkb_constructed} ...
+           fileProperties  = [ {timit_notWhite_c7_alex} ...
                          ];
 %                          {webkb_html} ...
 %                          {sentiment_5k} ...
 %                          {sentiment_10k} ...
 %                          {twentyNG_4715} ];
         end
-        fileNamesRange = 1:length(fileNames);
-        this = this.createParameter( 'fileName', fileNamesRange , ...
-                                     isString, fileNames );
+        filePropertiesRange = 1:length(fileProperties );
         
-        isString = 0;
+        isNumeric = 0;
+        this = this.createParameter( 'fileProperties', filePropertiesRange , ...
+                                     isNumeric, fileProperties );
+                                 
         if (optimize)
-            kOptimizationRange = [100 500 1000 2000];
-            this = this.createParameter(  'K', kOptimizationRange, isString, [] );
+%             kOptimizationRange = [100 500 1000 2000];
+            kOptimizationRange = [1];
+            this = this.createNumericParameter(  'K', kOptimizationRange );
         else
-            this = this.createParameter(  'K', [1000], isString, [] );
+            this = this.createNumericParameter(  'K', [1000] );
         end
         %K.range = [1,2,5,10,20,50,100,500];
         
@@ -158,39 +167,39 @@ methods (Access = public)
             zetaOptimizationRange  = [1 10 100];
             gammaOptimizationRange = [1 5];
 
-            this = this.createParameter( 'alpha', alphaOptimizationRange, isString, [] );
-            this = this.createParameter( 'beta',  betaOptimizationRange, isString, [] );
-            this = this.createParameter( 'labeledConfidence', gammaOptimizationRange, isString, [] );
-            this = this.createParameter( 'zeta',  zetaOptimizationRange, isString, [] );
+            this = this.createNumericParameter( 'alpha', alphaOptimizationRange );
+            this = this.createNumericParameter( 'beta',  betaOptimizationRange );
+            this = this.createNumericParameter( 'labeledConfidence', gammaOptimizationRange );
+            this = this.createNumericParameter( 'zeta',  zetaOptimizationRange );
         else
-            this = this.createParameter( 'alpha', [1], isString, [] );
-            this = this.createParameter( 'beta' , [1], isString, [] );        
-            this = this.createParameter( 'labeledConfidence', [1], isString, [] );     
-            this = this.createParameter( 'zeta',  [1], isString, [] );
+            this = this.createNumericParameter( 'alpha', [1] );
+            this = this.createNumericParameter( 'beta' , [1 ] );        
+            this = this.createNumericParameter( 'labeledConfidence', [1] );     
+            this = this.createNumericParameter( 'zeta',  [0] );
         end
         
-        this = this.createParameter( 'isUsingL2Regularization', [0], isString, [] );
+        this = this.createNumericParameter( 'isUsingL2Regularization', [0] );
         
         if isTesting
-            this = this.createParameter( 'isUsingSecondOrder', [1], isString, [] );
+            this = this.createNumericParameter( 'isUsingSecondOrder', [1] );
         else 
-            this = this.createParameter( 'isUsingSecondOrder', [1], isString, [] );
+            this = this.createNumericParameter( 'isUsingSecondOrder', [1] );
         end
         
         if isTesting
-            this = this.createParameter( 'isCalculateKNN',    [0], isString, [] );
+            this = this.createNumericParameter( 'isCalculateKNN',    [0] );
         else
-        this = this.createParameter( 'isCalculateKNN',    [0], isString, [] );
+            this = this.createNumericParameter( 'isCalculateKNN',    [0] );
         end
         
         if isTesting
-            this = this.createParameter( 'isUsingStructured',    [0], isString, [] );
+            this = this.createNumericParameter( 'isUsingStructured',    [0] );
         else
-            this = this.createParameter( 'isUsingStructured',    [0], isString, [] );
+            this = this.createNumericParameter( 'isUsingStructured',    [0] );
         end
         
-        this = this.createParameter( 'descendMethodCSSL', ...
-                                     [CSSLBase.DESCEND_MODE_2], isString, [] );
+        this = this.createNumericParameter( 'descendMethodCSSL', ...
+                                     [CSSLBase.DESCEND_MODE_COORIDNATE_DESCENT] );
         
         this.m_defaultParamsCSSL.K = 1000;
         this.m_defaultParamsCSSL.alpha = 1;
@@ -198,19 +207,19 @@ methods (Access = public)
         this.m_defaultParamsCSSL.zeta = 1;
         this.m_defaultParamsCSSL.labeledConfidence = 1;
         
-        this = this.createParameter( 'mu1', [1], isString, [] );
+        this = this.createNumericParameter( 'mu1', [1] );
         if (optimize)
             paperOprimizationRange = [1e-8 1e-4 1e-2 1 10 1e2 1e3];        
-            this = this.createParameter( 'mu2', paperOprimizationRange, isString, [] );  
-            this = this.createParameter( 'mu3', paperOprimizationRange, isString, [] );
+            this = this.createNumericParameter( 'mu2', paperOprimizationRange );  
+            this = this.createNumericParameter( 'mu3', paperOprimizationRange );
             mad_k_paper_range = [10,50,100,500,1000,2000];
-            this = this.createParameter...
-                ( 'mad_K',   kOptimizationRange  , isString,[]); % NO all vertices option
+            this = this.createNumericParameter...
+                ( 'mad_K',   kOptimizationRange  ); % NO all vertices option
         else
-            this = this.createParameter( 'mu2', [1], isString, [] );     
-            this = this.createParameter( 'mu3', [1], isString, [] );
-            this = this.createParameter...
-                ( 'mad_K',     [1000], isString,[]); % NO all vertices option
+            this = this.createNumericParameter( 'mu2', [1] );     
+            this = this.createNumericParameter( 'mu3', [1] );
+            this = this.createNumericParameter...
+                ( 'mad_K',     [1000]); % NO all vertices option
         end
         
         this.m_defaultParamsMAD.K = 1000;
@@ -219,19 +228,19 @@ methods (Access = public)
         this.m_defaultParamsMAD.mu3 = 1;
         
         if (optimize)
-            this = this.createParameter...
-                ( 'am_v',     [1e-8 1e-6 1e-4 0.01 0.1 ], isString,[]);
-            this = this.createParameter...
-                ( 'am_mu',    [1e-8 1e-4 0.01 0.1 1 10 100], isString,[]);
-            this = this.createParameter( 'am_alpha', [2], isString,[]);
+            this = this.createNumericParameter...
+                ( 'am_v',     [1e-8 1e-6 1e-4 0.01 0.1 ]);
+            this = this.createNumericParameter...
+                ( 'am_mu',    [1e-8 1e-4 0.01 0.1 1 10 100]);
+            this = this.createNumericParameter( 'am_alpha', [2]);
             am_k_range_paper = [2,10,50,100,250,500,1000,2000]; % NO all vertices option
-            this = this.createParameter...
-                ( 'am_K',     kOptimizationRange, isString,[]); 
+            this = this.createNumericParameter...
+                ( 'am_K',     kOptimizationRange); 
         else
-            this = this.createParameter( 'am_v',     [1e-4], isString,[]);
-            this = this.createParameter( 'am_mu',    [1e-2], isString,[]);
-            this = this.createParameter( 'am_alpha', [2], isString,[]);
-            this = this.createParameter( 'am_K',     [1000], isString,[]);
+            this = this.createNumericParameter( 'am_v',     [1e-4]);
+            this = this.createNumericParameter( 'am_mu',    [1e-2]);
+            this = this.createNumericParameter( 'am_alpha', [2]);
+            this = this.createNumericParameter( 'am_K',     [1000]);
         end
         
         this.m_defaultParamsAM.K = 1000;
@@ -239,69 +248,88 @@ methods (Access = public)
         this.m_defaultParamsAM.am_mu = 1e-2;
         this.m_defaultParamsAM.am_alpha = 2;
         
-        this = this.createParameter( 'makeSymetric', [1], isString, [] );     
+        this = this.createNumericParameter( 'makeSymetric', [1] );     
         
         if isTesting
-            this = this.createParameter( 'maxIterations', [10], isString, [] );    
-            this = this.createParameter( 'numEvaluationRuns', [0], isString, [] );
+            this = this.createNumericParameter( 'maxIterations', [1] );    
+            this = this.createNumericParameter( 'numEvaluationRuns', [1] );
         else
-            this = this.createParameter( 'maxIterations',     [10], isString, [] );    
-            this = this.createParameter( 'numEvaluationRuns', [0], isString, [] );
+            this = this.createNumericParameter( 'maxIterations',     [20] );    
+            this = this.createNumericParameter( 'numEvaluationRuns', [1] );
         end
         
         if isTesting
-            this = this.createParameter( 'numLabeled', [11411], isString, [] );    
+            this = this.createNumericParameter( 'numLabeled', [11147] );    
         else
-            this = this.createParameter( 'numLabeled', [11411 1105455], isString, [] );    
+            this = this.createNumericParameter( 'numLabeled', [111133] );    
         end
-        %11411
-        %1105455
+        %11101 - 0.01% (dev)
+        %110606 - 0.1% (dev)
+%11147 - 0.01% (test)
+%111133 - 0.01% (test)
+        %11411 - no
+        %1105455 - no
         
         if isTesting
-            this = this.createParameter( 'numFolds', [1], isString, [] );    
+            this = this.createNumericParameter( 'numFolds', [1] );    
         else
-            this = this.createParameter( 'numFolds', [1], isString, [] );    
+            this = this.createNumericParameter( 'numFolds', [1] );    
         end
         
         if isTesting
-            this = this.createParameter( 'useGraphHeuristics', [0], isString, [] );
+            this = this.createNumericParameter( 'useGraphHeuristics', [0] );
         else 
-            this = this.createParameter( 'useGraphHeuristics', [0], isString, [] );
+            this = this.createNumericParameter( 'useGraphHeuristics', [0] );
         end
         
         if isTesting
-            this = this.createParameter( 'labeledInitMode', ...
-                [ParamsManager.LABELED_INIT_ZERO_ONE], isString, [] );
+            this = this.createNumericParameter( 'labeledInitMode', ...
+                [ParamsManager.LABELED_INIT_ZERO_ONE] );
         else
-            this = this.createParameter( 'labeledInitMode', ...
-                 [ ParamsManager.LABELED_INIT_ZERO_ONE...
-                   ParamsManager.LABELED_INIT_MINUS_PLUS_ONE ], isString, [] );
+            this = this.createNumericParameter( 'labeledInitMode', ...
+                 [ ParamsManager.LABELED_INIT_ZERO_ONE ] );
         end
         
         if isTesting
-            this = this.createParameter( 'balanced', [0], isString, [] );
+            this = this.createNumericParameter( 'balanced', [0] );
         else
-            this = this.createParameter( 'balanced', [0], isString, [] );
+            this = this.createNumericParameter( 'balanced', [0] );
         end
         
         if isTesting
-            this = this.createParameter( 'optimizeByCollection', ...
-                [ParamsManager.OPTIMIZE_BY_ACCURACY], isString, [] );
+            this = this.createNumericParameter( 'optimizeByCollection', ...
+                [ParamsManager.OPTIMIZE_BY_ACCURACY] );
         else
-            this = this.createParameter( 'optimizeByCollection', ...
+            this = this.createNumericParameter( 'optimizeByCollection', ...
                 [ParamsManager.OPTIMIZE_BY_ACCURACY ...
                  ParamsManager.OPTIMIZE_BY_PRBEP ...
                  ParamsManager.OPTIMIZE_ALL_1 ...
                  ParamsManager.OPTIMIZE_BY_MRR...
                  ParamsManager.OPTIMIZE_BY_MACRO_MRR ...
                  ParamsManager.OPTIMIZE_BY_MACRO_ACCURACY ...
-                 ParamsManager.OPTIMIZE_BY_LEVENSHTEIN], isString, [] );
-        end
+                 ParamsManager.OPTIMIZE_BY_LEVENSHTEIN] );
+    end
+    
+    %% algorithmsToRun
+
+    function R = algorithmsToRun(~)
+        R = AlgorithmsCollection;
+%         algorithmsToRun.setRun(SingleRun.MAD);
+        algorithmsToRun.setRun(SingleRun.CSSLMC);
+%         algorithmsToRun.setRun(SingleRun.CSSLMCF);
+%         algorithmsToRun.setRun(SingleRun.AM);
+    end
+    
+    %% createNumericParameter
+    
+    function this = createNumericParameter(this, name, range)
+        isNumeric = 1;
+        this = this.createParameter(name, range, isNumeric, []);
     end
     
     %% createParameter
     
-    function this = createParameter( this, name, range , isString, strValues)
+    function this = createParameter( this, name, range , isNumeric, nonNumericValues)
         memebrName = ['m_' name];
         if (1 == strcmp(name, 'am_K') || ...
             1 == strcmp(name, 'mad_K') )
@@ -309,8 +337,8 @@ methods (Access = public)
         end
         this.(memebrName).range = range;
         this.(memebrName).name = name;
-        this.(memebrName).isString = isString;
-        this.(memebrName).values = strValues;
+        this.(memebrName).isNumeric = isNumeric;
+        this.(memebrName).values = nonNumericValues;
     end
     
     %% commonEvaluationParamsProperties
@@ -330,7 +358,7 @@ methods (Access = public)
     %% constructionParamsProperties
     
     function R = constructionParamsProperties(this)
-        R = [  this.m_fileName,         this.m_numLabeled, ...
+        R = [  this.m_fileProperties,   this.m_numLabeled, ...
                this.m_numFolds,         this.m_balanced, ...
                this.m_numEvaluationRuns];
     end
@@ -426,13 +454,13 @@ methods (Access = public)
     
 	function R = parameterValues_allOptions( this )
         paramProperties = this.evaluationParamsProperties();
-        evaluationParams = this.createParameterStructures( paramProperties);
+        evaluationParams = this.createParameterStructures( paramProperties );
         commonParamProperties = this.commonEvaluationParamsProperties();
         for option_i=1:length(evaluationParams)
             for common_param_i=1:length(commonParamProperties)
-                isString   = commonParamProperties(common_param_i).isString;
+                isNumeric   = commonParamProperties(common_param_i).isNumeric;
                 paramName  = commonParamProperties(common_param_i).name;
-                if isString
+                if 0 == isNumeric
                     paramValue = commonParamProperties(common_param_i).values;
                 else
                     paramValue = commonParamProperties(common_param_i).range;
@@ -469,9 +497,9 @@ methods (Static)
         for struct_i=1:numStructs
             new = [];
             for param_i=1:numParams
-                isString   = paramProperties(param_i).isString;
+                isNumeric  = paramProperties(param_i).isNumeric;
                 paramName  = paramProperties(param_i).name;
-                if (0 == isString)
+                if (1 == isNumeric)
                     paramValue = paramsVector   (struct_i, param_i);
                 else
                     paramNumericValue = paramsVector   (struct_i, param_i);

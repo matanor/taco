@@ -50,7 +50,7 @@ methods
     %% startExperimentRun
     
     function startExperimentRun(this, experiment_run_i, constructionParams)
-        [~, name, ~]  = fileparts(constructionParams.fileName);
+        [~, name, ~]  = fileparts(constructionParams.fileProperties.development);
         this.stepIntoFolder(['Experiment_run_' num2str(experiment_run_i)...
                              '_' name '_' num2str(constructionParams.numLabeled)]);
     end
@@ -90,20 +90,6 @@ methods
     function r = createFileNameAtCurrentFolder(this, fileName)
         this.addSeperatorIfMissing();
         r = [this.m_currentFolder fileName];
-    end
-    
-    %% trunsductionSetsFileName
-    
-    function r = trunsductionSetsFileName(this, constructionParams)
-        [path, name, ~] = fileparts(constructionParams.fileName);
-        numLabeledStr = num2str(constructionParams.numLabeled);
-        if constructionParams.balanced 
-            isBalancedStr = 'balanced';
-        else
-            isBalancedStr = 'unbalanced';
-        end
-        trunsductionFileName = [path '/' name '_TrunsSet_' isBalancedStr '_' numLabeledStr '.mat'];
-        r = trunsductionFileName;
     end
     
     %% evaluteOptimizationJobName

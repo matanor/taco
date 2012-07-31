@@ -119,7 +119,11 @@ methods
             isEstimatedString = 'avg';
         end
         
-        graphName = FileHelper.fileName(parameterValues.fileName);
+        graphFileFullPath = parameterValues.fileProperties.test;
+        if isempty(graphFileFullPath)
+            graphFileFullPath  = parameterValues.fileProperties.development;
+        end
+        graphName = FileHelper.fileName(graphFileFullPath);
         numEvaluationStr = num2str( parameterValues.numEvaluationRuns);
         optimizedStr = OptimizationMethodToStringConverter.convert(optimizeMethod);
         isBalanced =  parameterValues.balanced;

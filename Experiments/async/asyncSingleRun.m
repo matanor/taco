@@ -5,9 +5,10 @@ function asyncSingleRun(fileFullPath, codeRoot)
     singleRunFactory    = runData.this;
 	algorithmParams     = runData.algorithmParams;
     algorithmsToRun     = runData.algorithmsToRun;
+    graphFileFullPath   = runData.graphFileFullPath;
 
     graph = ExperimentGraph;
-    graph.load( singleRunFactory.m_constructionParams.fileName )
+    graph.load( graphFileFullPath )
     graph.removeExtraSplitVertices...
         ( singleRunFactory.m_constructionParams.numFolds);
     singleRunFactory.set_graph(graph);

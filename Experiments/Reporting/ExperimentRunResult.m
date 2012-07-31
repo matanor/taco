@@ -129,9 +129,11 @@ methods (Static)
         fields = fieldnames( A );
         for field_i=1:length(fields)
             fieldName = fields{field_i};
-            if A.(fieldName) ~= B.(fieldName)
-                R = 0;
-                break;
+            if ~isstruct(A.(fieldName))
+                if A.(fieldName) ~= B.(fieldName)
+                    R = 0;
+                    break;
+                end
             end
         end
     end

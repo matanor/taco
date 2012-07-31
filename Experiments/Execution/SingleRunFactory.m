@@ -30,7 +30,8 @@ methods (Access = public)
         Logger.log('scheduleAsyncRun');
         % save us to a file.
         this.m_graph.clearWeights(); % This will be reconstructed when loading task from disk
-        save(fileFullPath,'this','algorithmParams','algorithmsToRun');
+        graphFileFullPath = this.m_graph.fileFullPath(); %#ok<NASGU>
+        save(fileFullPath,'this','algorithmParams','algorithmsToRun','graphFileFullPath');
         
         job = JobManager.createJob(fileFullPath, 'asyncSingleRun', outputManager);
     end

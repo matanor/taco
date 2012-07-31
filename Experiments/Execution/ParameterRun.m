@@ -4,7 +4,8 @@ classdef ParameterRun < handle
     
     properties (Access = public)
         m_constructionParams;
-        m_graph;
+        m_developmentGraph;
+        m_testGraph;
         m_parameterTuningRunsJobNames;
         m_evaluationRunsJobNames;
         m_parameterValues;
@@ -16,9 +17,11 @@ methods (Access = public)
     %% Constructor
     
     function this = ParameterRun...
-            ( constrcutionParams, graph, trunsductionSets, parameterValues)
+            ( constrcutionParams, developmentGraph, testGraph, ...
+              trunsductionSets, parameterValues)
         this.m_constructionParams = constrcutionParams;
-        this.m_graph              = graph;
+        this.m_developmentGraph   = developmentGraph;
+        this.m_testGraph          = testGraph;
         this.m_trunsductionSets   = trunsductionSets;
         this.m_parameterValues    = parameterValues;
     end
@@ -126,7 +129,7 @@ methods (Access = public)
         trunsductionSet = ...
             this.m_trunsductionSets.optimizationSet( optimization_run_i );
         R = SingleRunFactory...
-            ( this.m_constructionParams, this.m_graph, trunsductionSet );
+            ( this.m_constructionParams, this.m_developmentGraph, trunsductionSet );
     end
     
     %% createEvaluationRunFactory
@@ -134,8 +137,19 @@ methods (Access = public)
     function R = createEvaluationRunFactory(this, evaluation_run_i)
         trunsductionSet = ...
             this.m_trunsductionSets.evaluationSet( evaluation_run_i );
+        evaluationGraph = this.evaluationGraph();
         R = SingleRunFactory...
-            ( this.m_constructionParams, this.m_graph, trunsductionSet );
+            ( this.m_constructionParams, evaluationGraph, trunsductionSet );
+    end
+    
+    %% evaluationGraph
+    
+    function R = evaluationGraph(this)
+        if ~isempty(this.m_testGraph)
+            R = this.m_testGraph;
+        else
+            R = this.m_developmentGraph;
+        end
     end
     
 end

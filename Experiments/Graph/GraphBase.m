@@ -25,6 +25,12 @@ methods
         this.loadFromStruct( fileData.graph );
     end
     
+    %% fileFullPath
+    
+    function R = fileFullPath(this)
+        R = this.m_fileName;
+    end
+    
     %% loadFromSavedFileName
     
     function loadFromSavedFileName(this)

@@ -34,12 +34,9 @@ methods (Access = public)
             constructionParams = constructionParams_allOptions( construction_i );
             this.m_outputManager.startExperimentRun(construction_i, constructionParams);
 
-            Logger.log(['File Name = ' constructionParams.fileName]);
             experimentRun = ExperimentRun(constructionParams);
             experimentRun.constructGraph();
-            trunsductionSetsFileName = ...
-                this.m_outputManager.trunsductionSetsFileName(constructionParams);
-            experimentRun.loadTrunsductionSets(trunsductionSetsFileName, constructionParams.numLabeled);
+            experimentRun.loadTrunsductionSets();
             
             progressParams.set_currentExperiment( construction_i );
             
@@ -339,7 +336,7 @@ methods (Static)
     function displayParameterValues(parameterValues, constructionParams)
         parameterValuesString    = Utilities.StructToStringConverter(parameterValues);
         constructionParamsString = Utilities.StructToStringConverter(constructionParams);
-        Logger.log(['Parameter run values. ' constructionParamsString ' ' parameterValuesString]);
+        Logger.log(['Parameter run values:\n' constructionParamsString parameterValuesString]);
     end
     
     %% printOptimal
@@ -350,7 +347,7 @@ methods (Static)
         evaluationMethodName = OptimizationMethodToStringConverter.convert(optimization_method_i);
         Logger.log(['algorithm = '    algorithmName ...
               ' evaluation = '  evaluationMethodName ...
-              ' optimal: '      optimalString]);      
+              ' optimal:\n'      optimalString]);      
     end
 
 end % methods (Static)

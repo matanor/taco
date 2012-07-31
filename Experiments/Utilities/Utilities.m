@@ -12,12 +12,16 @@ methods (Static)
     function s = StructToStringConverter( struct )
         f = fieldnames( struct );
         s = [];
-        for i=1:numel(f)
-            fieldName = f{i};
+        for field_i=1:numel(f)
+            fieldName = f{field_i};
+            isLastField = (field_i == numel(f));
             fieldValue = struct.( fieldName );
-            if numel(fieldValue) == 1 && ~iscell(fieldValue)
+            if numel(fieldValue) == 1 && ~iscell(fieldValue) && ~isstruct(fieldValue)
                 fieldValueString = num2str( fieldValue );
-                s = [s fieldName ' = ' fieldValueString ' ' ]; %#ok<AGROW>
+                s = [s fieldName ' = ' fieldValueString ]; %#ok<AGROW>
+                if ~isLastField
+                    s = [s '\n'];
+                end
             end
         end
     end
@@ -29,6 +33,7 @@ methods (Static)
         s.f2 = [ 1 2 ];
         s.f3 = 'abc';
         s.f4 = {'abc'};
+        s.f5 = 6;
         x = Utilities.StructToStringConverter(s);
         Logger.log(x);
     end

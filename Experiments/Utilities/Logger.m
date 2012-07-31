@@ -4,7 +4,7 @@ classdef Logger
     
     methods (Static)
         function log(S)
-            disp( [datestr(now) '. ' S]);
+            fprintf( [datestr(now) '. ' S '\n']);
         end
     end
     
