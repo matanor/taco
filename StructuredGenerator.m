@@ -95,10 +95,9 @@ function R = createInstancesWithContext(instances, context, segments)
     instances_with_context = zeros(context * numFeatures, numInstances);
     numSegments = size(segments, 1);
     
-    Logger.log('createInstancesWithContext')
-    Logger.log(['numInstances = ' num2str(numInstances)]);
-    Logger.log(['numFeatures = '  num2str(numFeatures)]);
-    Logger.log(['numSegments = '  num2str(numSegments)]);
+    Logger.log(['StructuredGenerator::createInstancesWithContext. numInstances = ' num2str(numInstances)]);
+    Logger.log(['StructuredGenerator::createInstancesWithContext. numFeatures = '  num2str(numFeatures)]);
+    Logger.log(['StructuredGenerator::createInstancesWithContext. numSegments = '  num2str(numSegments)]);
     
     instanceCount = 1;
     for segment_i=1:numSegments
@@ -106,8 +105,8 @@ function R = createInstancesWithContext(instances, context, segments)
         segmentEnd   = segments(segment_i,2);
         segmentFramesRange = segmentStart:segmentEnd;
         for instance_i=segmentFramesRange
-            if mod(instanceCount,10000) == 0
-                Logger.log(['instanceCount = ' num2str(instanceCount)]);
+            if mod(instanceCount,100000) == 0
+                Logger.log(['StructuredGenerator::createInstancesWithContext. instanceCount = ' num2str(instanceCount)]);
             end
             half_context = (context - 1)/2;
             context_range = (instance_i-half_context):(instance_i+half_context);
