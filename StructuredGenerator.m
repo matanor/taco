@@ -400,23 +400,6 @@ function combineInstanceFilesWrapper( fileName1, fileName2, graphName, ...
     StructuredGenerator.combineInstanceFiles(filePaths, graphName, outputPath, ...
                                              context,   maxFeaturesToExtract );
 end
-% 
-% %% createTrainAndTest
-% 
-% function createTrainAndTest(, context, maxFeaturesToExtract)
-%     Logger.log('createTrainAndTest')
-%     folderPath = StructuredGenerator.timitGraphsFolder();
-%     filePaths{1} = [folderPath 'timitTrainMFCC.mat'];
-%     filePaths{2} = [folderPath 'timitTestMFCC.mat'];
-%     name = 'trainAndTest_notWhite';
-%     
-%     folderPath = [folderPath 'features_' num2str(maxFeaturesToExtract) '/'];
-%     mkdir(folderPath);
-%     outputPath = [folderPath name];
-% 
-%     StructuredGenerator.combineInstanceFiles(filePaths, name, outputPath, ...
-%                                              context,   maxFeaturesToExtract );
-% end
 
 %% timitGraphsFolder
 
