@@ -33,10 +33,9 @@ methods (Static)
         
         folderName = '2012_05_10_1_structured';
         resultsDir = 'C:/technion/theses/Experiments/results/';
-        isOnOdin = 0;
         outputManager = OutputManager;
         outputManager.set_currentFolder( [resultsDir folderName]);
-        RunMain.run(outputManager, isOnOdin);
+        RunMain.run(outputManager);
     end
     
 end

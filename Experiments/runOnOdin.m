@@ -3,7 +3,6 @@ function runOnOdin(resultsDirectory, codeRoot)
 %   Detailed explanation goes here
     disp('runOnOdin');
     outputManager = initRunOnOdin(resultsDirectory, codeRoot);
-    isOnOdin = 1;
-    RunMain.run(outputManager, isOnOdin);
+    RunMain.run(outputManager);
 end
 

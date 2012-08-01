@@ -73,12 +73,15 @@ properties (Constant)
 end
 
 methods (Access = public)
-    function this = ParamsManager(isOnOdin) %constructor        
+    function this = ParamsManager() %constructor        
         
         isTesting = 1;
         optimize = ~isTesting;
         
-        if isOnOdin
+        configManager = ConfigManager.get();
+        config = configManager.read();
+
+        if config.isOnOdin
             rootDir = '/u/matanorb/experiments/';
         else
             rootDir = 'C:/technion/theses/Experiments/';            
@@ -124,7 +127,7 @@ methods (Access = public)
         timit_notWhite_c7_alex.test        = [ rootDir 'timit/features_39/trainAndTest/trainAndTest_notWhite.context7.k_10.alex.mat' ];
         timit_notWhite_c7_alex.transductionSetFilePath = [ rootDir 'timit/features_39/notWhite.TrunsSet_001.mat' ];
 
-        if isOnOdin
+        if config.isOnOdin
            fileProperties = [ {timit_notWhite_c7_alex} ...
                          ];
 %                          {webkb_amar} ...

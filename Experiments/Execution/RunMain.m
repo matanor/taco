@@ -3,11 +3,11 @@ classdef RunMain
 methods (Static)
     %% run
     
-    function run(outputManager, isOnOdin)
+    function run(outputManager)
 
         %% The parameters manager
 
-        paramsManager = ParamsManager(isOnOdin);
+        paramsManager = ParamsManager();
         
         Logger.log(['SAVE_ALL_ITERATIONS_IN_RESULT = ' ...
                      num2str(paramsManager.SAVE_ALL_ITERATIONS_IN_RESULT)]);
@@ -34,7 +34,9 @@ methods (Static)
         outputManager.m_showAccumulativeLoss = 0;
 
         %% save results to file.
-        if isOnOdin == 1   
+        configManager = ConfigManager.get();
+        config = configManager.read();
+        if config.isOnOdin == 1   
              experimentRuns = RunMain.clearGraphs(experimentRuns);
         end
         saveToFileFullPath = outputManager.createFileNameAtCurrentFolder('experimentRuns.mat');
