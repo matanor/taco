@@ -152,6 +152,17 @@ methods (Access = public)
         end
     end
     
+    %% clearGraphWeights
+    
+    function clearGraphWeights(this)
+        if ~isempty(this.m_developmentGraph)
+            this.m_developmentGraph.clearWeights();
+        end
+        if ~isempty(this.m_testGraph)
+            this.m_testGraph.clearWeights();
+        end
+    end
+    
 end
 
 methods (Static)

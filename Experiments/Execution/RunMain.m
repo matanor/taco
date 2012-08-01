@@ -57,7 +57,7 @@ methods (Static)
             numParameterRuns = experimentRun.numParameterRuns();
             for parameter_run_i=1:numParameterRuns
                 parameterRun = experimentRun.getParameterRun(parameter_run_i);
-                parameterRun.m_graph.clearWeights();
+                parameterRun.clearGraphWeights();
             end
         end
     end
