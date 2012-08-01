@@ -308,16 +308,17 @@ methods (Access = public)
                  ParamsManager.OPTIMIZE_BY_MACRO_MRR ...
                  ParamsManager.OPTIMIZE_BY_MACRO_ACCURACY ...
                  ParamsManager.OPTIMIZE_BY_LEVENSHTEIN] );
+        end
     end
     
     %% algorithmsToRun
 
     function R = algorithmsToRun(~)
         R = AlgorithmsCollection;
-%         algorithmsToRun.setRun(SingleRun.MAD);
-        algorithmsToRun.setRun(SingleRun.CSSLMC);
-%         algorithmsToRun.setRun(SingleRun.CSSLMCF);
-%         algorithmsToRun.setRun(SingleRun.AM);
+%         R.setRun(SingleRun.MAD);
+        R.setRun(SingleRun.CSSLMC);
+%         R.setRun(SingleRun.CSSLMCF);
+%         R.setRun(SingleRun.AM);
     end
     
     %% createNumericParameter
