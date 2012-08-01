@@ -348,8 +348,6 @@ end
 %% combineInstancesFilesMain
 
 function combineInstancesFilesMain()
-    ConfigManager.initOnDesktop();
-    
     fileNameTrain   = 'timitTrainMFCC' ;
     fileNameDev     = 'timitDevMFCC';
     fileNameTest    = 'timitTestMFCC';
