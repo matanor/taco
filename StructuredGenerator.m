@@ -264,7 +264,7 @@ end
 %% combineInstanceFiles
 %  Used for generating the train+dev or train+test instance files.
 
-function combineInstanceFiles(filePaths, name, outputPath, context, ...
+function combineInstanceFiles(filePaths, graphName, outputPath, context, ...
                               maxFeaturesToExtract)
     numFiles = length(filePaths);
     instances = [];
@@ -307,7 +307,7 @@ function combineInstanceFiles(filePaths, name, outputPath, context, ...
     end
     
     graph.instances  = instances;
-    graph.name       = name;
+    graph.name       = graphName;
     graph.labels     = phoneids39;
     graph.structuredEdges    = StructuredGenerator.segmentsToStructuredEdges(segments);
     graph.phoneids48 = phoneids48;
@@ -345,44 +345,85 @@ function combineInstanceFiles(filePaths, name, outputPath, context, ...
     
 end
 
-%% createTrainAndDev
+%% combineInstancesFilesMain
 
-function createTrainAndDev(isOnOdin, context, maxFeaturesToExtract)
-    Logger.log('createTrainAndDev')
-    folderPath = StructuredGenerator.timitGraphsFolder(isOnOdin);
-    filePaths{1} = [folderPath 'timitTrainMFCC.mat'];
-    filePaths{2} = [folderPath 'timitDevMFCC.mat'];
-    name = 'trainAndDev_notWhite';
+function combineInstancesFilesMain()
+    ConfigManager.initOnDesktop();
     
-    folderPath = [folderPath 'features_' num2str(maxFeaturesToExtract) '/'];
-    mkdir(folderPath);
-    outputPath = [folderPath name];
-
-    StructuredGenerator.combineInstanceFiles(filePaths, name, outputPath, ...
-                                             context,   maxFeaturesToExtract );
+    fileNameTrain   = 'timitTrainMFCC' ;
+    fileNameDev     = 'timitDevMFCC';
+    fileNameTest    = 'timitTestMFCC';
+    
+	isUseCmsWhiteFeatures = 1;
+    context = 7;
+    maxFeaturesToExtract = 39;
+    
+    trainAndDevGraphName  = 'trainAndDev';
+    trainAndTestGraphName = 'trainAndTest';
+    
+    StructuredGenerator.combineInstanceFilesWrapper...
+        (fileNameTrain, fileNameDev, trainAndDevGraphName, ...
+         isUseCmsWhiteFeatures, context, maxFeaturesToExtract);
+     
+    StructuredGenerator.combineInstanceFilesWrapper...
+        (fileNameTrain, fileNameTest, trainAndTestGraphName, ...
+         isUseCmsWhiteFeatures, context, maxFeaturesToExtract);
 end
 
-%% createTrainAndTest
+%% combineInstanceFilesWrapper
 
-function createTrainAndTest(isOnOdin, context, maxFeaturesToExtract)
-    Logger.log('createTrainAndTest')
-    folderPath = StructuredGenerator.timitGraphsFolder(isOnOdin);
-    filePaths{1} = [folderPath 'timitTrainMFCC.mat'];
-    filePaths{2} = [folderPath 'timitTestMFCC.mat'];
-    name = 'trainAndTest_notWhite';
+function combineInstanceFilesWrapper( fileName1, fileName2, graphName, ...
+                                      isUseCmsWhiteFeatures, context, ...
+                                      maxFeaturesToExtract)
+    Logger.log('combineInstanceFilesWrapper')
+    folderPath = StructuredGenerator.timitGraphsFolder();
     
-    folderPath = [folderPath 'features_' num2str(maxFeaturesToExtract) '/'];
-    mkdir(folderPath);
-    outputPath = [folderPath name];
+    if isUseCmsWhiteFeatures
+        graphNameSuffix     = '_cms_white';
+        folderSuffix        = '_cms_white';
+        inputFileSuffix     = '_cms_white';
+    else
+        graphNameSuffix     = '_notWhite';
+        folderSuffix        = [];
+        inputFileSuffix     = [];
+    end
+    
+    filePaths{1} = [folderPath fileName1 inputFileSuffix '.mat'];
+    filePaths{2} = [folderPath fileName2 inputFileSuffix '.mat'];
 
-    StructuredGenerator.combineInstanceFiles(filePaths, name, outputPath, ...
+    graphName = [graphName graphNameSuffix];
+    
+    folderPath = [folderPath 'features_' num2str(maxFeaturesToExtract) folderSuffix '/'];
+    mkdir(folderPath);
+    outputPath = [folderPath graphName];
+
+    StructuredGenerator.combineInstanceFiles(filePaths, graphName, outputPath, ...
                                              context,   maxFeaturesToExtract );
 end
+% 
+% %% createTrainAndTest
+% 
+% function createTrainAndTest(, context, maxFeaturesToExtract)
+%     Logger.log('createTrainAndTest')
+%     folderPath = StructuredGenerator.timitGraphsFolder();
+%     filePaths{1} = [folderPath 'timitTrainMFCC.mat'];
+%     filePaths{2} = [folderPath 'timitTestMFCC.mat'];
+%     name = 'trainAndTest_notWhite';
+%     
+%     folderPath = [folderPath 'features_' num2str(maxFeaturesToExtract) '/'];
+%     mkdir(folderPath);
+%     outputPath = [folderPath name];
+% 
+%     StructuredGenerator.combineInstanceFiles(filePaths, name, outputPath, ...
+%                                              context,   maxFeaturesToExtract );
+% end
 
 %% timitGraphsFolder
 
-function R = timitGraphsFolder(isOnOdin)
-    if isOnOdin
+function R = timitGraphsFolder()
+    configManager = ConfigManager.get();
+    config = configManager.read();
+    if config.isOnOdin
         R = '/u/matanorb/experiments/timit/';
     else
         R = 'C:/technion/theses/experiments/timit/';
