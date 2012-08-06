@@ -149,6 +149,17 @@ methods (Access = public)
     function R = numParameterRuns(this)
         R = length(this.m_parameterRuns);
     end
+    
+    %% clearGraphWeights
+    
+    function clearGraphWeights(this)
+        if ~isempty(this.m_developmentGraph)
+            this.m_developmentGraph.clearWeights();
+        end
+        if ~isempty(this.m_testGraph)
+            this.m_testGraph.clearWeights();
+        end
+    end
 
 end
     
