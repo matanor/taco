@@ -67,7 +67,7 @@ methods (Static)
     
     function signalJobIsStarting( jobFileFullPath )
         configManager = ConfigManager.get();
-        config = loadConfig(configManager);
+        config = JobManager.loadConfig(configManager);
         finishedFileFullPath = JobManager.finishedFileFullPath(jobFileFullPath);
         [~, jobName, ~] = fileparts(jobFileFullPath);
         if exist(finishedFileFullPath, 'file')
