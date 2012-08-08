@@ -66,10 +66,24 @@ methods (Static)
     %% signalJobIsStarting
     
     function signalJobIsStarting( jobFileFullPath )
+        configManager = ConfigManager.get();
+        config = loadConfig(configManager);
         finishedFileFullPath = JobManager.finishedFileFullPath(jobFileFullPath);
-        FileHelper.deleteFile(finishedFileFullPath);
-        logFileFullPath = JobManager.logFileFullPath( jobFileFullPath );
-        FileHelper.deleteFile(logFileFullPath);
+        [~, jobName, ~] = fileparts(jobFileFullPath);
+        if exist(finishedFileFullPath, 'file')
+            Logger.log(['JobManager::signalJobIsStarting. ' ...
+                        'Output for job ' jobName ' already exist']);
+            if config.resetJobs
+                Logger.log(['JobManager::signalJobIsStarting. ' ...
+                            'Reseting job ' jobName]);
+                FileHelper.deleteFile(finishedFileFullPath);
+                logFileFullPath = JobManager.logFileFullPath( jobFileFullPath );
+                FileHelper.deleteFile(logFileFullPath);
+            else
+                Logger.log(['JobManager::signalJobIsStarting. ' ...
+                            'job ' jobName ' will be skipped. Existing output used.']);
+            end
+        end
     end
     
     %% signalJobIsFinished
@@ -113,8 +127,10 @@ methods (Static)
                 % command is empty
             end
             % In simulation (non-asyncrounous mode) the jobs are
-            % run syncrounsly so they nay have been finished and should
+            % run syncrounsly so they may have been finished and should
             % never be started
+            % Also possible that we want to use existing output from 
+            % previously run jobs
             if jobStatus ~= Job.JOB_STATUS_FINISHED
                 JobManager.startJob( jobToStart );
             end
