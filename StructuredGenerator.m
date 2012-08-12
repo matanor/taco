@@ -491,7 +491,9 @@ function createWeightsFromDistances_alex(filePrefix)
     Logger.log('Done');
     graph = fileData.graph;
     clear fileData;
+    Logger.log('Creating weights from distances...');
     graph = StructuredGenerator.createWeightsFromDistances(graph, rbfScale);
+    Logger.log('Symetrizing weights...');
     graph.weights = sparseKnn.makeSymetric(graph.weights);
     graph.name = [graph.name '_alex'];
     graph.labels = labels;
