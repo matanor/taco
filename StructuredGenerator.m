@@ -480,6 +480,11 @@ function createWeightsFromDistances_alex(filePrefix)
     clear fileData;
     precentToSample = 0.025;
     rbfScale = StructuredGenerator.calculateRbfScaleFromGraph(instancesFile, precentToSample);
+    labels              = instancesFile.phoneids39;
+    structuredEdges     = instancesFile.structuredEdges;
+    segments            = instancesFile.segments;
+    transitionMatrix    = instancesFile.transitionMatrix39;
+    clear instancesFile;
     knnGraphPath = [filePrefix '.k_10.mat'];
     Logger.log(['Loading K-NN graph from ''' knnGraphPath '''']);
     fileData = load(knnGraphPath,'graph');
@@ -489,6 +494,10 @@ function createWeightsFromDistances_alex(filePrefix)
     graph = StructuredGenerator.createWeightsFromDistances(graph, rbfScale);
     graph.weights = sparseKnn.makeSymetric(graph.weights);
     graph.name = [graph.name '_alex'];
+    graph.labels = labels;
+    graph.structuredEdges = structuredEdges;
+    graph.segments = segments;
+    graph.transitionMatrix = transitionMatrix;
     outputFilePath = [filePrefix '.k_10.alex.mat'];
     Logger.log(['Saving scaled output graph to ''' outputFilePath '''']);
     save(outputFilePath,'graph','-v7.3');
