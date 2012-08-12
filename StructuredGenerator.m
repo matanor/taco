@@ -510,9 +510,10 @@ end
 
 function graph = createWeightsFromDistances(graph, rbfScale)
     squared_distances = graph.distances;
+    [numRows numCols] = size(squared_distances);
     [rows,cols,values] = find(squared_distances);
     values = exp( - values / rbfScale );
-    graph.weights = sparse(rows,cols,values);
+    graph.weights = sparse(rows,cols,values, numRows, numCols);
 end
 
 %% createWeightsFromDistances_lihi
