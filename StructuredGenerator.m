@@ -516,6 +516,40 @@ function graph = createWeightsFromDistances(graph, rbfScale)
     graph.weights = sparse(rows,cols,values, numRows, numCols);
 end
 
+%% createWeightsFromDistances_lihi_wrapper
+
+function createWeightsFromDistances_lihi_wrapper(filePrefix)
+    instancesFilePath = [filePrefix '.mat'];
+    Logger.log(['Loading instances from ''' instancesFilePath '''']);
+    fileData = load(instancesFilePath,'graph');
+    Logger.log('Done');
+    instancesFile = fileData.graph;
+    clear fileData;
+    labels              = instancesFile.phoneids39;
+    structuredEdges     = instancesFile.structuredEdges;
+    segments            = instancesFile.segments;
+    transitionMatrix    = instancesFile.transitionMatrix39;
+    clear instancesFile;
+    knnGraphPath = [filePrefix '.k_10.mat'];
+    Logger.log(['Loading K-NN graph from ''' knnGraphPath '''']);
+    fileData = load(knnGraphPath,'graph');
+    Logger.log('Done');
+    graph = fileData.graph;
+    clear fileData;
+    Logger.log('Creating weights from distances...(lihi)');
+    K = 10;
+    graph = StructuredGenerator.createWeightsFromDistances_lihi(graph, K);
+    graph.name = [graph.name '_lihi'];
+    graph.labels = labels;
+    graph.structuredEdges = structuredEdges;
+    graph.segments = segments;
+    graph.transitionMatrix = transitionMatrix;
+    outputFilePath = [filePrefix '.k_10.lihi.mat'];
+    Logger.log(['Saving scaled output graph to ''' outputFilePath '''']);
+    save(outputFilePath,'graph','-v7.3');
+    Logger.log('Done');
+end
+
 %% createWeightsFromDistances_lihi
 %  This works well on dektop (~3 minutes) but is very alow on odin
 %  (over a day and didn't finish). Might be because the difference
