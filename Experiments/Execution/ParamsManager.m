@@ -125,10 +125,29 @@ methods (Access = public)
         
         timit_notWhite_c7_alex.development = [ rootDir 'timit/features_39/trainAndDev/trainAndDev_notWhite.context7.k_10.alex.mat' ];
         timit_notWhite_c7_alex.test        = [ rootDir 'timit/features_39/trainAndTest/trainAndTest_notWhite.context7.k_10.alex.mat' ];
-        timit_notWhite_c7_alex.transductionSetFilePath = [ rootDir 'timit/features_39/notWhite.TrunsSet_001.mat' ];
+        timit_notWhite_c7_alex.transductionSetFilePath = [ rootDir 'timit/features_39/notWhite.TrunsSet_010.mat' ];
+        
+        timit_cms_white_c7_alex.development = [ rootDir 'timit/features_39_cms_white/trainAndDev/trainAndDev_cms_white.context7.k_10.alex.mat' ];
+        timit_cms_white_c7_alex.test        = [ rootDir 'timit/features_39_cms_white/trainAndTest/trainAndTest_cms_white.context7.k_10.alex.mat' ];
+        timit_cms_white_c7_alex.transductionSetFilePath = [ rootDir 'timit/features_39_cms_white/cms_white.TrunsSet_010.mat' ];
+        
+        timit_cms_white_c7_lihi.development = [ rootDir 'timit/features_39_cms_white/trainAndDev/trainAndDev_cms_white.context7.k_10.lihi.mat' ];
+        timit_cms_white_c7_lihi.test        = [ rootDir 'timit/features_39_cms_white/trainAndTest/trainAndTest_cms_white.context7.k_10.lihi.mat' ];
+        timit_cms_white_c7_lihi.transductionSetFilePath = [ rootDir 'timit/features_39_cms_white/cms_white.TrunsSet_010.mat' ];
+
+        timit_cms_white_alex.development = [ rootDir 'timit/features_39_cms_white/trainAndDev/trainAndDev_cms_white.k_10.alex.mat' ];
+        timit_cms_white_alex.test        = [ rootDir 'timit/features_39_cms_white/trainAndTest/trainAndTest_cms_white.k_10.alex.mat' ];
+        timit_cms_white_alex.transductionSetFilePath = [ rootDir 'timit/features_39_cms_white/cms_white.TrunsSet_010.mat' ];
+        
+        timit_cms_white_lihi.development = [ rootDir 'timit/features_39_cms_white/trainAndDev/trainAndDev_cms_white.k_10.lihi.mat' ];
+        timit_cms_white_lihi.test        = [ rootDir 'timit/features_39_cms_white/trainAndTest/trainAndTest_cms_white.k_10.lihi.mat' ];
+        timit_cms_white_lihi.transductionSetFilePath = [ rootDir 'timit/features_39_cms_white/cms_white.TrunsSet_010.mat' ];
 
         if config.isOnOdin
-           fileProperties = [ {timit_notWhite_c7_alex} ...
+           fileProperties = [ {timit_cms_white_c7_alex} ...
+                              {timit_cms_white_c7_lihi} ...
+                              {timit_cms_white_alex} ...
+                              {timit_cms_white_lihi} ...
                          ];
 %                          {webkb_amar} ...
 %                          {webkb_html} ...
@@ -165,10 +184,11 @@ methods (Access = public)
         %beta.range = [10^(-5), 10^(-4), 0.001, 0.01, 1, 10^2, 10^4 ];
         %labeledConfidence.range = [0.01,0.1];
         if (optimize)
-            alphaOptimizationRange = [1e-4 1e-2 1 1e2 ];
+            alphaOptimizationRange = [1e-4 1e-2 1 1e2 1e4 ];
             betaOptimizationRange  = [1e-4 1e-2 1 1e2 ];
-            zetaOptimizationRange  = [1 10 100];
-            gammaOptimizationRange = [1 5];
+%            zetaOptimizationRange  = [1e-4 1e-2 0 1 5 10 100];
+            zetaOptimizationRange  = [0];
+            gammaOptimizationRange = [1 1e2];
 
             this = this.createNumericParameter( 'alpha', alphaOptimizationRange );
             this = this.createNumericParameter( 'beta',  betaOptimizationRange );
@@ -235,7 +255,7 @@ methods (Access = public)
                 ( 'am_v',     [1e-8 1e-6 1e-4 0.01 0.1 ]);
             this = this.createNumericParameter...
                 ( 'am_mu',    [1e-8 1e-4 0.01 0.1 1 10 100]);
-            this = this.createNumericParameter( 'am_alpha', [2]);
+            this = this.createNumericParameter( 'am_alpha', [1]);
             am_k_range_paper = [2,10,50,100,250,500,1000,2000]; % NO all vertices option
             this = this.createNumericParameter...
                 ( 'am_K',     kOptimizationRange); 
@@ -262,14 +282,14 @@ methods (Access = public)
         end
         
         if isTesting
-            this = this.createNumericParameter( 'numLabeled', [11147] );    
+            this = this.createNumericParameter( 'numLabeled', [111133] );    
         else
             this = this.createNumericParameter( 'numLabeled', [111133] );    
         end
         %11101 - 0.01% (dev)
         %110606 - 0.1% (dev)
 %11147 - 0.01% (test)
-%111133 - 0.01% (test)
+%111133 - 0.1% (test)
         %11411 - no
         %1105455 - no
         
