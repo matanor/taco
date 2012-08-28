@@ -27,9 +27,10 @@ methods (Access = public)
         this.trimHeaders();
         this.createMaps();
         this.trimValues();
-        this.createGraphs();
+        %this.createGraphs();
         %this.createTables();
         %this.createWebKBTable();
+        this.createMultipleDatasetGraphs();
         this.clearAll();
     end
     
@@ -100,7 +101,153 @@ methods (Access = public)
         this.m_header = [];
     end
     
-    %% 
+    %% graphNames
+    
+    function R = graphNames(~)
+        R = {  'webkb_constructed' , ...
+               'twentyNG_4715', ...
+               'sentiment_5k' ...
+               'reuters_4_topics.tfidf.graph', ...
+               'farmer-d.tfidf.graph', ...
+               'kaminski-v.tfidf.graph', ...
+               'books_dvd_music.tfidf.graph' ...
+             };
+    end
+    
+    function R = graphNamesForUser(~)
+        R = {  'WebKB' , ...
+               '20 News', ...
+               'Sentiment' ...
+               'Reuters', ...
+               'Enron A', ...
+               'Enron B', ...
+               'Amazon3' ...
+             };
+    end
+    
+    %% numLabeledPerGraphForTables
+    
+    function R = numLabeledPerGraphForTables(~)
+        R = { '48' , ...
+              '105', ...
+              '500' ...
+              '48', ...
+              '48', ...
+              '48', ...
+              '35' ...
+            };
+    end
+    
+    %% createMultipleDatasetGraphs
+    
+    function createMultipleDatasetGraphs(this)
+        graph.key = 'graph';
+        graphNames = this.graphNames();
+        graph.shouldMatch = 1;
+        numGraphs = length(graphNames);
+        
+        balanced.key = 'balanced';
+        balanced.value = {'0'};
+        balanced.shouldMatch = 1;
+        
+        num_labeled.key = 'num labeled';
+        numLabeledPerGraph = this.numLabeledPerGraphForTables();
+        num_labeled.shouldMatch = 1;
+        
+        num_iterations.key = 'max iterations';
+        num_iterations.value = {'10'};
+        num_iterations.shouldMatch = 1;
+        
+        labeled_init.key = 'labelled init';        
+        labeled_init.shouldMatch = 1;
+        labeled_init.value = {'1'};
+        
+        searchProperties = [balanced labeled_init num_iterations];
+        
+%         for table_i=1:length(searchProperties)
+        for graph_i = 1:numGraphs
+            graph.value = graphNames(graph_i);
+            num_labeled.value = numLabeledPerGraph(graph_i);
+                
+            optimize_by.key = 'optimize_by';
+            optimize_by.shouldMatch = 1;
+
+            optimize_by.value = { 'PRBEP' };
+            PRBEP{graph_i} = this.findAlgorithms([searchProperties num_labeled graph optimize_by]); %#ok<AGROW>
+
+            optimize_by.value = { 'macroACC' };
+            macroAcc{graph_i} = this.findAlgorithms([searchProperties num_labeled graph optimize_by]); %#ok<AGROW>
+        end
+
+        presentedKey = 'avg macro accuracy';
+        presentedKeyLabelY = 'macro-averaged accuracy (M-ACC)';
+        presentedKeyFileName = 'M-ACC';
+        yLimits = [25 100];
+
+        this.plotMultipleDatasetsGraph(macroAcc, numGraphs, ...
+                            presentedKey, presentedKeyLabelY, ...
+                            presentedKeyFileName, yLimits);
+        
+        presentedKey = 'avg PRBEP';
+        presentedKeyLabelY = 'macro-averaged PRBEP';
+        presentedKeyFileName = 'PRBEP';
+%         yLimits = [25 100];
+
+        this.plotMultipleDatasetsGraph(PRBEP, numGraphs, ...
+                            presentedKey, presentedKeyLabelY, ...
+                            presentedKeyFileName, yLimits);
+    end
+    
+    %% plotMultipleDatasetsGraph
+    
+    function plotMultipleDatasetsGraph(this, dataSource, numGraphs, ...
+                                             presentedKey, presentedKeyLabelY, ...
+                                             presentedKeyFileName, yLimits)
+        numAlgorithms = 3;
+        barSource = zeros(numGraphs, numAlgorithms);
+
+        MAD = 1;        AM = 2; CSSL = 3;
+        for graph_i = 1:numGraphs
+            algorithmsResults = dataSource{graph_i};
+            barSource(graph_i , MAD)  = str2num(algorithmsResults.mad ( presentedKey ));
+            barSource(graph_i , AM)   = str2num(algorithmsResults.am  ( presentedKey )) ;
+            barSource(graph_i , CSSL) = str2num(algorithmsResults.diag( presentedKey )) ;
+        end
+        barSource = barSource * 100;
+
+        fig = figure;
+        set(fig, 'Position', get(0,'Screensize')); % Maximize figure.
+%         http://dopplershifted.blogspot.co.il/2008/07/programmatically-saving-matlab-figures.html
+%       makes saveas function to not mix up the fonts by resizing the
+%       figure
+        set(fig, 'PaperPositionMode', 'auto');
+
+%         http://www.mathworks.com/support/solutions/en/data/1-17DC8/
+        h = bar('v6',barSource,'hist');
+%         http://dopplershifted.blogspot.co.il/2008/07/programmatically-saving-matlab-figures.html
+%       remove extra white space margins around figure
+        set(gca,'LooseInset',get(gca,'TightInset'))
+%         bar(barSource,'hist','rgb');
+        set(h(1),'facecolor','b') % use color name
+        set(h(2),'facecolor','g') % or use RGB triple
+        set(h(3),'facecolor','r') % or use a color defined in the help for PLOT
+        set(gca, 'XTickLabel',this.graphNamesForUser());
+        set(gca, 'FontSize', 22);
+        set(gca,'XGrid','off','YGrid','on');
+        set(gca,'YLim',yLimits);
+        legend('MAD','AM','TACO', 'Location', 'NorthWest');
+        ylabel(presentedKeyLabelY);
+
+        directory = 'C:\technion\theses\Tex\SSL\GraphSSL_Confidence_Paper\ECML_Presentation\';
+        fileName = ['multiple_graphs_' presentedKeyFileName] ;
+        fileFullPath = [ directory fileName '.jpg'];
+        saveas(fig, fileFullPath ); 
+        close(fig);
+    end
+    
+    %% create graphs for WebKB data set with different amounts of
+    %  supervision. Graphs report PRBEP and M-ACC, each tuned by 
+    %  both PRBEP and M-ACC, for a total of 4 graphs.
     
     function createGraphs(this)
         graph.key = 'graph';
@@ -194,6 +341,8 @@ methods (Access = public)
         fclose(figuresFileID);
     end
        
+    %% createSingleFigure
+    
     function createSingleFigure(this, figuresFileID, searchProperties, presentedKey, ...
                                 presentedKeyFileName, presentedKeyLabelY,...
                                 optimizeByForFileName, lowLimitY, highLimitY)
@@ -280,23 +429,8 @@ methods (Access = public)
     
     function createTables(this)
         graph.key = 'graph';
-        graphNames = { ...
-                       {'webkb_constructed'} , ...
-                       {'twentyNG_4715'}, ...
-                       {'sentiment_5k'} ...
-                       {'reuters_4_topics.tfidf.graph'}, ...
-                       {'farmer-d.tfidf.graph'}, ...
-                       {'kaminski-v.tfidf.graph'}, ...
-                       {'books_dvd_music.tfidf.graph'} ...
-                       };
-        numLabeledPerGraph = { '48' , ...
-                       '105', ...
-                       '500' ...
-                       '48', ...
-                       '48', ...
-                       '48', ...
-                       '35' ...
-                       };
+        graphNames = this.graphNames();
+        numLabeledPerGraph = this.numLabeledPerGraphForTables();
         graph.shouldMatch = 1;
         balanced.key = 'balanced';
         balanced.value = {'0'};
@@ -341,7 +475,7 @@ methods (Access = public)
             this.startTable( outputFileID );
         
             for graph_i = 1:length(graphNames)
-                graph.value = graphNames{graph_i};
+                graph.value = graphNames(graph_i);
                 num_labeled.value = numLabeledPerGraph(graph_i);
                 this.printOneDataset(outputFileID, graph.value{1}, ...
                     [num_labeled graph searchProperties{table_i}]);
@@ -353,6 +487,10 @@ methods (Access = public)
     end
     
     %% findAlgorithms
+    %  find results with the given search properties.
+    %  results are returned for CSSLMC, AM (without heuristics) and for
+    %  MAD (with heuristics)
+    %  results are not returned for CSSLMCF
     
     function R = findAlgorithms(this, searchProperties)
         
