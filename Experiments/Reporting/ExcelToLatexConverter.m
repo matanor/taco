@@ -1,6 +1,11 @@
 classdef ExcelToLatexConverter < TextReader
     %UNTITLED Summary of this class goes here
     %   Detailed explanation goes here
+
+%% file name on office desktop
+% fileName = 'C:\technion\theses\Experiments\results\2012_04_22 For Paper Graph based transduction with Confidence\BigTableSummary.txt';    
+
+%% properties
     
 properties
     m_allResults;
@@ -8,6 +13,8 @@ properties
     m_header;
     m_numResults;
 end
+
+%% methods
 
 methods (Access = public)
     
@@ -34,6 +41,8 @@ methods (Access = public)
         this.clearAll();
     end
     
+    %% createWebKBTable
+     
     function createWebKBTable(this)
         opt_PRBEP = [0.85428     0.60815     0.46296     0.78437;
                      0.8101      0.59947     0.42628     0.74478;
@@ -79,6 +88,8 @@ methods (Access = public)
         
         fclose(outputFile);
     end
+    
+    %% printWebKBLine
     
     function printWebKBLine(~, outputFile, firstColumn, className, numeriaclValues)
         CSSL = 3;
