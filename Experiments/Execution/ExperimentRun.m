@@ -67,11 +67,12 @@ methods (Access = public)
     %  part of the transduction file name scheme
     
     function R = numLabeledToPrecent(~, numLabeled)
-        numLabeledToPrecentMap = containers.Map('KeyType','int32','ValueType','int32');
+        numLabeledToPrecentMap = containers.Map('KeyType','int32','ValueType','char');
         numLabeledToPrecentMap(11147)  = '001';
         numLabeledToPrecentMap(58245)  = '005';
         numLabeledToPrecentMap(111133) = '010';
         numLabeledToPrecentMap(232517) = '020';
+        numLabeledToPrecentMap(348721) = '030';
         numLabeledToPrecentMap(581217) = '050';
         R = numLabeledToPrecentMap(numLabeled);
     end
