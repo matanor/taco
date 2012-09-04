@@ -70,11 +70,11 @@ methods (Access = public)
         numLabeledToPrecentMap = containers.Map(uint32(1), 'dummy'); % KeyType is uint32.
         remove(numLabeledToPrecentMap,1);
         numLabeledToPrecentMap(11147)  = '001';
-        numLabeledToPrecentMap(58245)  = '005';
+        numLabeledToPrecentMap(55456)  = '005';
         numLabeledToPrecentMap(111133) = '010';
-        numLabeledToPrecentMap(232517) = '020';
-        numLabeledToPrecentMap(348721) = '030';
-        numLabeledToPrecentMap(581217) = '050';
+        numLabeledToPrecentMap(221254) = '020';
+        numLabeledToPrecentMap(331793) = '030';
+        numLabeledToPrecentMap(553041) = '050';
         R = numLabeledToPrecentMap(numLabeled);
     end
     %% trunsductionSetsFileName
