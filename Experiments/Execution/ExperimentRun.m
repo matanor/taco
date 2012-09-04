@@ -59,12 +59,30 @@ methods (Access = public)
 %         save(outputFileFullPath, 'trunsductionSets');
 %     end
     
+    %% numLabeledToPrecent
+    %  for speech, transduction sets are common to more than one graph.
+    %  so the naming scheme for the transduction sets file name is
+    %  different, this function translates from a number of labeled frames
+    %  in the test graph, to the precent of labeled data used, which is
+    %  part of the transduction file name scheme
+    
+    function R = numLabeledToPrecent(~, numLabeled)
+        numLabeledToPrecentMap = containers.Map('KeyType','int32','ValueType','int32');
+        numLabeledToPrecentMap(11147)  = '001';
+        numLabeledToPrecentMap(58245)  = '005';
+        numLabeledToPrecentMap(111133) = '010';
+        numLabeledToPrecentMap(232517) = '020';
+        numLabeledToPrecentMap(581217) = '050';
+        R = numLabeledToPrecentMap(numLabeled);
+    end
     %% trunsductionSetsFileName
     
     function R = trunsductionSetsFileName(this)
-        transductionSetFilePath = this.m_constructionParams.fileProperties.transductionSetFilePath;
-        if ~isempty(transductionSetFilePath)
-            R = transductionSetFilePath;
+        transductionSetFileFormat = this.m_constructionParams.fileProperties.transductionSetFileFormat;
+        numLabeled = this.m_constructionParams.numLabeled;
+        if ~isempty(transductionSetFileFormat)
+            precentSampled = this.numLabeledToPrecent(numLabeled);
+            R = sprintf(transductionSetFileFormat, precentSampled);
         else
             R = this.constructTransductionSetFilePath...
                 (this.m_constructionParams.fileProperties.development,...
