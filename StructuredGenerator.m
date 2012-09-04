@@ -186,10 +186,39 @@ function R = estimateTransitionMatrix(correctLabels, segments)
     R = transitions ./ repmat(sum(transitions, 1), numLabels, 1);
 end
 
+%% sampleSpeechTransductionSet
+%  for speech the train/test splits are constant for 
+%  the development graph and test graph. Only need to sample labeled
+%  data, when generating a new transduction set.
+%  input <trunsductionSets> is assumed to already contain the train/test
+%  splits.
+
+function sampleSpeechTransductionSet...
+        (trunsductionSets, devGraph, testGraph, ...
+         precentToSample, fileNamePrefix )
+    sampledForDev = StructuredGenerator.sampleSegments(devGraph.labels,...
+        devGraph.segments, precentToSample);
+    sampledForTest = StructuredGenerator.sampleSegments(testGraph.labels,...
+        testGraph.segments, precentToSample);
+    Logger.log(['StructuredGenerator::sampleSpeechTransductionSet. ' ...
+                'Sampled ' num2str(length(sampledForDev)) ' examples ' ...
+                'for development graph']);
+    Logger.log(['StructuredGenerator::sampleSpeechTransductionSet. ' ...
+                'Sampled ' num2str(length(sampledForTest)) ' examples ' ...
+                'for test graph']);
+     trunsductionSets.m_optimizationSets.m_labeled = sampledForDev;
+     trunsductionSets.m_evaluationSets.m_labeled = sampledForTest;
+     fileOutputPath = [fileNamePrefix '_' num2str(precentToSample*100) '.mat'];
+     save(fileOutputPath, 'trunsductionSets');
+     Logger.log(['StructuredGenerator::sampleSpeechTransductionSet. ' ...
+                 'Output save to ''' fileOutputPath '''']);
+end
+
 %% sampleSegments
 %  method: sample segments until at least <minNumSamplesPerLabel> frames 
 %  per label are selected, label sample order is random.
 %  Then, sample more segments until <precentToSample> frames are selected.
+%  e.g.: for sampling 2.5% of the data, should pass precentToSample=0.025
 
 function R = sampleSegments(correctLabels, segments, precentToSample)
     numUniqueLabels = length(unique(correctLabels));
