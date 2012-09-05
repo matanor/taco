@@ -41,7 +41,7 @@ methods (Access = public)
         %this.createGraphs_ecml_2012();
         %this.createTables();
         %this.createWebKBTable();
-        this.createMultipleDatasetGraphs();
+%         this.createMultipleDatasetGraphs();
         this.clearAll();
     end
     
@@ -307,10 +307,11 @@ methods (Access = public)
         
         barSource = zeros(numGraphs, length(numLabeledRange), numAlgorithms);
         
+        % get the results data 
+        
         presentedKey = 'avg accuracy';
         for graph_i = 1:numGraphs
             graph.value = speechGraphNames(graph_i);
-            
             for numLabeled_i=1:length(numLabeledRange)
                 num_labeled.value = numLabeledRange(numLabeled_i);
                 algorithms = this.findAlgorithms([searchProperties num_labeled graph]);
@@ -318,9 +319,21 @@ methods (Access = public)
                 barSource(graph_i, numLabeled_i , AM)  = str2num(algorithms.am( presentedKey )) ;
                 barSource(graph_i, numLabeled_i , CSSL)= str2num(algorithms.diag( presentedKey )) ;
             end
-            
-%             accuracy{graph_i} = this.findAlgorithms([searchProperties num_labeled graph]); %#ok<AGROW>
         end
+        
+        % draw
+        
+        figure
+        hold on;
+        graphStyleRange = {'-',':'};
+        
+        for graph_i = 1:numGraphs
+            graphStyle = graphStyleRange{graph_i};
+            plot(1:length(numLabeledRange), barSource(graph_i,:,MAD), [graphStyle 'b']);
+            plot(1:length(numLabeledRange), barSource(graph_i,:,AM),  [graphStyle 'g']);
+            plot(1:length(numLabeledRange), barSource(graph_i,:,CSSL),[graphStyle 'r']);
+        end
+        legend('alex - MAD','alex - AM','alex - TACO','lihi - MAD','lihi - AM','lihi - TACO');
     end
     
     %% createGraphs_ecml_2012
