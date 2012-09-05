@@ -3,7 +3,10 @@ classdef ExcelToLatexConverter < TextReader
     %   Detailed explanation goes here
 
 %% file name on office desktop
+% For paper 2012_TACO_in_ECML
 % fileName = 'C:\technion\theses\Experiments\results\2012_04_22 For Paper Graph based transduction with Confidence\BigTableSummary.txt';    
+% For paper 2012 TACO on speech EILAT IEEEI
+% fileName = 'C:\technion\theses\Experiments\results\2012_09_02_01 Speech Results Summary For Paper\BigTableSummary.txt'
 
 %% properties
     
@@ -34,7 +37,8 @@ methods (Access = public)
         this.trimHeaders();
         this.createMaps();
         this.trimValues();
-        %this.createGraphs();
+        this.createGraphs_eilat_2012();
+        %this.createGraphs_ecml_2012();
         %this.createTables();
         %this.createWebKBTable();
         this.createMultipleDatasetGraphs();
@@ -112,9 +116,17 @@ methods (Access = public)
         this.m_header = [];
     end
     
-    %% graphNames
+    %% speechGraphNames
     
-    function R = graphNames(~)
+    function R = speechGraphNames(~)
+        R = {  'trainAndTest_cms_white.context7.k_10.alex', ...
+               'trainAndTest_cms_white.context7.k_10.lihi' ...
+             };
+    end
+    
+    %% nlpGraphNames
+    
+    function R = nlpGraphNames(~)
         R = {  'webkb_constructed' , ...
                'twentyNG_4715', ...
                'sentiment_5k' ...
@@ -150,13 +162,11 @@ methods (Access = public)
     end
     
     %% createMultipleDatasetGraphs
+    %  create a bar graph showing results for all 7 NLP data sets
+    %  with the 3 algorithms MAD/AM/TACO.
+    %  Used for ECML presentation.
     
     function createMultipleDatasetGraphs(this)
-        graph.key = 'graph';
-        graphNames = this.graphNames();
-        graph.shouldMatch = 1;
-        numGraphs = length(graphNames);
-        
         balanced.key = 'balanced';
         balanced.value = {'0'};
         balanced.shouldMatch = 1;
@@ -175,9 +185,14 @@ methods (Access = public)
         
         searchProperties = [balanced labeled_init num_iterations];
         
+        graph.key = 'graph';
+        nlpGraphNames = this.nlpGraphNames();
+        graph.shouldMatch = 1;
+        numGraphs = length(nlpGraphNames);
+        
 %         for table_i=1:length(searchProperties)
         for graph_i = 1:numGraphs
-            graph.value = graphNames(graph_i);
+            graph.value = nlpGraphNames(graph_i);
             num_labeled.value = numLabeledPerGraph(graph_i);
                 
             optimize_by.key = 'optimize_by';
@@ -256,11 +271,64 @@ methods (Access = public)
         close(fig);
     end
     
-    %% create graphs for WebKB data set with different amounts of
+    %% createGraphs_eilat_2012
+    
+    function createGraphs_eilat_2012(this)
+        
+        balanced.key = 'balanced';
+        balanced.value = {'0'};
+        balanced.shouldMatch = 1;
+        
+        labeled_init.key = 'labelled init';
+        labeled_init.value = {'1'};
+        labeled_init.shouldMatch = 1;
+        
+        num_iterations.key = 'max iterations';
+        num_iterations.value = {'20'};
+        num_iterations.shouldMatch = 1;
+        
+        optimize_by.key = 'optimize_by';
+        optimize_by.shouldMatch = 1;
+        optimize_by.value = { 'accuracy' };
+        
+        searchProperties = [balanced labeled_init num_iterations optimize_by];
+        
+        graph.key = 'graph';
+        speechGraphNames = this.speechGraphNames();
+        graph.shouldMatch = 1;
+        numGraphs = length(speechGraphNames);
+        
+        MAD = 1;        AM = 2; CSSL = 3;
+        num_labeled.key = 'num labeled';
+        num_labeled.shouldMatch = 1;
+
+        numLabeledRange = {'11147', '111133'};
+        numAlgorithms = 3;
+        
+        barSource = zeros(numGraphs, length(numLabeledRange), numAlgorithms);
+        
+        presentedKey = 'avg accuracy';
+        for graph_i = 1:numGraphs
+            graph.value = speechGraphNames(graph_i);
+            
+            for numLabeled_i=1:length(numLabeledRange)
+                num_labeled.value = numLabeledRange(numLabeled_i);
+                algorithms = this.findAlgorithms([searchProperties num_labeled graph]);
+                barSource(graph_i, numLabeled_i , MAD) = str2num(algorithms.mad( presentedKey ));
+                barSource(graph_i, numLabeled_i , AM)  = str2num(algorithms.am( presentedKey )) ;
+                barSource(graph_i, numLabeled_i , CSSL)= str2num(algorithms.diag( presentedKey )) ;
+            end
+            
+%             accuracy{graph_i} = this.findAlgorithms([searchProperties num_labeled graph]); %#ok<AGROW>
+        end
+    end
+    
+    %% createGraphs_ecml_2012
+    %  create graphs for WebKB data set with different amounts of
     %  supervision. Graphs report PRBEP and M-ACC, each tuned by 
     %  both PRBEP and M-ACC, for a total of 4 graphs.
     
-    function createGraphs(this)
+    function createGraphs_ecml_2012(this)
         graph.key = 'graph';
         graph.value = {'webkb_constructed'};
         graph.shouldMatch = 1;
@@ -440,7 +508,7 @@ methods (Access = public)
     
     function createTables(this)
         graph.key = 'graph';
-        graphNames = this.graphNames();
+        nlpGraphNames = this.nlpGraphNames();
         numLabeledPerGraph = this.numLabeledPerGraphForTables();
         graph.shouldMatch = 1;
         balanced.key = 'balanced';
@@ -485,8 +553,8 @@ methods (Access = public)
         for table_i=1:length(searchProperties)
             this.startTable( outputFileID );
         
-            for graph_i = 1:length(graphNames)
-                graph.value = graphNames(graph_i);
+            for graph_i = 1:length(nlpGraphNames)
+                graph.value = nlpGraphNames(graph_i);
                 num_labeled.value = numLabeledPerGraph(graph_i);
                 this.printOneDataset(outputFileID, graph.value{1}, ...
                     [num_labeled graph searchProperties{table_i}]);
