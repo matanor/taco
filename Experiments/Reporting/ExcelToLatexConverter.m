@@ -45,6 +45,13 @@ methods (Access = public)
         this.clearAll();
     end
     
+    %% init
+    
+    function init(this)
+        init@TextReader(this);
+        this.clearAll();
+    end
+    
     %% createWebKBTable
      
     function createWebKBTable(this)
@@ -208,7 +215,7 @@ methods (Access = public)
         presentedKey = 'avg macro accuracy';
         presentedKeyLabelY = 'macro-averaged accuracy (M-ACC)';
         presentedKeyFileName = 'M-ACC';
-        yLimits = [25 100];
+        yLimits = [25 92];
 
         this.plotMultipleDatasetsGraph(macroAcc, numGraphs, ...
                             presentedKey, presentedKeyLabelY, ...
@@ -231,6 +238,7 @@ methods (Access = public)
                                              presentedKeyFileName, yLimits)
         numAlgorithms = 3;
         barSource = zeros(numGraphs, numAlgorithms);
+        fontSize = 25;
 
         MAD = 1;        AM = 2; CSSL = 3;
         for graph_i = 1:numGraphs
@@ -242,7 +250,8 @@ methods (Access = public)
         barSource = barSource * 100;
 
         fig = figure;
-        set(fig, 'Position', get(0,'Screensize')); % Maximize figure.
+        figurePosition = [ 1 1 1280 1024-300];
+        set(fig, 'Position', figurePosition); % Maximize figure.
 %         http://dopplershifted.blogspot.co.il/2008/07/programmatically-saving-matlab-figures.html
 %       makes saveas function to not mix up the fonts by resizing the
 %       figure
@@ -254,19 +263,20 @@ methods (Access = public)
 %       remove extra white space margins around figure
         set(gca,'LooseInset',get(gca,'TightInset'))
 %         bar(barSource,'hist','rgb');
-        set(h(1),'facecolor','b') % use color name
-        set(h(2),'facecolor','g') % or use RGB triple
-        set(h(3),'facecolor','r') % or use a color defined in the help for PLOT
+        set(h(1),'facecolor','b'); 
+        set(h(2),'facecolor','g');
+        set(h(3),'facecolor','r'); 
         set(gca, 'XTickLabel',this.graphNamesForUser());
-        set(gca, 'FontSize', 22);
+        set(gca, 'FontSize', fontSize);
         set(gca,'XGrid','off','YGrid','on');
         set(gca,'YLim',yLimits);
         legend('MAD','AM','TACO', 'Location', 'NorthWest');
         ylabel(presentedKeyLabelY);
 
-        directory = 'C:\technion\theses\Tex\SSL\GraphSSL_Confidence_Paper\ECML_Presentation\';
+        directory = 'E:/technion/theses/Tex/SSL/GraphSSL_Confidence_Paper/ECML_Presentation/';
         fileName = ['multiple_graphs_' presentedKeyFileName] ;
         fileFullPath = [ directory fileName '.jpg'];
+        Logger.log(['Saving image to file ' fileFullPath]);
         saveas(fig, fileFullPath ); 
         close(fig);
     end
