@@ -327,7 +327,7 @@ methods (Access = public)
                                    
         this.plotDifferencesLocalVsGlobal_eilat_2012(barSource);
         
-        return;
+        % return;
         
         yLabel = 'Accuracy';
         fileNameSuffix = 'accuracy';
