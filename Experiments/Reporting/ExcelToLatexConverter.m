@@ -315,7 +315,7 @@ methods (Access = public)
         
         searchProperties = [balanced labeled_init num_iterations];
 
-        numLabeledRange = {'11147', '55456', '111133', '221254'};
+        numLabeledRange = {'11147', '55456', '111133', '221254', '331793','553041'};
 
         % accuracy
 
@@ -324,10 +324,14 @@ methods (Access = public)
         
         barSource = getData_eilat_2012(this, searchProperties, ...
                                        numLabeledRange, optimizeByKey, presentedKey);
+                                   
+        this.plotDifferencesLocalVsGlobal_eilat_2012(barSource);
+        
+        return;
         
         yLabel = 'Accuracy';
         fileNameSuffix = 'accuracy';
-        yLimits = [35 62];
+        yLimits = [35 65];
         barSource = barSource * 100;
         this.plotSingleGraph_eilat_2012(barSource, numLabeledRange, ...
                                         yLabel,    yLimits, fileNameSuffix);
@@ -342,7 +346,7 @@ methods (Access = public)
                                    
         yLabel = 'Macro-Averaged Accuracy';
         fileNameSuffix = 'M_ACC';
-        yLimits = [30 50];
+        yLimits = [30 55];
         barSource = barSource * 100;
         this.plotSingleGraph_eilat_2012(barSource, numLabeledRange, ...
                                         yLabel,    yLimits, fileNameSuffix);
@@ -357,7 +361,7 @@ methods (Access = public)
         
         yLabel = 'Levenshtein';
         fileNameSuffix = 'levenshtein';
-        yLimits = [35 62];
+        yLimits = [35 65];
         this.plotSingleGraph_eilat_2012(barSource, numLabeledRange, ...
                                         yLabel,    yLimits, fileNameSuffix);
                                     
@@ -378,12 +382,65 @@ methods (Access = public)
 
     end
     
+    %% plotDifferencesLocalVsGlobal_eilat_2012
+    
+    function plotDifferencesLocalVsGlobal_eilat_2012(this, barSource)
+        [MAD AM CSSL] = this.graphIDs();
+        taco = barSource(:,:,CSSL);
+        am   = barSource(:,:,AM);
+        mad  = barSource(:,:,MAD);
+        
+        fig = figure;
+        
+        LOCAL = 1; GLOBAL = 2;
+        bar_position_i = 1;
+        for algorithm_i = [CSSL AM MAD ]
+            performanceGain(:,bar_position_i) = ...
+                barSource(LOCAL,:,algorithm_i) - barSource(GLOBAL,:,algorithm_i); %#ok<AGROW>
+            bar_position_i = bar_position_i +1;
+        end
+        
+        performanceGain = performanceGain * 100;
+        h = bar(performanceGain);
+        
+        set(h(1),'facecolor','r'); 
+        set(h(2),'facecolor','g');
+        set(h(3),'facecolor','b'); 
+        set(gca,'XGrid','off','YGrid','on');
+        
+        fontSize = 22;
+        set(gca, 'FontSize', fontSize);
+        
+        heightAndWidth = [1024 768] * 0.9;
+        figurePosition = [ 1 1 heightAndWidth];
+        set(fig, 'Position', figurePosition); % Maximize figure.
+%         http://dopplershifted.blogspot.co.il/2008/07/programmatically-saving-matlab-figures.html
+%       makes saveas function to not mix up the fonts by resizing the
+%       figure
+        set(fig, 'PaperPositionMode', 'auto');
+
+        set(gca, 'XTickLabel',{'1%', '5%', '10%', '20%' '30%', '50%'});
+        ylabel('Local scaling performance gain');
+        xlabel('Precentage of training set used as labeled data');
+        
+        legend({'TACO', 'MP', 'MAD'}, 'Location', 'NorthEast');
+        
+        directory = 'E:/technion/theses/Tex/SSL/2012_IEEE_eilat_TACO_speech/figures/';
+        fileName = 'local_scaling_performance_gain' ;
+        fileFullPath = [ directory fileName '.pdf'];
+        saveas(fig, fileFullPath ); 
+        Logger.log(['ExcelToLatexConverter::plotDifferencesLocalVsGlobal_eilat_2012. '...
+                    'Saving figure to ''' fileFullPath '''']);
+        close(fig);
+
+    end
+    
     %% getData_eilat_2012
     %  get the results data 
     
-    function R = getData_eilat_2012(this,            searchProperties, ...
-                                    numLabeledRange, optimizeByKey, ...
-                                    presentedKey)
+    function barSource = getData_eilat_2012...
+            (this, searchProperties, numLabeledRange, ...
+             optimizeByKey, presentedKey)
         graph.key = 'graph';
         speechGraphNames = this.speechGraphNames();
         graph.shouldMatch = 1;
@@ -412,8 +469,6 @@ methods (Access = public)
                 barSource(graph_i, numLabeled_i , CSSL)= str2num(algorithms.diag( presentedKey )) ;
             end
         end
-        
-        R = barSource;
     end        
     
     %% plotSingleGraph_eilat_2012
@@ -457,9 +512,9 @@ methods (Access = public)
         ylabel(yLabel);
                 
         numLabeledRangeAsNumbers = cellfun(@str2num, numLabeledRange);
-        set(gca,'XLim',[numLabeledRangeAsNumbers(1)-6000 numLabeledRangeAsNumbers(end)+15000]);
+        set(gca,'XLim',[numLabeledRangeAsNumbers(1)-9000 numLabeledRangeAsNumbers(end)+40000]);
         set(gca, 'XTick',numLabeledRangeAsNumbers);
-        set(gca, 'XTickLabel',{'1%', '5%', '10%', '20%'});
+        set(gca, 'XTickLabel',{'1%', '5%', '10%', '20%' '30%', '50%'});
         
         heightAndWidth = [1024 768] * 0.9;
         figurePosition = [ 1 1 heightAndWidth];
@@ -696,7 +751,7 @@ methods (Access = public)
         %highLimitY = max(barSource(:)) * 1.05;
         %lowLimitY  = min(barSource(:)) * 0.9;
         set(gca,'YLim',[lowLimitY highLimitY]);
-        set(gca,'XGrid','off','YGrid','on')
+        set(gca,'XGrid','off','YGrid','on');
         ylabel(presentedKeyLabelY);
         directory = 'C:\technion\theses\Tex\SSL\GraphSSL_Confidence_Paper\figures\';
         fileName = ['compare_num_labelled_' optimizeByForFileName '_' presentedKeyFileName] ;
