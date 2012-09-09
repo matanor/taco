@@ -4,9 +4,10 @@ classdef ExcelToLatexConverter < TextReader
 
 %% file name on office desktop
 % For paper 2012_TACO_in_ECML
-% fileName = 'C:\technion\theses\Experiments\results\2012_04_22 For Paper Graph based transduction with Confidence\BigTableSummary.txt';    
+% fileName = 'C:/technion/theses/Experiments/results/2012_04_22 For Paper Graph based transduction with Confidence/BigTableSummary.txt';    
 % For paper 2012 TACO on speech EILAT IEEEI
-% fileName = 'C:\technion\theses\Experiments\results\2012_09_02_01 Speech Results Summary For Paper\BigTableSummary.txt'
+% fileName = 'C:/technion/theses/Experiments/results/2012_09_02_01 Speech Results Summary For Paper/BigTableSummary.txt'
+% fileName = 'e:/technion/theses/Experiments/results/2012_09_02_01 Speech Results Summary For Paper/BigTableSummary.txt'
 
 %% properties
     
@@ -71,7 +72,7 @@ methods (Access = public)
         outputFileName = [this.inputFileName() '.webkb.tex'];
         outputFile  = fopen(outputFileName, 'a+');
         
-        fprintf(outputFile, '\\begin{table}\n');
+        fprintf(outputFile, '/\begin{table}\n');
         fprintf(outputFile, '\\centering\n');
         fprintf(outputFile, '\\begin{tabular}{ | c | c | c | c | c | }\n');
         fprintf(outputFile, '\\hline\n');
@@ -126,8 +127,8 @@ methods (Access = public)
     %% speechGraphNames
     
     function R = speechGraphNames(~)
-        R = {  'trainAndTest_cms_white.context7.k_10.alex', ...
-               'trainAndTest_cms_white.context7.k_10.lihi' ...
+        R = {  'trainAndTest_cms_white.context7.k_10.lihi' ...
+               'trainAndTest_cms_white.context7.k_10.alex', ...
              };
     end
     
@@ -269,6 +270,7 @@ methods (Access = public)
         set(gca, 'XTickLabel',this.graphNamesForUser());
         set(gca, 'FontSize', fontSize);
         set(gca,'XGrid','off','YGrid','on');
+        set(gca, 'XTick',[]); % removes XTicks from the plot completly
         set(gca,'YLim',yLimits);
         legend('MAD','AM','TACO', 'Location', 'NorthWest');
         ylabel(presentedKeyLabelY);
@@ -279,6 +281,20 @@ methods (Access = public)
         Logger.log(['Saving image to file ' fileFullPath]);
         saveas(fig, fileFullPath ); 
         close(fig);
+    end
+    
+    %% removeExtraWhiteSpaceMargin
+    %  http://dopplershifted.blogspot.co.il/2008/07/programmatically-saving-matlab-figures.html
+    %  remove extra white space margins around figure
+    
+    function removeExtraWhiteSpaceMargin(~)
+        set(gca,'LooseInset',get(gca,'TightInset'))
+    end
+    
+    %% graphIDs
+    
+    function [MAD AM CSSL] = graphIDs(~)
+        MAD = 1;        AM = 2; CSSL = 3;
     end
     
     %% createGraphs_eilat_2012
@@ -297,29 +313,95 @@ methods (Access = public)
         num_iterations.value = {'20'};
         num_iterations.shouldMatch = 1;
         
-        optimize_by.key = 'optimize_by';
-        optimize_by.shouldMatch = 1;
-        optimize_by.value = { 'accuracy' };
+        searchProperties = [balanced labeled_init num_iterations];
+
+        numLabeledRange = {'11147', '55456', '111133', '221254'};
+
+        % accuracy
+
+        optimizeByKey = 'accuracy';
+        presentedKey = 'avg accuracy';
         
-        searchProperties = [balanced labeled_init num_iterations optimize_by];
+        barSource = getData_eilat_2012(this, searchProperties, ...
+                                       numLabeledRange, optimizeByKey, presentedKey);
         
+        yLabel = 'Accuracy';
+        fileNameSuffix = 'accuracy';
+        yLimits = [35 62];
+        barSource = barSource * 100;
+        this.plotSingleGraph_eilat_2012(barSource, numLabeledRange, ...
+                                        yLabel,    yLimits, fileNameSuffix);
+             
+        % macro averaged accuracy
+        
+        optimizeByKey = 'macroACC';
+        presentedKey = 'avg macro accuracy';
+        
+        barSource = getData_eilat_2012(this, searchProperties, ...
+                                       numLabeledRange, optimizeByKey, presentedKey);
+                                   
+        yLabel = 'Macro-Averaged Accuracy';
+        fileNameSuffix = 'M_ACC';
+        yLimits = [30 50];
+        barSource = barSource * 100;
+        this.plotSingleGraph_eilat_2012(barSource, numLabeledRange, ...
+                                        yLabel,    yLimits, fileNameSuffix);
+      
+        % levenshtein
+        
+        optimizeByKey = 'levenshtein';
+        presentedKey = 'avg levenshtein';
+        
+        barSource = getData_eilat_2012(this, searchProperties, ...
+                                       numLabeledRange, optimizeByKey, presentedKey);
+        
+        yLabel = 'Levenshtein';
+        fileNameSuffix = 'levenshtein';
+        yLimits = [35 62];
+        this.plotSingleGraph_eilat_2012(barSource, numLabeledRange, ...
+                                        yLabel,    yLimits, fileNameSuffix);
+                                    
+        % M-ACC optimized by accuracy
+        
+        optimizeByKey = 'accuracy';
+        presentedKey = 'avg macro accuracy';
+        
+        barSource = getData_eilat_2012(this, searchProperties, ...
+                                       numLabeledRange, optimizeByKey, presentedKey);
+        
+        yLabel = 'Macro-Averaged Accuracy';
+        fileNameSuffix = 'opt_ACC_report_M_ACC';
+        yLimits = [24 50];
+        barSource = barSource * 100;
+        this.plotSingleGraph_eilat_2012(barSource, numLabeledRange, ...
+                                        yLabel,    yLimits, fileNameSuffix);
+
+    end
+    
+    %% getData_eilat_2012
+    %  get the results data 
+    
+    function R = getData_eilat_2012(this,            searchProperties, ...
+                                    numLabeledRange, optimizeByKey, ...
+                                    presentedKey)
         graph.key = 'graph';
         speechGraphNames = this.speechGraphNames();
         graph.shouldMatch = 1;
         numGraphs = length(speechGraphNames);
         
-        MAD = 1;        AM = 2; CSSL = 3;
+        [MAD AM CSSL] = this.graphIDs();
         num_labeled.key = 'num labeled';
         num_labeled.shouldMatch = 1;
-
-        numLabeledRange = {'11147', '111133'};
-        numAlgorithms = 3;
         
+        optimize_by.key = 'optimize_by';
+        optimize_by.shouldMatch = 1;
+        optimize_by.value = { optimizeByKey };
+        
+        searchProperties = [searchProperties optimize_by];
+        
+        numAlgorithms = 3;  
         barSource = zeros(numGraphs, length(numLabeledRange), numAlgorithms);
         
-        % get the results data 
-        
-        presentedKey = 'avg accuracy';
         for graph_i = 1:numGraphs
             graph.value = speechGraphNames(graph_i);
             for numLabeled_i=1:length(numLabeledRange)
@@ -331,20 +413,128 @@ methods (Access = public)
             end
         end
         
+        R = barSource;
+    end        
+    
+    %% plotSingleGraph_eilat_2012
+    
+    function plotSingleGraph_eilat_2012(this, barSource, numLabeledRange, ...
+                                           yLabel, yLimits, fileNameSuffix)
+        [MAD AM CSSL] = this.graphIDs();
+        
         % draw
         
-        figure
+        fig = figure;
         hold on;
         graphStyleRange = {'-',':'};
+        speechGraphNamesForUser = {'local', 'global'};
+        LOCAL = 1; GLOBAL = 2;
+        algorithmLineStyle{MAD,LOCAL}  = 'bs';
+        algorithmLineStyle{MAD,GLOBAL} = 'bd';
+        algorithmLineStyle{AM,LOCAL}   = 'g^';
+        algorithmLineStyle{AM,GLOBAL}  = 'g>';
+        algorithmLineStyle{CSSL,LOCAL} = 'ro';
+        algorithmLineStyle{CSSL,GLOBAL}= 'rv';
+        allMarkerEdgeColors{MAD} = 'b';
+        allMarkerEdgeColors{AM} = 'g';
+        allMarkerEdgeColors{CSSL} = 'r';
+        algorithmNamesForUser = {'MAD', 'MP', 'TACO'};
+        allLegendItems = [];
         
-        for graph_i = 1:numGraphs
-            graphStyle = graphStyleRange{graph_i};
-            plot(1:length(numLabeledRange), barSource(graph_i,:,MAD), [graphStyle 'b']);
-            plot(1:length(numLabeledRange), barSource(graph_i,:,AM),  [graphStyle 'g']);
-            plot(1:length(numLabeledRange), barSource(graph_i,:,CSSL),[graphStyle 'r']);
+        lineWidth = 4.5;
+        markerSize = 13;
+        fontSize = 22;
+%         set(gca,'XScale','log');
+        set(gca, 'FontSize', fontSize);
+        xlabel('Number of Labeled Examples');
+        %highLimitY = max(barSource(:)) * 1.05;
+        %lowLimitY  = min(barSource(:)) * 0.9;
+        
+        set(gca,'YLim',yLimits);
+        
+        set(gca,'XGrid','off','YGrid','on')
+        xlabel('Precentage of training set used as labeled data');
+        ylabel(yLabel);
+                
+        numLabeledRangeAsNumbers = cellfun(@str2num, numLabeledRange);
+        set(gca,'XLim',[numLabeledRangeAsNumbers(1)-6000 numLabeledRangeAsNumbers(end)+15000]);
+        set(gca, 'XTick',numLabeledRangeAsNumbers);
+        set(gca, 'XTickLabel',{'1%', '5%', '10%', '20%'});
+        
+        heightAndWidth = [1024 768] * 0.9;
+        figurePosition = [ 1 1 heightAndWidth];
+        set(fig, 'Position', figurePosition); % Maximize figure.
+%         http://dopplershifted.blogspot.co.il/2008/07/programmatically-saving-matlab-figures.html
+%       makes saveas function to not mix up the fonts by resizing the
+%       figure
+        set(fig, 'PaperPositionMode', 'auto');
+
+%         this.removeExtraWhiteSpaceMargin();
+
+        speechGraphNames = this.speechGraphNames();
+         
+        numGraphs = length(speechGraphNames);
+        for algorithm_i=[CSSL AM MAD]
+            for graph_i = 1:numGraphs
+                Logger.log(['ExcelToLatexConverter::createGraphs_eilat_2012. '...
+                            'graph_i = ' num2str(graph_i) '. '...
+                            'speechGraphNames(graph_i) = ' speechGraphNames{graph_i}]);
+                graphStyle = graphStyleRange{graph_i};
+                markerEdgeColor = allMarkerEdgeColors{algorithm_i};
+                plot(numLabeledRangeAsNumbers, barSource(graph_i,:,algorithm_i), ...
+                    [graphStyle algorithmLineStyle{algorithm_i,graph_i}]...
+                    ,'LineWidth',lineWidth...
+                    ,'MarkerEdgeColor',markerEdgeColor...
+                    ,'MarkerFaceColor','w'...
+                    ,'MarkerSize',markerSize);
+                graphNameForUser = speechGraphNamesForUser{graph_i};
+                algorithmName = algorithmNamesForUser{algorithm_i};
+                legendItem = [algorithmName ' / ' graphNameForUser ' scaling'];
+                allLegendItems = [allLegendItems {legendItem}]; %#ok<AGROW>
+            end
         end
-        legend('alex - MAD','alex - AM','alex - TACO','lihi - MAD','lihi - AM','lihi - TACO');
+        legend(allLegendItems, 'Location', 'SouthEast');
+%         this.shrinkLegend(h,0.9);
+
+        directory = 'E:/technion/theses/Tex/SSL/2012_IEEE_eilat_TACO_speech/figures/';
+        fileName = ['compare_algorithms_' fileNameSuffix] ;
+%         fileFullPath = [ directory fileName '.jpg'];
+%         saveas(fig, fileFullPath ); 
+        fileFullPath = [ directory fileName '.pdf'];
+        saveas(fig, fileFullPath ); 
+        Logger.log(['ExcelToLatexConverter::createGraphs_eilat_2012. '...
+                    'Saving figure to ''' fileFullPath '''']);
+        close(fig);
     end
+    
+
+    %% SHRINKLEGEND - Changes LEGEND fontsize and axes position
+    %
+    %Syntax: shrinkLegend(hL, shrinkFact)
+    %
+    %Inputs: 
+    % hL Legend axes handle
+    % shrinkFact Factor by which to shrink the legend.
+    % Default is 0.8
+    % 
+    %Example: %Make fontsize and legend axes twice bigger
+    % hL=legend(......);
+    % shrinklegend(hL,2); 
+    %
+    %Authors: Jim Phillips and Denis Gilbert, 03-Dec-1999
+
+%     function [] = shrinkLegend (~, hL, shrinkFact)
+%     
+%         if ~exist('shrinkFact','var'), shrinkFact = 0.8; end
+% 
+%         p = get(hL, 'position');
+%         p(3) = p(3)*shrinkFact;
+%         p(4) = p(4)*shrinkFact;
+%         set(hL,'position', p)
+%         ht = findobj( get(hL,'children'), 'type', 'text');
+% %        set(ht, 'FontSize', get(ht,'FontSize')*shrinkFact)
+% %        set(gcf,'Resizefcn','')
+%     end
     
     %% createGraphs_ecml_2012
     %  create graphs for WebKB data set with different amounts of
@@ -816,7 +1006,7 @@ methods (Access = public)
     function trimValues(this)
         trimKeys = { 'avg PRBEP', 'avg accuracy', ...
                      'avg macro accuracy', 'avg MRR', ...
-                     'avg macro MRR'};
+                     'avg macro MRR', 'avg levenshtein'};
         for result_i=1:length(this.m_resultMaps)
             map = this.m_resultMaps{result_i};
             for key_i = 1:length(trimKeys)
