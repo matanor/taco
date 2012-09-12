@@ -43,6 +43,7 @@ methods (Access = public)
     %% init
     
     function init(this)
+        Logger.log(['TextReader::init. Opening file ''' this.m_inputFileName '''']);
         this.m_inputFileID  = fopen(this.m_inputFileName,'r');
     end
     
