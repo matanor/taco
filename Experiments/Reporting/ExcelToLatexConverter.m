@@ -325,11 +325,9 @@ methods (Access = public)
         barSource = getData_eilat_2012(this, searchProperties, ...
                                        numLabeledRange, optimizeByKey, presentedKey);
                                    
-        this.plotDifferencesLocalVsGlobal_eilat_2012(barSource);
-        
         % return;
         
-        yLabel = 'Accuracy';
+        yLabel = 'Frame accuracy';
         fileNameSuffix = 'accuracy';
         yLimits = [35 65];
         barSource = barSource * 100;
@@ -359,8 +357,24 @@ methods (Access = public)
         barSource = getData_eilat_2012(this, searchProperties, ...
                                        numLabeledRange, optimizeByKey, presentedKey);
         
-        yLabel = 'Levenshtein';
+        this.plotDifferencesLocalVsGlobal_eilat_2012(barSource);
+        
+        yLabel = 'Phone accuracy';
         fileNameSuffix = 'levenshtein';
+        yLimits = [35 65];
+        this.plotSingleGraph_eilat_2012(barSource, numLabeledRange, ...
+                                        yLabel,    yLimits, fileNameSuffix);
+                                    
+        % levenshtein (development)
+        
+        optimizeByKey = 'levenshtein';
+        presentedKey = 'optimized levenshtein';
+        
+        barSource = getData_eilat_2012(this, searchProperties, ...
+                                       numLabeledRange, optimizeByKey, presentedKey);
+        
+        yLabel = 'Phone accuracy';
+        fileNameSuffix = 'levenshtein_development';
         yLimits = [35 65];
         this.plotSingleGraph_eilat_2012(barSource, numLabeledRange, ...
                                         yLabel,    yLimits, fileNameSuffix);
@@ -400,7 +414,6 @@ methods (Access = public)
             bar_position_i = bar_position_i +1;
         end
         
-        performanceGain = performanceGain * 100;
         h = bar(performanceGain);
         
         set(h(1),'facecolor','r'); 
