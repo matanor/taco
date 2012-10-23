@@ -53,12 +53,13 @@ function R = run( this )
     
     A = this.transitionMatrix();
     column_sum = sum(A,1);
-    if length(find(column_sum - 1)) == num_labels
+    rows_sum = sum(A,2);
+    if sum(column_sum == 1) == num_labels
         Logger.log('CSSLMC::run. Transition matrix column sum to 1. Transposing...');    
         A = A.';
     end
-    rows_sum = sum(A,2);
-    if length(find(rows_sum - 1)) == num_labels
+    
+    if sum(rows_sum == 1) == num_labels
         Logger.log('CSSLMC::run. Transition matrix rows sum to 1.');    
     end
     labelSimilarityMatrix = A;
