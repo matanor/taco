@@ -50,6 +50,19 @@ function R = run( this )
     %else
         vertexUpdateOrder = 1:num_vertices;
     %end
+    
+    A = this.transitionMatrix();
+    column_sum = sum(A,1);
+    if length(find(column_sum - 1)) == num_labels
+        Logger.log('CSSLMC::run. Transition matrix column sum to 1. Transposing...');    
+        A = A.';
+    end
+    rows_sum = sum(A,2);
+    if length(find(rows_sum - 1)) == num_labels
+        Logger.log('CSSLMC::run. Transition matrix rows sum to 1.');    
+    end
+    labelSimilarityMatrix = A;
+    zeta_times_A_tran = zeta * A.';
 
     % note iteration index starts from 2
     for iter_i = 2:num_iterations
@@ -67,10 +80,6 @@ function R = run( this )
         iteration_diff = 0;
         
         Logger.log('Updating first order...');
-
-        A = this.transitionMatrix();
-        labelSimilarityMatrix = A;
-        zeta_times_A_tran = zeta * A.';
         
         for vertex_i=vertexUpdateOrder
             if ( mod(vertex_i, 100000) == 0 )
