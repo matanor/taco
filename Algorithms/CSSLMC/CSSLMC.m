@@ -1,7 +1,7 @@
 classdef CSSLMC < CSSLBase
-    
-methods (Access=public)
 
+methods (Access=public)
+    
 %% run
     
 function R = run( this )
@@ -69,6 +69,7 @@ function R = run( this )
         Logger.log('Updating first order...');
 
         A = this.transitionMatrix();
+        labelSimilarityMatrix = A;
         zeta_times_A_tran = zeta * A.';
         
         for vertex_i=vertexUpdateOrder
@@ -100,7 +101,7 @@ function R = run( this )
             numerator   = sum_K_i_j + (P_i .* y_i); % .* because P_i is only main diagonal
             denominator = diag(Q_i + P_i + isUsingL2Regularization * 1);
             
-            if this.m_isUsingStructured
+            if this.m_structuredTermType == CSSLBase.STRUCTURED_TRANSITION_MATRIX
                 structuredPreviousVertex = this.m_structuredInfo.previous(vertex_i);
                 if this.STRUCTURED_NO_VERTEX ~= structuredPreviousVertex
                     structuredPrev_mu = prev_mu( :, structuredPreviousVertex );
@@ -125,6 +126,40 @@ function R = run( this )
                                    zeta_times_A_tran * (G_i_plus1 .* structuredNext_mu);
                 end
             end
+            
+            if this.m_structuredTermType == CSSLBase.STRUCTURED_LABELS_SIMILARITY
+                structuredPreviousVertex = this.m_structuredInfo.previous(vertex_i);
+                if this.STRUCTURED_NO_VERTEX ~= structuredPreviousVertex
+                    structuredPrev_mu = prev_mu( :, structuredPreviousVertex );
+                    structuredPrev_v  = prev_v ( :, structuredPreviousVertex);
+                    % This will create a matrix with element r,s equals to
+                    % v_{i,r} + v_{i-1,s}
+                    structuredPrev_v = structuredPrev_v.'; % make row vector
+                    prev_uncertainty_matrix = ...
+                        structuredPrev_v(ones(1, num_labels),:) + v_i(:, ones(num_labels, 1));
+                    % note the transpose on the label similarity matrix
+                    prev_weights_matrix = zeta * (labelSimilarityMatrix.') .* prev_uncertainty_matrix;
+                    
+                    numerator = numerator + prev_weights_matrix * structuredPrev_mu;
+                    denominator = denominator + diag(sum(prev_weights_matrix,2));    
+                end
+                
+                structuredNextVertex     = this.m_structuredInfo.next(vertex_i);
+                if this.STRUCTURED_NO_VERTEX ~= structuredNextVertex;
+                    structuredNext_mu = prev_mu( :, structuredNextVertex);
+                    structuredNext_v  = prev_v ( :, structuredNextVertex).'; % make row vector
+                    % This will create a matrix with element r,s equals to
+                    % v_{i,r} + v_{i+1,s}
+                    next_uncertainty_matrix = ...
+                        structuredNext_v(ones(1, num_labels),:) + v_i(:, ones(num_labels, 1));
+                    % note NO transpose on the label similarity matrix
+                    next_weights_matrix = zeta * labelSimilarityMatrix .* next_uncertainty_matrix;
+                    
+                    numerator = numerator + ...
+                        next_weights_matrix * structuredNext_mu;
+                    denominator = denominator + diag(sum(next_weights_matrix,2));
+                end
+            end
 
             if ~isempty(find(numerator,1))
                 new_mu = denominator \ numerator;
@@ -139,7 +174,7 @@ function R = run( this )
                                  sum((current_mu(:, vertex_i) - prev_mu(:,vertex_i)).^2);
                 prev_mu(:,vertex_i) = current_mu( :, vertex_i);
             end
-        end
+        end % end first order update loop
 
         if this.m_descendMode == this.DESCEND_MODE_2 
             iteration_diff = sum(sum((prev_mu - current_mu).^2));
@@ -156,10 +191,6 @@ function R = run( this )
                 isLabeled = this.m_isLabeledVector(vertex_i);
                 col = this.m_W(:, vertex_i);
                 [neighbours_indices, ~, neighbours_weights] = find(col);
-                if this.m_isUsingStructured
-                    structured.previousVertex = this.m_structuredInfo.previous(vertex_i);
-                    structured.nextVertex     = this.m_structuredInfo.next(vertex_i);
-                end
                 
                 y_i  = this.m_priorY(vertex_i,:).';
                 mu_i = prev_mu(:,vertex_i);
@@ -177,7 +208,13 @@ function R = run( this )
                    R_i = R_i +  0.5 * ((mu_i - y_i).^2);
                 end
                 
-                if this.m_isUsingStructured        
+                if this.m_structuredTermType == CSSLBase.STRUCTURED_TRANSITION_MATRIX || ...
+                   this.m_structuredTermType == CSSLBase.STRUCTURED_LABELS_SIMILARITY
+                    structured.previousVertex = this.m_structuredInfo.previous(vertex_i);
+                    structured.nextVertex     = this.m_structuredInfo.next(vertex_i);
+                end
+                
+                if this.m_structuredTermType == CSSLBase.STRUCTURED_TRANSITION_MATRIX  
                     if this.STRUCTURED_NO_VERTEX ~= structured.previousVertex
                         structured.prev_mu = prev_mu( :, structured.previousVertex );
                         R_i = R_i + 0.5 * zeta * (( mu_i - A * structured.prev_mu ).^2);
@@ -188,10 +225,30 @@ function R = run( this )
                         R_i = R_i + 0.5 * zeta * (( structured.next_mu - A * mu_i ).^2);
                     end
                 end
+                
+                if this.m_structuredTermType == CSSLBase.STRUCTURED_LABELS_SIMILARITY  
+                    if this.STRUCTURED_NO_VERTEX ~= structured.previousVertex
+                        structured.prev_mu = prev_mu( :, structured.previousVertex ).'; % make row vector
+                        prev_difference_matrix = ...
+                            structured.prev_mu(ones(1, num_labels),:) - mu_i(:, ones(num_labels, 1));
+                        % note the transpose on the label similarity matrix
+                        prev_weighted_difference = labelSimilarityMatrix.' .* (prev_difference_matrix.^2);
+                        R_i = R_i + 0.5 * zeta * sum(prev_weighted_difference,2);
+                    end
+
+                    if this.STRUCTURED_NO_VERTEX ~= structured.nextVertex;
+                        structured.next_mu = prev_mu( :, structured.nextVertex ).'; % make row vector
+                        next_difference_matrix = ...
+                            structured.next_mu(ones(1, num_labels),:) - mu_i(:, ones(num_labels, 1));
+                        next_weighted_difference = labelSimilarityMatrix .* (next_difference_matrix.^2);
+                        R_i = R_i + 0.5 * zeta * sum(next_weighted_difference,2);
+                    end
+                end
+                
                 new_v = (beta + sqrt( beta^2 + 4 * alpha * R_i))...
                         / (2 * alpha);
                 prev_v(:,vertex_i) = new_v ;
-            end
+            end % end second order update loop
         end
 
         if this.m_descendMode == this.DESCEND_MODE_COORIDNATE_DESCENT 
@@ -205,7 +262,7 @@ function R = run( this )
         if this.m_isCalcObjective
             this.calcObjective( current_mu, prev_v );
         end
-    end
+    end % end loop over all iterations
     
     if this.m_save_all_iterations
         for iter_i=1:size(allIterations.mu,3)
@@ -259,7 +316,7 @@ function calcObjective(this, current_mu, current_v)
             objective = objective + ...
                 0.5 * sum((1./v_i + 1/gamma) .* ((mu_i - y_i).^2));
         end
-        if this.m_isUsingStructured
+        if this.m_structuredTermType == CSSLBase.STRUCTURED_TRANSITION_MATRIX
             A = this.transitionMatrix();
             structuredPreviousVertex = this.m_structuredInfo.previous(vertex_i);
             if this.STRUCTURED_NO_VERTEX ~= structuredPreviousVertex

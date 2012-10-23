@@ -7,7 +7,7 @@ properties (GetAccess = public, SetAccess = private)
     m_alpha;
     m_beta;
     m_zeta;
-    m_isUsingStructured;
+    m_structuredTermType;
     m_labeledConfidence;
     m_isUsingL2Regularization;
     m_isUsingSecondOrder;
@@ -381,7 +381,7 @@ methods (Access = public)
         R = [ this.m_makeSymetric,       this.m_maxIterations, ...
               this.m_useGraphHeuristics, this.m_labeledInitMode, ...
               this.m_numEvaluationRuns,  this.m_isUsingL2Regularization...
-              this.m_isUsingSecondOrder, this.m_isUsingStructured, ...
+              this.m_isUsingSecondOrder, this.m_structuredTermType, ...
               this.m_isCalculateKNN,     this.m_descendMethodCSSL];
     end   
     

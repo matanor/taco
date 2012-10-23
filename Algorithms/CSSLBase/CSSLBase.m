@@ -14,7 +14,7 @@ classdef CSSLBase < GraphTrunsductionBase
         m_p; % controlled random walk probabilities;
         
         m_structuredInfo;
-        m_isUsingStructured;
+        m_structuredTermType;
         m_isCalcObjective;
     end
     
@@ -36,6 +36,14 @@ properties( Constant)
     DESCEND_MODE_AM = 3;
 end
 
+%% Different kinds of structured terms
+    
+properties (Constant)
+    NO_STRUCTURED_TERM = 0;
+    STRUCTURED_TRANSITION_MATRIX = 1;
+    STRUCTURED_LABELS_SIMILARITY = 2;
+end
+
 properties( Constant)
     % if a vertex next/previous vertex is
     % the constant STRUCTURED_NO_VERTEX, it means the
@@ -50,7 +58,7 @@ methods (Access=public)
     function this = CSSLBase() 
         this.m_useGraphHeuristics = 0;
         this.m_descendMode = CSSLBase.DESCEND_MODE_COORIDNATE_DESCENT;
-        this.m_isUsingStructured = 0;
+        this.m_structuredTermType = CSSLBase.NO_STRUCTURED_TERM;
         this.m_isCalcObjective = 0;
         this.m_structuredInfo.transitionMatrix = [];
     end
@@ -93,7 +101,7 @@ methods (Access=protected)
                  ' beta = '                 num2str(this.m_beta) ...
                  ' gamma = '                num2str(this.m_labeledConfidence) ...
                  ' zeta = '                 num2str(this.m_zeta) ...
-                 ' structured = '           num2str(this.m_isUsingStructured)...
+                 ' structured = '           num2str(this.m_structuredTermType)...
                  ' with l2 = '              num2str(this.m_isUsingL2Regularization)...
                  ' using 2nd order = '      num2str(this.m_isUsingSecondOrder)...
                  ' descend mode = '         num2str(this.m_descendMode) ...

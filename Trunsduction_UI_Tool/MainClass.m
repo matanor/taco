@@ -904,7 +904,8 @@ methods (Access = private)
                             1-a  a  ];
         algorithm.setTransitionMatrix( transitionMatrix );
         algorithm.setStructuredEdges( this.graph.structuredEdges() );
-        algorithm.m_isUsingStructured = 1;
+%         algorithm.m_structuredTermType = CSSLBase.STRUCTURED_TRANSITION_MATRIX;
+        algorithm.m_structuredTermType = CSSLBase.STRUCTURED_LABELS_SIMILARITY;
         
         algorithm.m_useClassPriorNormalization = 0;
         
