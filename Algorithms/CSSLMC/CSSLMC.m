@@ -21,6 +21,11 @@ function R = run( this )
     isUsingL2Regularization = this.m_isUsingL2Regularization;
     isUsingSecondOrder  = this.m_isUsingSecondOrder;
     
+    % save structured flags in local variables - for performance (this is stupid but fast)
+    isStructuresTransitionMatrix = (this.m_structuredTermType == CSSLBase.STRUCTURED_TRANSITION_MATRIX);
+    isStrucutredLabelSimilarity = (this.m_structuredTermType == CSSLBase.STRUCTURED_LABELS_SIMILARITY);
+    isStructuredAnyKind = isStrucutredLabelSimilarity || isStructuresTransitionMatrix ;
+    
     this.displayParams(CSSLMC.name());
 
     num_vertices = this.numVertices();
@@ -111,7 +116,7 @@ function R = run( this )
             numerator   = sum_K_i_j + (P_i .* y_i); % .* because P_i is only main diagonal
             denominator = diag(Q_i + P_i + isUsingL2Regularization * 1);
             
-            if this.m_structuredTermType == CSSLBase.STRUCTURED_TRANSITION_MATRIX
+            if isStructuresTransitionMatrix
                 structuredPreviousVertex = this.m_structuredInfo.previous(vertex_i);
                 if this.STRUCTURED_NO_VERTEX ~= structuredPreviousVertex
                     structuredPrev_mu = prev_mu( :, structuredPreviousVertex );
@@ -137,7 +142,7 @@ function R = run( this )
                 end
             end
             
-            if this.m_structuredTermType == CSSLBase.STRUCTURED_LABELS_SIMILARITY
+            if isStrucutredLabelSimilarity
                 structuredPreviousVertex = this.m_structuredInfo.previous(vertex_i);
                 if this.STRUCTURED_NO_VERTEX ~= structuredPreviousVertex
                     structuredPrev_mu = prev_mu( :, structuredPreviousVertex );
@@ -218,13 +223,12 @@ function R = run( this )
                    R_i = R_i +  0.5 * ((mu_i - y_i).^2);
                 end
                 
-                if this.m_structuredTermType == CSSLBase.STRUCTURED_TRANSITION_MATRIX || ...
-                   this.m_structuredTermType == CSSLBase.STRUCTURED_LABELS_SIMILARITY
+                if isStructuredAnyKind
                     structured.previousVertex = this.m_structuredInfo.previous(vertex_i);
                     structured.nextVertex     = this.m_structuredInfo.next(vertex_i);
                 end
                 
-                if this.m_structuredTermType == CSSLBase.STRUCTURED_TRANSITION_MATRIX  
+                if isStructuresTransitionMatrix
                     if this.STRUCTURED_NO_VERTEX ~= structured.previousVertex
                         structured.prev_mu = prev_mu( :, structured.previousVertex );
                         R_i = R_i + 0.5 * zeta * (( mu_i - A * structured.prev_mu ).^2);
@@ -236,7 +240,7 @@ function R = run( this )
                     end
                 end
                 
-                if this.m_structuredTermType == CSSLBase.STRUCTURED_LABELS_SIMILARITY  
+                if isStrucutredLabelSimilarity
                     if this.STRUCTURED_NO_VERTEX ~= structured.previousVertex
                         structured.prev_mu = prev_mu( :, structured.previousVertex ).'; % make row vector
                         prev_difference_matrix = ...
@@ -326,7 +330,7 @@ function calcObjective(this, current_mu, current_v)
             objective = objective + ...
                 0.5 * sum((1./v_i + 1/gamma) .* ((mu_i - y_i).^2));
         end
-        if this.m_structuredTermType == CSSLBase.STRUCTURED_TRANSITION_MATRIX
+        if isStructuresTransitionMatrix
             A = this.transitionMatrix();
             structuredPreviousVertex = this.m_structuredInfo.previous(vertex_i);
             if this.STRUCTURED_NO_VERTEX ~= structuredPreviousVertex
