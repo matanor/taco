@@ -67,7 +67,11 @@ function R = run( this )
     if max(abs(rows_sum - 1)) < 10^-8
         Logger.log('CSSLMC::run. Transition matrix rows sum to 1.');    
     end
+    % pre compute all you can
     labelSimilarityMatrix = A;
+    zeta_times_labelSimilarityMatrix = zeta * labelSimilarityMatrix ;
+    labelSimilarityMatrix_transposed = labelSimilarityMatrix.';
+    zeta_times_labelSimilarityMatrix_transposed = zeta * labelSimilarityMatrix_transposed;
     zeta_times_A_tran = zeta * A.';
 
     % note iteration index starts from 2
@@ -153,7 +157,7 @@ function R = run( this )
                     prev_uncertainty_matrix = ...
                         structuredPrev_v(ones(1, num_labels),:) + v_i(:, ones(num_labels, 1));
                     % note the transpose on the label similarity matrix
-                    prev_weights_matrix = zeta * (labelSimilarityMatrix.') .* prev_uncertainty_matrix;
+                    prev_weights_matrix = zeta_times_labelSimilarityMatrix_transposed .* prev_uncertainty_matrix;
                     
                     numerator = numerator + prev_weights_matrix * structuredPrev_mu;
                     denominator = denominator + diag(sum(prev_weights_matrix,2));    
@@ -168,7 +172,7 @@ function R = run( this )
                     next_uncertainty_matrix = ...
                         structuredNext_v(ones(1, num_labels),:) + v_i(:, ones(num_labels, 1));
                     % note NO transpose on the label similarity matrix
-                    next_weights_matrix = zeta * labelSimilarityMatrix .* next_uncertainty_matrix;
+                    next_weights_matrix = zeta_times_labelSimilarityMatrix .* next_uncertainty_matrix;
                     
                     numerator = numerator + ...
                         next_weights_matrix * structuredNext_mu;
@@ -246,7 +250,7 @@ function R = run( this )
                         prev_difference_matrix = ...
                             structured.prev_mu(ones(1, num_labels),:) - mu_i(:, ones(num_labels, 1));
                         % note the transpose on the label similarity matrix
-                        prev_weighted_difference = labelSimilarityMatrix.' .* (prev_difference_matrix.^2);
+                        prev_weighted_difference = labelSimilarityMatrix_transposed .* (prev_difference_matrix.^2);
                         R_i = R_i + 0.5 * zeta * sum(prev_weighted_difference,2);
                     end
 
@@ -294,6 +298,7 @@ function R = run( this )
 end
 
 %% calcObjective
+% when cnosidering structured term - this is out of date.
 
 function calcObjective(this, current_mu, current_v)
     alpha               = this.m_alpha;
