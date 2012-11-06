@@ -27,22 +27,48 @@ methods (Static)
         codeRoot    = outputManager.m_codeRoot;
         outputFile  = outputManager.createFileNameAtCurrentFolder([fileName '.output.txt']);
         errorFile   = outputManager.createFileNameAtCurrentFolder([fileName '.error.txt']);
-        logFile     = JobManager.logFileFullPath( fileFullPath );
-        asyncCodeFolder = '/Experiments/async';
-        workingDirectorySwitch  = ' -d '; % for odin was -wd
+
+        shellScriptPath  = JobManager.prepareScriptFile...
+                               (fileFullPath, functionName, codeRoot);
+
         queueNameSwitch         = ' -q ';
+        runName = runName(1:15);
+
         command = ['qsub -N ' runName ...
-                   workingDirectorySwitch codeRoot asyncCodeFolder ...
                    queueNameSwitch JobManager.QUEUE_NAME_STUB ...
                    ' -o ' outputFile ...
                    ' -e ' errorFile ...
-                   ' "matlab -nodesktop -r "\""' functionName '(''' ...
-                   fileFullPath ''',''' codeRoot ''')"\"" -logfile ' logFile '"' ];
-        
+                   ' ' shellScriptPath ];
+
         job = Job;
         job.startCommand = command;
         job.fileFullPath = fileFullPath;
-        job.logFile = logFile;
+        job.logFile      = JobManager.logFileFullPath( fileFullPath );
+    end
+    
+    %% prepareScriptFile
+    %  For the new PBS queue system on hermes, 'qsub' a script file. This is 
+    %  because directly invoking the matlab starts in the default user
+    %  directory, and is unable to find the function to run.
+    %  the script content is:
+    %  cd <startDirectory> (the directory that contains the function to run)
+    %  matlab -nodesktop -r "<functionName>('<jobFileFullPath>','<codeRoot>')" -logfile  <logFilePath>
+    
+    function R = prepareScriptFile( fileFullPath, ...
+                                    functionName, codeRoot)
+        logFile         = JobManager.logFileFullPath        ( fileFullPath );
+        shellScriptPath = JobManager.shellScriptFileFullPath( fileFullPath );
+        asyncCodeFolder = '/Experiments/async';
+        startDirectory  = [codeRoot asyncCodeFolder];
+        
+        schellScript = fopen(shellScriptPath, 'w');
+        cdLine =     ['cd  ' startDirectory];
+        matlabLine = [' matlab -nodesktop -r "' functionName '(''' ...
+                        fileFullPath ''',''' codeRoot ''')" -logfile ' logFile ];
+        fprintf(schellScript, [cdLine       '\n']);
+        fprintf(schellScript, [matlabLine   '\n']);
+        fclose(schellScript);
+        R = shellScriptPath;
     end
     
     %% Documentation for Sun Grid Engine switched (odin)
@@ -55,6 +81,12 @@ methods (Static)
     
     function r = logFileFullPath( jobFileFullPath )
         r = [jobFileFullPath '.matlab.log'];
+    end
+    
+    %% shellScriptFileFullPath
+    
+    function r = shellScriptFileFullPath( jobFileFullPath )
+        r = [jobFileFullPath '.sh'];
     end
     
     %% finishedFileFullPath
@@ -261,16 +293,16 @@ methods (Static)
     %% startJob
     
     function startJob(job)
-        Logger.log(['start command = "' job.startCommand '"']);
+        Logger.log(['JobManager::startJob. start command = "' job.startCommand '"']);
         [status, result] = system(job.startCommand);
         if status ~= 0
-            Logger.log(['Error starting job run. file: ' job.name()...
-                  ' status = ' num2str(status)]);
+            Logger.log(['JobManager::startJob. Error starting job run.'...
+                ' file: ' job.name() ' status = ' num2str(status)]);
         end
         job.submitResult = result;
         job.lastLogFileSize = 0;
         job.idleCount = 0;
-        Logger.log(result);
+        Logger.log(['JobManager::startJob. result = ' result]);
     end
     
     %% deleteJob
