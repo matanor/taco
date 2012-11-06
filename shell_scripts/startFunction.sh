@@ -1,5 +1,5 @@
 
-outputDir=/u/matanorb/experiments/results/
+outputDir=/scratch/matanorb/experiments/results/
 folderName=$2
 resultsDirectory=$outputDir$folderName
 logFile=$resultsDirectory/matlab.log
