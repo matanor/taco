@@ -33,19 +33,11 @@ methods (Static)
 
         queueNameSwitch         = ' -q ';
         runName = runName(1:15);
-
-        % -j: An option argument value of oe directs that the two
-		%     streams will be merged, intermixed, as standard
-		%     output.
-        % -k: 'oe' -> Both the standard output and standard error
-		%     streams will be retained.
         
         command = ['qsub -N ' runName ...
                    queueNameSwitch JobManager.QUEUE_NAME_STUB ...
                    ' -o ' outputFile ...
                    ' -e ' errorFile ...
-                   ' -k oe' ...
-                   ' -j oe' ...
                    ' ' shellScriptPath ];
 
         job = Job;
