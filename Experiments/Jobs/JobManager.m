@@ -10,6 +10,7 @@ properties( Constant)
     QUEUE_ID_ALL = 1;
     QUEUE_ID_MEM = 2;
     QUEUE_ID_NEW = 3;
+    TOTAL_NUM_QUEUES = 3;
 end
 
 methods (Static)
@@ -193,9 +194,9 @@ methods (Static)
         sleepIntervalInSeconds = 30;
         finished = isempty(jobsCollection);
         
-        numQueues = 2;
+        numQueues = JobManager.TOTAL_NUM_QUEUES;
         
-        runningJobs = cell(2,1);
+        runningJobs = cell(numQueues,1);
         
         while ~finished
             idleTimoutInMinutes = config.jobTimeoutInMinutes;
