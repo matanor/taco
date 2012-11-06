@@ -35,9 +35,9 @@ methods (Access = public)
     %% jobID
     
     function R = jobID( this )
-        % e.g. result = 'Your job 782218 ("Evaluation.1.5") has been submitted';
-        items = textscan(this.submitResult, '%s %s %d %s %s %s %s');
-        R = items{3};
+        % e.g. result = '379.admin';
+        items = textscan(this.submitResult, '%d.%s');
+        R = items{1};
     end
     
     %% checkJobStatus
