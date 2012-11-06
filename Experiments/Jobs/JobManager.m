@@ -6,8 +6,10 @@ properties( Constant)
     QUEUE_NAME_STUB = 'QUEUE_NAME_STUB';
     QUEUE_NAME_ALL = 'all.q';
     QUEUE_NAME_MEM = 'mem.q';
+    QUEUE_NAME_NEW = 'new_q'; % for new server HERMES
     QUEUE_ID_ALL = 1;
     QUEUE_ID_MEM = 2;
+    QUEUE_ID_NEW = 3;
 end
 
 methods (Static)
@@ -26,9 +28,15 @@ methods (Static)
         errorFile   = outputManager.createFileNameAtCurrentFolder([fileName '.error.txt']);
         logFile     = JobManager.logFileFullPath( fileFullPath );
         asyncCodeFolder = '/Experiments/async';
-        command = ['qsub -N ' runName ' -wd ' codeRoot asyncCodeFolder ...
-                   ' -q ' JobManager.QUEUE_NAME_STUB ' -b y -o ' ...
-                   outputFile ' -e ' errorFile ' "matlab -nodesktop -r "\""' functionName '(''' ...
+        workingDirectorySwitch  = ' -d '; % for odin was -wd
+        queueNameSwitch         = ' -q ';
+        command = ['qsub -N ' runName ...
+                   workingDirectorySwitch codeRoot asyncCodeFolder ...
+                   queueNameSwitch JobManager.QUEUE_NAME_STUB ...
+                   ' -b y'...
+                   ' -o ' outputFile ...
+                   ' -e ' errorFile ...
+                   ' "matlab -nodesktop -r "\""' functionName '(''' ...
                    fileFullPath ''',''' codeRoot ''')"\"" -logfile ' logFile '"' ];
         
         job = Job;
@@ -36,6 +44,12 @@ methods (Static)
         job.fileFullPath = fileFullPath;
         job.logFile = logFile;
     end
+    
+    %% Documentation for Sun Grid Engine switched (odin)
+    %  -b Gives the user the possibility to  indicate  explicitly
+    %     whether  command should be treated as binary or script.
+    %     If the value of -b is  'y',  then  command   may  be  a
+    %     binary  or script. 
     
     %% logFileFullPath
     
@@ -149,6 +163,7 @@ methods (Static)
         config = configManager.read();
         maxJobs(JobManager.QUEUE_ID_ALL) = config.maxJobs.all_queue;
         maxJobs(JobManager.QUEUE_ID_MEM) = config.maxJobs.mem_queue;
+        maxJobs(JobManager.QUEUE_ID_NEW) = config.maxJobs.new_queue;
         config.maxJobs = maxJobs.';
     end
     
@@ -160,6 +175,8 @@ methods (Static)
                 name = JobManager.QUEUE_NAME_ALL;
             case JobManager.QUEUE_ID_MEM
                 name = JobManager.QUEUE_NAME_MEM; 
+            case JobManager.QUEUE_ID_NEW
+                name = JobManager.QUEUE_NAME_NEW;
             otherwise
                 Logger.log(['queueIDtoName::Error. unknown queue ID ' ...
                         num2str( id ) ]);
