@@ -44,6 +44,17 @@ properties (Constant)
     STRUCTURED_LABELS_SIMILARITY = 2;
 end
 
+%% Different kinds of objectives
+
+properties( Constant)
+    % Objective based on harmonic mean between neighbouring uncertainty 
+    % parameters. See Graph-Based Transduction with Confidence ECML 2012
+    OBJECTIVE_HARMONIC_MEAN = 1;
+    % Objective based on multiplicative factors for neighbouring 
+    % uncertainty parameters. (20.11.2012)
+    OBJECTIVE_MULTIPLICATIVE = 2;
+end
+
 properties( Constant)
     % if a vertex next/previous vertex is
     % the constant STRUCTURED_NO_VERTEX, it means the

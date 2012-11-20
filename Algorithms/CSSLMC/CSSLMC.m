@@ -20,11 +20,13 @@ function R = run( this )
     gamma               = this.m_labeledConfidence;
     isUsingL2Regularization = this.m_isUsingL2Regularization;
     isUsingSecondOrder  = this.m_isUsingSecondOrder;
+    objectiveType       = this.OBJECTIVE_HARMONIC_MEAN; 
     
-    % save structured flags in local variables - for performance (this is stupid but fast)
+    % save flags in local boolean variables - for performance (this is stupid but fast)
     isStructuresTransitionMatrix = (this.m_structuredTermType == CSSLBase.STRUCTURED_TRANSITION_MATRIX);
-    isStrucutredLabelSimilarity = (this.m_structuredTermType == CSSLBase.STRUCTURED_LABELS_SIMILARITY);
-    isStructuredAnyKind = isStrucutredLabelSimilarity || isStructuresTransitionMatrix ;
+    isStrucutredLabelSimilarity  = (this.m_structuredTermType == CSSLBase.STRUCTURED_LABELS_SIMILARITY);
+    isStructuredAnyKind          = isStrucutredLabelSimilarity || isStructuresTransitionMatrix ;
+    isObjectiveHarmonicMean      = (objectiveType == CSSLBase.OBJECTIVE_HARMONIC_MEAN);
     
     this.displayParams(CSSLMC.name());
 
@@ -34,12 +36,14 @@ function R = run( this )
     prev_mu     =  zeros( num_labels, num_vertices );
     current_mu  =  zeros( num_labels, num_vertices );
     prev_v      =  ones ( num_labels, num_vertices );
+    current_v   =  ones ( num_labels, num_vertices );
     if this.m_save_all_iterations
         allIterations.mu = zeros( num_labels, num_vertices, num_iterations );
         allIterations.v  = ones ( num_labels, num_vertices, num_iterations );
     end
     if 0 == isUsingSecondOrder
-        prev_v = (beta / alpha ) * prev_v;
+        prev_v    = (beta / alpha ) * prev_v;
+        current_v = (beta / alpha ) * current_v;
         if this.m_save_all_iterations
             allIterations.v = (beta / alpha ) * allIterations.v;
         end
@@ -73,6 +77,15 @@ function R = run( this )
     labelSimilarityMatrix_transposed = labelSimilarityMatrix.';
     zeta_times_labelSimilarityMatrix_transposed = zeta * labelSimilarityMatrix_transposed;
     zeta_times_A_tran = zeta * A.';
+    
+    % a different constant factor is involved in the update of the uncertainty
+    % parameter labeled term. precompute it.
+    
+    if isObjectiveHarmonicMean
+        isLabeledFactor = 1;
+    else
+        isLabeledFactor = 1 / gamma;
+    end
 
     % note iteration index starts from 2
     for iter_i = 2:num_iterations
@@ -110,12 +123,20 @@ function R = run( this )
                 single_neighbour_mu = neighbours_mu(:,neighbour_i);
                 single_neighbour_v  = neighbours_v (:,neighbour_i);
                 w_i_j = neighbours_weights(neighbour_i);
-                K_i_j = w_i_j * ((1./single_neighbour_v) + (1./v_i));
+                if isObjectiveHarmonicMean
+                    K_i_j = w_i_j * ((1./single_neighbour_v) + (1./v_i));
+                else
+                    K_i_j = w_i_j * ((1./single_neighbour_v) .* (1./v_i));
+                end
                 sum_K_i_j = sum_K_i_j + ...
                     K_i_j .* single_neighbour_mu;
                 Q_i = Q_i + K_i_j;
             end
-            P_i = isLabeled * ( 1./v_i + 1 / gamma );
+            if isObjectiveHarmonicMean
+                P_i = isLabeled * ( 1./v_i + 1 / gamma );
+            else
+                P_i = isLabeled * ( (1./v_i) * (1 / gamma) );
+            end
             y_i = this.m_priorY(vertex_i,:).';
             numerator   = sum_K_i_j + (P_i .* y_i); % .* because P_i is only main diagonal
             denominator = diag(Q_i + P_i + isUsingL2Regularization * 1);
@@ -215,16 +236,25 @@ function R = run( this )
                 mu_i = prev_mu(:,vertex_i);
                 numNeighbours = length( neighbours_indices );
                 neighbours_mu = prev_mu( :, neighbours_indices );
+                neighbours_v  = prev_v ( :, neighbours_indices );
                 neighboursSquaredDiff = zeros(num_labels, numNeighbours);
                 for neighbour_i=1:numNeighbours
-                    neighboursSquaredDiff(:,neighbour_i) = ...
-                        neighbours_weights(neighbour_i) * ...
-                            ((mu_i - neighbours_mu(:,neighbour_i)).^2);
+                    if isObjectiveHarmonicMean
+                        neighboursSquaredDiff(:,neighbour_i) = ...
+                            neighbours_weights(neighbour_i) * ...
+                                ((mu_i - neighbours_mu(:,neighbour_i)).^2);
+                    else
+                        neighboursSquaredDiff(:,neighbour_i) =         ...
+                                neighbours_weights(neighbour_i) *      ...
+                                (1/neighbours_v(:,neighbour_i)) .*     ...
+                                ((mu_i - neighbours_mu(:,neighbour_i)).^2);
+                    end
                 end
 
                 R_i = 0.5 * sum(neighboursSquaredDiff,2);
+
                 if isLabeled
-                   R_i = R_i +  0.5 * ((mu_i - y_i).^2);
+                   R_i = R_i +  0.5 * isLabeledFactor * ((mu_i - y_i).^2);
                 end
                 
                 if isStructuredAnyKind
@@ -265,20 +295,30 @@ function R = run( this )
                 
                 new_v = (beta + sqrt( beta^2 + 4 * alpha * R_i))...
                         / (2 * alpha);
-                prev_v(:,vertex_i) = new_v ;
+                current_v(:, vertex_i) = new_v ;
+            
+                if this.DESCEND_MODE_AM == this.m_descendMode
+                    prev_v(:,vertex_i) = current_v( :, vertex_i);
+                end
             end % end second order update loop
-        end
+        end % end if using second order
 
         if this.m_descendMode == this.DESCEND_MODE_COORIDNATE_DESCENT 
             iteration_diff = sum(sum((prev_mu - current_mu).^2));
             prev_mu = current_mu;
+            prev_v  = current_v;
+        end
+        % descend mode 2 - current mu already updated after finishing mu
+        % update loop
+        if this.m_descendMode == this.DESCEND_MODE_2 
+            prev_v  = current_v;
         end
         if this.m_save_all_iterations
             allIterations.mu( :, :, iter_i) = current_mu;
-            allIterations.v ( :, :, iter_i) = prev_v;
+            allIterations.v ( :, :, iter_i) = current_v;
         end
         if this.m_isCalcObjective
-            this.calcObjective( current_mu, prev_v );
+            this.calcObjective( current_mu, current_v );
         end
     end % end loop over all iterations
     
@@ -290,7 +330,7 @@ function R = run( this )
             R.v (:,:,iter_i) = iterationResult_v.';
         end
     else
-        R.v = prev_v.';
+        R.v  = current_v.';
         R.mu = current_mu.';
     end
 
