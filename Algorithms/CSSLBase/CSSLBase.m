@@ -16,6 +16,7 @@ classdef CSSLBase < GraphTrunsductionBase
         m_structuredInfo;
         m_structuredTermType;
         m_isCalcObjective;
+        m_objectiveType;
     end
     
 properties( Constant)
@@ -67,10 +68,11 @@ methods (Access=public)
     %% constructor
     
     function this = CSSLBase() 
-        this.m_useGraphHeuristics = 0;
-        this.m_descendMode = CSSLBase.DESCEND_MODE_COORIDNATE_DESCENT;
-        this.m_structuredTermType = CSSLBase.NO_STRUCTURED_TERM;
-        this.m_isCalcObjective = 0;
+        this.m_useGraphHeuristics   = 0;
+        this.m_descendMode          = CSSLBase.DESCEND_MODE_COORIDNATE_DESCENT;
+        this.m_structuredTermType   = CSSLBase.NO_STRUCTURED_TERM;
+        this.m_objectiveType        = CSSLBase.OBJECTIVE_HARMONIC_MEAN;
+        this.m_isCalcObjective      = 0;
         this.m_structuredInfo.transitionMatrix = [];
     end
     
@@ -113,6 +115,7 @@ methods (Access=protected)
                  ' gamma = '                num2str(this.m_labeledConfidence) ...
                  ' zeta = '                 num2str(this.m_zeta) ...
                  ' structured = '           num2str(this.m_structuredTermType)...
+                 ' objective = '            num2str(this.m_objectiveType)...
                  ' with l2 = '              num2str(this.m_isUsingL2Regularization)...
                  ' using 2nd order = '      num2str(this.m_isUsingSecondOrder)...
                  ' descend mode = '         num2str(this.m_descendMode) ...

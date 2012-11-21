@@ -120,6 +120,7 @@ methods
         R = [R num2str(this.m_parameterValues.useGraphHeuristics) SEPERATOR ];
         R = [R num2str(this.m_parameterValues.labeledInitMode) SEPERATOR ];
         R = [R num2str(this.m_parameterValues.structuredTermType) SEPERATOR ];
+        R = [R num2str(this.m_parameterValues.csslObjectiveType) SEPERATOR ];
         R = [R num2str(this.m_parameterValues.isUsingL2Regularization) SEPERATOR ];
         R = [R num2str(this.m_parameterValues.isUsingSecondOrder) SEPERATOR ];
         optimizationMethodName = OptimizationMethodToStringConverter.convert( optimization_method_i );

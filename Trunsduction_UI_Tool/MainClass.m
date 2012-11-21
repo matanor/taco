@@ -10,6 +10,7 @@ classdef MainClass < handle
         m_showLegend;
         m_isCalcObjective;
         m_stayInStateProbability;
+        m_csslObjectiveType;
     end
 
     properties (Access=private)
@@ -52,6 +53,7 @@ methods (Access = public)
         this.m_showLegend = 1;
         this.m_isCalcObjective = 1;
         this.m_stayInStateProbability = 0.1;
+        this.m_csslObjectiveType = CSSLBase.OBJECTIVE_HARMONIC_MEAN;
     end
 
     %% set_graph
@@ -423,6 +425,12 @@ methods (Access = private)
     
     function updateStayInStateProbability(this,~,~)
         this.updateParamAndRun('m_stayInStateProbability');
+    end
+    
+    %% updateCsslObjectiveType
+
+    function updateCsslObjectiveType(this,~,~)
+        this.updateParamAndRun('m_csslObjectiveType');
     end
     
     %% updateParamAndRun
@@ -843,6 +851,8 @@ methods (Access = private)
                         this.labeledConfidence, ...
               @(src, event)updateCurrentIteration(this, src, event) );
         
+        % second line (from bottom)
+        
         controlPos.left = INITIAL_LEFT_POSITION;
         controlPos.bottom = INITIAL_BOTTOM_POSITION + 2*(controlPos.height + margin);
         MainClass.addParam( controlPos, 'zeta', this.zeta, ...
@@ -851,6 +861,15 @@ methods (Access = private)
         
         MainClass.addParam( controlPos, 'Stay Prob', this.m_stayInStateProbability, ...
                         @(src, event)updateStayInStateProbability(this, src, event) );
+        controlPos.left = controlPos.left + controlPos.width + margin;
+
+        % third line (from bottom)
+        
+        lineNumber  = 3;
+        controlPos.left   = INITIAL_LEFT_POSITION;
+        controlPos.bottom = INITIAL_BOTTOM_POSITION + 2 * (lineNumber-1) *(controlPos.height + margin);
+        MainClass.addParam( controlPos, 'TACO OBJ', this.m_csslObjectiveType, ...
+                        @(src, event)updateCsslObjectiveType(this, src, event) );
         controlPos.left = controlPos.left + controlPos.width + margin;
 
     end
@@ -906,6 +925,7 @@ methods (Access = private)
         algorithm.setStructuredEdges( this.graph.structuredEdges() );
 %         algorithm.m_structuredTermType = CSSLBase.STRUCTURED_TRANSITION_MATRIX;
         algorithm.m_structuredTermType = CSSLBase.STRUCTURED_LABELS_SIMILARITY;
+        algorithm.m_objectiveType      = this.m_csslObjectiveType;
         
         algorithm.m_useClassPriorNormalization = 0;
         

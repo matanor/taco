@@ -20,7 +20,7 @@ function R = run( this )
     gamma               = this.m_labeledConfidence;
     isUsingL2Regularization = this.m_isUsingL2Regularization;
     isUsingSecondOrder  = this.m_isUsingSecondOrder;
-    objectiveType       = this.OBJECTIVE_HARMONIC_MEAN; 
+    objectiveType       = this.m_objectiveType;
     
     % save flags in local boolean variables - for performance (this is stupid but fast)
     isStructuresTransitionMatrix = (this.m_structuredTermType == CSSLBase.STRUCTURED_TRANSITION_MATRIX);
@@ -86,7 +86,7 @@ function R = run( this )
     else
         isLabeledFactor = 1 / gamma;
     end
-
+    
     % note iteration index starts from 2
     for iter_i = 2:num_iterations
         Logger.log([ '#Iteration = ' num2str(iter_i)...
@@ -246,7 +246,7 @@ function R = run( this )
                     else
                         neighboursSquaredDiff(:,neighbour_i) =         ...
                                 neighbours_weights(neighbour_i) *      ...
-                                (1/neighbours_v(:,neighbour_i)) .*     ...
+                                (1./neighbours_v(:,neighbour_i)) .*     ...
                                 ((mu_i - neighbours_mu(:,neighbour_i)).^2);
                     end
                 end
@@ -350,6 +350,9 @@ function calcObjective(this, current_mu, current_v)
     Logger.log(['numVertices = ' num2str(numVertices)]);
     assert(~issparse(this.m_W)); % The calculation is not for sparse matrices.
     objective = 0;
+    
+    isStructuresTransitionMatrix = (this.m_structuredTermType == CSSLBase.STRUCTURED_TRANSITION_MATRIX);
+    
     for vertex_i=1:numVertices
         mu_i = current_mu( :, vertex_i);
         v_i  = current_v ( :, vertex_i);
@@ -374,7 +377,7 @@ function calcObjective(this, current_mu, current_v)
             y_i = this.priorLabelScore( vertex_i, : ).';
             objective = objective + ...
                 0.5 * sum((1./v_i + 1/gamma) .* ((mu_i - y_i).^2));
-        end
+        end     
         if isStructuresTransitionMatrix
             A = this.transitionMatrix();
             structuredPreviousVertex = this.m_structuredInfo.previous(vertex_i);
