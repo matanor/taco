@@ -126,10 +126,16 @@ methods (Access = public)
     
     %% speechGraphNames
     
-    function R = speechGraphNames(~)
-        R = {  'trainAndTest_cms_white.context7.k_10.lihi' ...
-               'trainAndTest_cms_white.context7.k_10.alex', ...
-             };
+    function R = speechGraphNames(~, contextSize)
+        if contextSize > 0
+            R = {  ['trainAndTest_cms_white.context' num2str(contextSize) '.k_10.lihi'] ...
+                   ['trainAndTest_cms_white.context' num2str(contextSize) '.k_10.alex'], ...
+                };
+        else
+            R = {  'trainAndTest_cms_white.k_10.lihi' ...
+                   'trainAndTest_cms_white.k_10.alex', ...
+                };
+        end
     end
     
     %% nlpGraphNames
@@ -297,6 +303,22 @@ methods (Access = public)
         MAD = 1;        AM = 2; CSSL = 3;
     end
     
+    %% getDataAndPlot_eilat_2012
+    
+    function getDataAndPlot_eilat_2012...
+                (   this, searchProperties, numLabeledRange,...
+                    optimizeByKey, presentedKey, contextSize, ...
+                    yLabel, fileNameSuffix, yLimits, ...
+                    multiplySourceData ...
+                )
+        barSource = getData_eilat_2012(this, searchProperties, ...
+                                       numLabeledRange, optimizeByKey, presentedKey, contextSize);
+                                   
+        barSource = barSource * multiplySourceData;
+        this.plotSingleGraph_eilat_2012(barSource, numLabeledRange, ...
+                                        yLabel,    yLimits, fileNameSuffix, contextSize);
+    end
+    
     %% createGraphs_eilat_2012
     
     function createGraphs_eilat_2012(this)
@@ -316,83 +338,83 @@ methods (Access = public)
         searchProperties = [balanced labeled_init num_iterations];
 
         numLabeledRange = {'11147', '55456', '111133', '221254', '331793','553041'};
+        
+        contextSize = 7;
 
         % accuracy
 
-        optimizeByKey = 'accuracy';
-        presentedKey = 'avg accuracy';
-        
-        barSource = getData_eilat_2012(this, searchProperties, ...
-                                       numLabeledRange, optimizeByKey, presentedKey);
-                                   
-        % return;
-        
-        yLabel = 'Frame accuracy';
-        fileNameSuffix = 'accuracy';
-        yLimits = [35 65];
-        barSource = barSource * 100;
-        this.plotSingleGraph_eilat_2012(barSource, numLabeledRange, ...
-                                        yLabel,    yLimits, fileNameSuffix);
+        optimizeByKey       = 'accuracy';
+        presentedKey        = 'avg accuracy';
+        yLabel              = 'Frame accuracy';
+        fileNameSuffix      = ['accuracy_context' num2str(contextSize)];
+        yLimits             = [35 65];
+        multiplySourceData = 100;
+        this.getDataAndPlot_eilat_2012...
+                (   searchProperties, numLabeledRange,...
+                    optimizeByKey, presentedKey, contextSize, ...
+                    yLabel, fileNameSuffix, yLimits, ...
+                    multiplySourceData ...
+                );
              
         % macro averaged accuracy
         
-        optimizeByKey = 'macroACC';
-        presentedKey = 'avg macro accuracy';
-        
-        barSource = getData_eilat_2012(this, searchProperties, ...
-                                       numLabeledRange, optimizeByKey, presentedKey);
-                                   
-        yLabel = 'Macro-Averaged Accuracy';
-        fileNameSuffix = 'M_ACC';
-        yLimits = [30 55];
-        barSource = barSource * 100;
-        this.plotSingleGraph_eilat_2012(barSource, numLabeledRange, ...
-                                        yLabel,    yLimits, fileNameSuffix);
-      
+        optimizeByKey       = 'macroACC';
+        presentedKey        = 'avg macro accuracy';
+        yLabel              = 'Macro-Averaged Accuracy';
+        fileNameSuffix      = ['M_ACC_context' num2str(contextSize)];
+        yLimits             = [30 55];
+        multiplySourceData  = 100;
+        this.getDataAndPlot_eilat_2012...
+                (   this, searchProperties, numLabeledRange,...
+                    optimizeByKey, presentedKey, contextSize, ...
+                    yLabel, fileNameSuffix, yLimits, ...
+                    multiplySourceData ...
+                );
+ 
         % levenshtein
-        
-        optimizeByKey = 'levenshtein';
-        presentedKey = 'avg levenshtein';
-        
-        barSource = getData_eilat_2012(this, searchProperties, ...
-                                       numLabeledRange, optimizeByKey, presentedKey);
-        
-        this.plotDifferencesLocalVsGlobal_eilat_2012(barSource);
-        
-        yLabel = 'Phone accuracy';
-        fileNameSuffix = 'levenshtein';
-        yLimits = [35 65];
-        this.plotSingleGraph_eilat_2012(barSource, numLabeledRange, ...
-                                        yLabel,    yLimits, fileNameSuffix);
+                
+        optimizeByKey       = 'levenshtein';
+        presentedKey        = 'avg levenshtein';
+        yLabel              = 'Phone accuracy';
+        fileNameSuffix      = ['levenshtein' num2str(contextSize)];
+        yLimits             = [35 65];
+        multiplySourceData  = 1;
+        this.getDataAndPlot_eilat_2012...
+                (   this, searchProperties, numLabeledRange,...
+                    optimizeByKey, presentedKey, contextSize, ...
+                    yLabel, fileNameSuffix, yLimits, ...
+                    multiplySourceData ...
+                );
                                     
         % levenshtein (development)
         
-        optimizeByKey = 'levenshtein';
-        presentedKey = 'optimized levenshtein';
-        
-        barSource = getData_eilat_2012(this, searchProperties, ...
-                                       numLabeledRange, optimizeByKey, presentedKey);
-        
-        yLabel = 'Phone accuracy';
-        fileNameSuffix = 'levenshtein_development';
-        yLimits = [35 65];
-        this.plotSingleGraph_eilat_2012(barSource, numLabeledRange, ...
-                                        yLabel,    yLimits, fileNameSuffix);
+        optimizeByKey       = 'levenshtein';
+        presentedKey        = 'optimized levenshtein';
+        yLabel              = 'Phone accuracy';
+        fileNameSuffix      = ['levenshtein_development' num2str(contextSize)];
+        yLimits             = [35 65];
+        multiplySourceData  = 1;
+        this.getDataAndPlot_eilat_2012...
+                (   this, searchProperties, numLabeledRange,...
+                    optimizeByKey, presentedKey, contextSize, ...
+                    yLabel, fileNameSuffix, yLimits, ...
+                    multiplySourceData ...
+                );
                                     
         % M-ACC optimized by accuracy
         
-        optimizeByKey = 'accuracy';
-        presentedKey = 'avg macro accuracy';
-        
-        barSource = getData_eilat_2012(this, searchProperties, ...
-                                       numLabeledRange, optimizeByKey, presentedKey);
-        
-        yLabel = 'Macro-Averaged Accuracy';
-        fileNameSuffix = 'opt_ACC_report_M_ACC';
-        yLimits = [24 50];
-        barSource = barSource * 100;
-        this.plotSingleGraph_eilat_2012(barSource, numLabeledRange, ...
-                                        yLabel,    yLimits, fileNameSuffix);
+        optimizeByKey       = 'accuracy';
+        presentedKey        = 'avg macro accuracy';
+        yLabel              = 'Macro-Averaged Accuracy';
+        fileNameSuffix      = ['opt_ACC_report_M_ACC' num2str(contextSize)];
+        yLimits             = [24 50];
+        multiplySourceData  = 100;
+        this.getDataAndPlot_eilat_2012...
+                (   this, searchProperties, numLabeledRange,...
+                    optimizeByKey, presentedKey, contextSize, ...
+                    yLabel, fileNameSuffix, yLimits, ...
+                    multiplySourceData ...
+                );
 
     end
     
@@ -400,9 +422,6 @@ methods (Access = public)
     
     function plotDifferencesLocalVsGlobal_eilat_2012(this, barSource)
         [MAD AM CSSL] = this.graphIDs();
-        taco = barSource(:,:,CSSL);
-        am   = barSource(:,:,AM);
-        mad  = barSource(:,:,MAD);
         
         fig = figure;
         
@@ -438,7 +457,7 @@ methods (Access = public)
         
         legend({'TACO', 'MP', 'MAD'}, 'Location', 'NorthEast');
         
-        directory = 'E:/technion/theses/Tex/SSL/2012_IEEE_eilat_TACO_speech/figures/';
+        directory = 'C:/technion/theses/Tex/SSL/2012_IEEE_eilat_TACO_speech/figures/';
         fileName = 'local_scaling_performance_gain' ;
         fileFullPath = [ directory fileName '.pdf'];
         saveas(fig, fileFullPath ); 
@@ -453,9 +472,9 @@ methods (Access = public)
     
     function barSource = getData_eilat_2012...
             (this, searchProperties, numLabeledRange, ...
-             optimizeByKey, presentedKey)
+             optimizeByKey, presentedKey, contextSize)
         graph.key = 'graph';
-        speechGraphNames = this.speechGraphNames();
+        speechGraphNames = this.speechGraphNames(contextSize);
         graph.shouldMatch = 1;
         numGraphs = length(speechGraphNames);
         
@@ -476,6 +495,8 @@ methods (Access = public)
             graph.value = speechGraphNames(graph_i);
             for numLabeled_i=1:length(numLabeledRange)
                 num_labeled.value = numLabeledRange(numLabeled_i);
+                Logger.log(['ExcelToLatexConverter::getData_eilat_2012. '...
+                    'Searching for results for ' num2str(num_labeled.value{1}) ' labeled.']);
                 algorithms = this.findAlgorithms([searchProperties num_labeled graph]);
                 barSource(graph_i, numLabeled_i , MAD) = str2num(algorithms.mad( presentedKey ));
                 barSource(graph_i, numLabeled_i , AM)  = str2num(algorithms.am( presentedKey )) ;
@@ -487,7 +508,7 @@ methods (Access = public)
     %% plotSingleGraph_eilat_2012
     
     function plotSingleGraph_eilat_2012(this, barSource, numLabeledRange, ...
-                                           yLabel, yLimits, fileNameSuffix)
+                                        yLabel, yLimits, fileNameSuffix, contextSize)
         [MAD AM CSSL] = this.graphIDs();
         
         % draw
@@ -539,7 +560,7 @@ methods (Access = public)
 
 %         this.removeExtraWhiteSpaceMargin();
 
-        speechGraphNames = this.speechGraphNames();
+        speechGraphNames = this.speechGraphNames(contextSize);
          
         numGraphs = length(speechGraphNames);
         for algorithm_i=[CSSL AM MAD]

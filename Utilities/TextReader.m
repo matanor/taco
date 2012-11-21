@@ -45,6 +45,9 @@ methods (Access = public)
     function init(this)
         Logger.log(['TextReader::init. Opening file ''' this.m_inputFileName '''']);
         this.m_inputFileID  = fopen(this.m_inputFileName,'r');
+        if this.m_inputFileID == -1
+            Logger.log(['TextReader::init. Unable to open file ''' this.m_inputFileName '''']);
+        end
     end
     
     %% close
