@@ -147,19 +147,18 @@ methods (Access = public)
         timit_cms_white_lihi.transductionSetFileFormat = cmd_white_transduction_file_format;
 
         if config.isOnOdin
-           fileProperties = [ {timit_cms_white_c7_lihi} ];
-               %{timit_cms_white_c7_alex} ...
-                              
-%                               {timit_cms_white_alex} ...
-%                               {timit_cms_white_lihi} ...
-%                          ];
+           fileProperties = [ {timit_cms_white_c7_alex} ...
+                              {timit_cms_white_c7_lihi} ...
+                              {timit_cms_white_alex} ...
+                              {timit_cms_white_lihi} ...
+                         ];
 %                          {webkb_amar} ...
 %                          {webkb_html} ...
 %                          {sentiment_5k} ...
 %                          {sentiment_10k} ...
 %                          {twentyNG_4715} ];
         else
-           fileProperties  = [ {timit_cms_white_c7_lihi} ...
+           fileProperties  = [ {timit_notWhite_c7_alex} ...
                          ];
 %                          {webkb_html} ...
 %                          {sentiment_5k} ...
@@ -189,22 +188,20 @@ methods (Access = public)
         %labeledConfidence.range = [0.01,0.1];
         if (optimize)
             alphaOptimizationRange = [1e-4 1e-2 1 1e2 1e4 ];
-%             alphaOptimizationRange = [1e4 ];
             betaOptimizationRange  = [1e-4 1e-2 1 1e2 ];
-%             betaOptimizationRange  = [1e2 ];
-            zetaOptimizationRange  = [1e-4 1e-2 0 1 100];
-%             zetaOptimizationRange  = [0];
-            gammaOptimizationRange = [1 100];
+%            zetaOptimizationRange  = [1e-4 1e-2 0 1 5 10 100];
+            zetaOptimizationRange  = [0];
+            gammaOptimizationRange = [1 1e2];
 
             this = this.createNumericParameter( 'alpha', alphaOptimizationRange );
             this = this.createNumericParameter( 'beta',  betaOptimizationRange );
             this = this.createNumericParameter( 'labeledConfidence', gammaOptimizationRange );
             this = this.createNumericParameter( 'zeta',  zetaOptimizationRange );
         else
-            this = this.createNumericParameter( 'alpha', [0.01] );
-            this = this.createNumericParameter( 'beta' , [0.01 ] );        
-            this = this.createNumericParameter( 'labeledConfidence', [100] );     
-            this = this.createNumericParameter( 'zeta',  [100] );
+            this = this.createNumericParameter( 'alpha', [1] );
+            this = this.createNumericParameter( 'beta' , [1 ] );        
+            this = this.createNumericParameter( 'labeledConfidence', [1] );     
+            this = this.createNumericParameter( 'zeta',  [0] );
         end
         
         this = this.createNumericParameter( 'isUsingL2Regularization', [0] );
@@ -282,7 +279,7 @@ methods (Access = public)
         this = this.createNumericParameter( 'makeSymetric', [1] );     
         
         if isTesting
-            this = this.createNumericParameter( 'maxIterations', [2] );    
+            this = this.createNumericParameter( 'maxIterations', [1] );    
             this = this.createNumericParameter( 'numEvaluationRuns', [1] );
         else
             this = this.createNumericParameter( 'maxIterations',     [20] );    
