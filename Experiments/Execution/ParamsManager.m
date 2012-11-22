@@ -125,7 +125,7 @@ methods (Access = public)
         trainAndTest_notWhite_lihi    = [ rootDir 'timit/features_39_trainAndTest/trainAndTest_notWhite.k_10.lihi.mat' ];
         
         notWhite_transduction_file = [ rootDir 'timit/features_39/notWhite.TrunsSet_%s.mat' ];
-        cmd_white_transduction_file_format = [ rootDir 'timit/features_39_cms_white/cms_white.TrunsSet_%s.mat' ];
+        cms_white_transduction_file_format = [ rootDir 'timit/features_39_cms_white/cms_white.TrunsSet_%s.mat' ];
         
         timit_notWhite_c7_alex.development = [ rootDir 'timit/features_39/trainAndDev/trainAndDev_notWhite.context7.k_10.alex.mat' ];
         timit_notWhite_c7_alex.test        = [ rootDir 'timit/features_39/trainAndTest/trainAndTest_notWhite.context7.k_10.alex.mat' ];
@@ -133,19 +133,19 @@ methods (Access = public)
         
         timit_cms_white_c7_alex.development = [ rootDir 'timit/features_39_cms_white/trainAndDev/trainAndDev_cms_white.context7.k_10.alex.mat' ];
         timit_cms_white_c7_alex.test        = [ rootDir 'timit/features_39_cms_white/trainAndTest/trainAndTest_cms_white.context7.k_10.alex.mat' ];
-        timit_cms_white_c7_alex.transductionSetFileFormat = cmd_white_transduction_file_format;
+        timit_cms_white_c7_alex.transductionSetFileFormat = cms_white_transduction_file_format;
         
         timit_cms_white_c7_lihi.development = [ rootDir 'timit/features_39_cms_white/trainAndDev/trainAndDev_cms_white.context7.k_10.lihi.mat' ];
         timit_cms_white_c7_lihi.test        = [ rootDir 'timit/features_39_cms_white/trainAndTest/trainAndTest_cms_white.context7.k_10.lihi.mat' ];
-        timit_cms_white_c7_lihi.transductionSetFileFormat = cmd_white_transduction_file_format;
+        timit_cms_white_c7_lihi.transductionSetFileFormat = cms_white_transduction_file_format;
 
         timit_cms_white_alex.development = [ rootDir 'timit/features_39_cms_white/trainAndDev/trainAndDev_cms_white.k_10.alex.mat' ];
         timit_cms_white_alex.test        = [ rootDir 'timit/features_39_cms_white/trainAndTest/trainAndTest_cms_white.k_10.alex.mat' ];
-        timit_cms_white_alex.transductionSetFileFormat = cmd_white_transduction_file_format;
+        timit_cms_white_alex.transductionSetFileFormat = cms_white_transduction_file_format;
         
         timit_cms_white_lihi.development = [ rootDir 'timit/features_39_cms_white/trainAndDev/trainAndDev_cms_white.k_10.lihi.mat' ];
         timit_cms_white_lihi.test        = [ rootDir 'timit/features_39_cms_white/trainAndTest/trainAndTest_cms_white.k_10.lihi.mat' ];
-        timit_cms_white_lihi.transductionSetFileFormat = cmd_white_transduction_file_format;
+        timit_cms_white_lihi.transductionSetFileFormat = cms_white_transduction_file_format;
 
         if config.isOnOdin
            fileProperties = [ {timit_cms_white_c7_alex} ...
