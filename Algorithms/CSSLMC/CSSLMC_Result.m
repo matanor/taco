@@ -3,7 +3,10 @@ classdef CSSLMC_Result < SSLMC_Result
     %   Detailed explanation goes here
     
     properties (Access = public)
-        m_v; % confidence
+        m_v;         % confidence on nodes
+        m_edges_v;   % confidence on edges
+        m_vertexToEdgeMap; % vertexToEdgeMap(i,j) gives the index of
+                           % the edge between v_i and v_j, make the map symmetric.
     end % (Access = private)
     
     methods (Access = public)
@@ -12,7 +15,8 @@ classdef CSSLMC_Result < SSLMC_Result
     
         function clearOutput(this)
             clearOutput@SSLMC_Result(this);
-            this.m_v = [];
+            this.m_v        = [];
+            this.m_edges_v  = [];
         end
     
         %% set_results
@@ -20,12 +24,15 @@ classdef CSSLMC_Result < SSLMC_Result
         function set_results(this, resultSource, saveAllIterations)
             this.m_numIterations = SSLMC_Result.calcNumIterations( resultSource.mu );
             if saveAllIterations
-                this.m_Y = resultSource.mu;
-                this.m_v = resultSource.v;
+                this.m_Y        = resultSource.mu;
+                this.m_v        = resultSource.v;
+                this.m_edges_v  = resultSource.edges_v;
             else
-                this.m_Y = resultSource.mu(:,:,end);
-                this.m_v = resultSource.v(:,:,end);
+                this.m_Y        = resultSource.mu       (:,:,end);
+                this.m_v        = resultSource.v        (:,:,end);
+                this.m_edges_v  = resultSource.edges_v  (:,:,end);
             end
+            this.m_vertexToEdgeMap = resultSource.vertexToEdgeMap;
         end
         
         %% add_vertex
@@ -52,6 +59,16 @@ classdef CSSLMC_Result < SSLMC_Result
             
             r = sprintf('(%6.4f,%6.4f)\n(%6.4f,%6.4f)', ...
                 mu.positive, v.positive, mu.negative, v.negative);
+        end
+        
+        %% edgeText
+         
+        function r = edgeText(this, start_vertex, end_vertex, iteration_i)
+            edgeIndex      = this.m_vertexToEdgeMap(start_vertex, end_vertex);
+            edgeConfidence.positive = this.m_edges_v(edgeIndex, this.POSITIVE, iteration_i);
+            edgeConfidence.negative = this.m_edges_v(edgeIndex, this.NEGATIVE, iteration_i);
+            r = sprintf('(%6.4f,%6.4f)\n', ...
+                edgeConfidence.positive, edgeConfidence.negative);
         end
         
         %% allColors 

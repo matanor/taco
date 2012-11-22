@@ -126,6 +126,12 @@ methods (Access = public )
     function r = numLabels(this)
         r = SSLMC_Result.calcNumLabels( this.getFinalScoreMatrix() );
     end
+    
+    %% edgeText
+    
+    function r = edgeText(this, start_vertex, end_vertex, iteration_i)
+        r = [];
+    end
 
 end % methods (Access = public )
 

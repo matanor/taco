@@ -526,9 +526,10 @@ methods (Access = private)
                     'ButtonDownFcn', ...
                     {@(src, event)onButtonDown(this, src, event)});
             if this.m_showEdgeWeights && ~isStructuredEdge
-                edgeText = num2str(edge_weight);
+                edgeText = this.algorithm_result.edgeText(start_vertex_idx, end_vertex_idx, iteration_i);
+                edgeWeightString = num2str(edge_weight);
                 edge_text_pos = mean(edge, 1) + [0.01 0.01];
-                text( edge_text_pos (X), edge_text_pos (Y), edgeText, ...
+                text( edge_text_pos (X), edge_text_pos (Y), [edgeWeightString ' ' edgeText], ...
                      'DisplayName', ...
                      ['text_e_' num2str(start_vertex_idx) num2str(end_vertex_idx)] );
             end
@@ -924,7 +925,8 @@ methods (Access = private)
         algorithm.setTransitionMatrix( transitionMatrix );
         algorithm.setStructuredEdges( this.graph.structuredEdges() );
 %         algorithm.m_structuredTermType = CSSLBase.STRUCTURED_TRANSITION_MATRIX;
-        algorithm.m_structuredTermType = CSSLBase.STRUCTURED_LABELS_SIMILARITY;
+%         algorithm.m_structuredTermType = CSSLBase.STRUCTURED_LABELS_SIMILARITY;
+        algorithm.m_structuredTermType = CSSLBase.NO_STRUCTURED_TERM;
         algorithm.m_objectiveType      = this.m_csslObjectiveType;
         
         algorithm.m_useClassPriorNormalization = 0;

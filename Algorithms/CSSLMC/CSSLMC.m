@@ -27,6 +27,8 @@ function R = run( this )
     isStrucutredLabelSimilarity  = (this.m_structuredTermType == CSSLBase.STRUCTURED_LABELS_SIMILARITY);
     isStructuredAnyKind          = isStrucutredLabelSimilarity || isStructuresTransitionMatrix ;
     isObjectiveHarmonicMean      = (objectiveType == CSSLBase.OBJECTIVE_HARMONIC_MEAN);
+    isObjectiveMultiplicative    = (objectiveType == CSSLBase.OBJECTIVE_MULTIPLICATIVE);
+    isObjectiveWeightsUncertainty= (objectiveType == CSSLBase.OBJECTIVE_WEIGHTS_UNCERTAINTY);
     
     this.displayParams(CSSLMC.name());
 
@@ -35,24 +37,51 @@ function R = run( this )
 
     prev_mu     =  zeros( num_labels, num_vertices );
     current_mu  =  zeros( num_labels, num_vertices );
-    prev_v      =  ones ( num_labels, num_vertices );
-    current_v   =  ones ( num_labels, num_vertices );
-    if this.m_save_all_iterations
-        allIterations.mu = zeros( num_labels, num_vertices, num_iterations );
-        allIterations.v  = ones ( num_labels, num_vertices, num_iterations );
-    end
+    
     if 0 == isUsingSecondOrder
-        prev_v    = (beta / alpha ) * prev_v;
-        current_v = (beta / alpha ) * current_v;
-        if this.m_save_all_iterations
-            allIterations.v = (beta / alpha ) * allIterations.v;
-        end
+        initFactor_v = (beta / alpha);
+    else
+        initFactor_v = 1;
+    end
+    
+    prev_v      =  ones ( num_labels, num_vertices ) * initFactor_v;
+    current_v   =  ones ( num_labels, num_vertices ) * initFactor_v;
+
+    % Note: W is assumed symmetric so only upper triangular part is
+    % considered
+    [vertex_rows, vertex_cols, ~] = find(triu(this.m_W));
+    num_edges = length(vertex_rows);
+    % Create a mapping such that vertexToEdgeMap(i,j) gives the index of
+    % the edge between v_i and v_j, make the map symmetric.
+    vertexToEdgeMap = sparse([vertex_rows vertex_cols], ...
+                             [vertex_cols vertex_rows], ...
+                             [1:num_edges 1:num_edges]);
+
+    % Size is (num_labels X num_edges )
+    prev_edges_v = ones ( num_labels, num_edges ) * initFactor_v;
+    curr_edges_v = prev_edges_v;
+    
+    % create a map that labeledToPriorEdgeMap(vertex_i) = edge of
+    % uncertainty parameter for v_i in prev_edges_prior_v
+    num_labeled = sum(this.m_isLabeledVector);
+    [labeled_indices, ~, ~] = find(this.m_isLabeledVector);
+    labeledToPriorEdgeMap = sparse(labeled_indices, ones(num_labeled,1), 1:num_labeled, num_vertices, 1);
+    
+    % Size is (num_labels X num_labeled_vertices)
+    prev_edges_prior_v = ones(num_labels, num_labeled) * initFactor_v;
+    curr_edges_prior_v = prev_edges_prior_v;
+
+    if this.m_save_all_iterations
+        allIterations.mu     = zeros( num_labels, num_vertices, num_iterations );
+        allIterations.v      = ones ( num_labels, num_vertices, num_iterations ) * initFactor_v;
+        allIterations.edges_v= ones ( num_labels, num_edges,    num_iterations ) * initFactor_v;
     end
 
     this.prepareGraph();
     
     iteration_diff = 10^1000;
-    diff_epsilon = 0.0001;
+%     diff_epsilon = 0.0001;
+    diff_epsilon = 0.0000001;
 
     %if this.DESCEND_MODE_AM == this.m_descendMode
      %   vertexUpdateOrder = randperm(num_vertices);
@@ -97,6 +126,7 @@ function R = run( this )
             if this.m_save_all_iterations
                 allIterations.mu(:,:, iter_i:end) = [];
                 allIterations.v(:,:, iter_i:end) = [];
+                allIterations.edges_v(:,:, iter_i:end) = [];
             end
             break;
         end
@@ -114,29 +144,53 @@ function R = run( this )
     
             isLabeled = this.m_isLabeledVector(vertex_i);
             neighbours_mu = prev_mu( :, neighbours_indices );
-            neighbours_v  = prev_v ( :, neighbours_indices );
-            v_i           = prev_v ( :, vertex_i);
             numNeighbours = length(neighbours_indices);
+            % neighbours_v: matrix size (num_labels X num_neighbours)
+            % Each column is uncertainty for all neighbours, for a
+            % given class. 
+            if 0 == isObjectiveWeightsUncertainty
+                neighbours_v  = prev_v ( :, neighbours_indices );
+                v_i           = prev_v ( :, vertex_i);
+            else
+                neighbouring_edges_indices = vertexToEdgeMap(vertex_i, neighbours_indices);
+                neighbours_v               = prev_edges_v( :, neighbouring_edges_indices );
+            end
             sum_K_i_j = zeros(num_labels, 1);
             Q_i       = zeros(num_labels, 1);
             for neighbour_i=1:numNeighbours
                 single_neighbour_mu = neighbours_mu(:,neighbour_i);
                 single_neighbour_v  = neighbours_v (:,neighbour_i);
                 w_i_j = neighbours_weights(neighbour_i);
+                
+                % K_i_j should be vector of size (num_labels X 1)
                 if isObjectiveHarmonicMean
                     K_i_j = w_i_j * ((1./single_neighbour_v) + (1./v_i));
-                else
+                elseif isObjectiveMultiplicative
                     K_i_j = w_i_j * ((1./single_neighbour_v) .* (1./v_i));
+                elseif isObjectiveWeightsUncertainty
+                    K_i_j = w_i_j ./ single_neighbour_v;
+                else
+                    Logger.log('CSSLMC::Run. Error unknown objective type');
                 end
+                
                 sum_K_i_j = sum_K_i_j + ...
                     K_i_j .* single_neighbour_mu;
                 Q_i = Q_i + K_i_j;
             end
+            % P_i size is (num_labels X 1)
             if isObjectiveHarmonicMean
                 P_i = isLabeled * ( 1./v_i + 1 / gamma );
-            else
+            elseif isObjectiveMultiplicative
                 P_i = isLabeled * ( (1./v_i) * (1 / gamma) );
+            elseif isObjectiveWeightsUncertainty
+                priorEdgeIndex = labeledToPriorEdgeMap(vertex_i);
+                if 1 == isLabeled
+                    P_i = (1 / gamma) * prev_edges_prior_v(:,priorEdgeIndex);
+                else
+                    P_i = zeros(num_labels,1);
+                end
             end
+            % y_i size is (num_labels X 1)
             y_i = this.m_priorY(vertex_i,:).';
             numerator   = sum_K_i_j + (P_i .* y_i); % .* because P_i is only main diagonal
             denominator = diag(Q_i + P_i + isUsingL2Regularization * 1);
@@ -144,7 +198,7 @@ function R = run( this )
             if isStructuresTransitionMatrix
                 structuredPreviousVertex = this.m_structuredInfo.previous(vertex_i);
                 if this.STRUCTURED_NO_VERTEX ~= structuredPreviousVertex
-                    structuredPrev_mu = prev_mu( :, structuredPreviousVertex );
+                    st ructuredPrev_mu = prev_mu( :, structuredPreviousVertex );
                     structuredPrev_v  = prev_v ( :, structuredPreviousVertex);
                     G_i = 1./v_i + 1./structuredPrev_v;
                     denominator  = denominator + zeta * diag(G_i);
@@ -224,98 +278,128 @@ function R = run( this )
         Logger.log('Updating second order...');
 
         if isUsingSecondOrder
-            for vertex_i=1:num_vertices
-                if ( mod(vertex_i, 100000) == 0 )
-                    Logger.log([ 'vertex_i = ' num2str(vertex_i)]);
+            if isObjectiveWeightsUncertainty
+                [vertex_rows, vertex_cols, weights_i_j] = find(triu(this.m_W));
+                for edge_i=1:num_edges
+                    % vertexToEdgeMap(i,j) gives the index of the edge between v_i and v_j
+                    vertex_i = vertex_rows(edge_i);
+                    vertex_j = vertex_cols(edge_i);
+                    prev_mu_i = prev_mu( :, vertex_i );
+                    prev_mu_j = prev_mu( :, vertex_j );
+                    R_i_j = weights_i_j(edge_i) * (prev_mu_i - prev_mu_j).^2;
+                    edge_update_index = vertexToEdgeMap(vertex_i,vertex_j);
+                    curr_edges_v(:,edge_update_index) = ...
+                        (beta + sqrt( beta^2 + alpha * R_i_j)) / (2 * alpha);
                 end
-                isLabeled = this.m_isLabeledVector(vertex_i);
-                col = this.m_W(:, vertex_i);
-                [neighbours_indices, ~, neighbours_weights] = find(col);
-                
-                y_i  = this.m_priorY(vertex_i,:).';
-                mu_i = prev_mu(:,vertex_i);
-                numNeighbours = length( neighbours_indices );
-                neighbours_mu = prev_mu( :, neighbours_indices );
-                neighbours_v  = prev_v ( :, neighbours_indices );
-                neighboursSquaredDiff = zeros(num_labels, numNeighbours);
-                for neighbour_i=1:numNeighbours
-                    if isObjectiveHarmonicMean
-                        neighboursSquaredDiff(:,neighbour_i) = ...
-                            neighbours_weights(neighbour_i) * ...
-                                ((mu_i - neighbours_mu(:,neighbour_i)).^2);
-                    else
-                        neighboursSquaredDiff(:,neighbour_i) =         ...
-                                neighbours_weights(neighbour_i) *      ...
-                                (1./neighbours_v(:,neighbour_i)) .*     ...
-                                ((mu_i - neighbours_mu(:,neighbour_i)).^2);
+                for labeled_i=labeled_indices.'
+                    prev_mu_i = prev_mu( :, labeled_i );
+                    y_i  = this.m_priorY(labeled_i,:).';
+                    R_i = (prev_mu_i - y_i).^2;
+                    % labeledToPriorEdgeMap(v_i) = edge of
+                    % uncertainty parameter for v_i in prev_edges_prior_v
+                    priorEdgeIndex = labeledToPriorEdgeMap(labeled_i);
+                    curr_edges_prior_v(:,priorEdgeIndex) = ...
+                        (beta + sqrt( beta^2 + 2 * alpha / gamma * R_i)) / (2 * alpha);
+                end
+            else
+                for vertex_i=1:num_vertices
+                    if ( mod(vertex_i, 100000) == 0 )
+                        Logger.log([ 'vertex_i = ' num2str(vertex_i)]);
                     end
-                end
+                    isLabeled = this.m_isLabeledVector(vertex_i);
+                    col = this.m_W(:, vertex_i);
+                    [neighbours_indices, ~, neighbours_weights] = find(col);
 
-                R_i = 0.5 * sum(neighboursSquaredDiff,2);
-
-                if isLabeled
-                   R_i = R_i +  0.5 * isLabeledFactor * ((mu_i - y_i).^2);
-                end
-                
-                if isStructuredAnyKind
-                    structured.previousVertex = this.m_structuredInfo.previous(vertex_i);
-                    structured.nextVertex     = this.m_structuredInfo.next(vertex_i);
-                end
-                
-                if isStructuresTransitionMatrix
-                    if this.STRUCTURED_NO_VERTEX ~= structured.previousVertex
-                        structured.prev_mu = prev_mu( :, structured.previousVertex );
-                        R_i = R_i + 0.5 * zeta * (( mu_i - A * structured.prev_mu ).^2);
-                    end
-
-                    if this.STRUCTURED_NO_VERTEX ~= structured.nextVertex;
-                        structured.next_mu = prev_mu( :, structured.nextVertex );
-                        R_i = R_i + 0.5 * zeta * (( structured.next_mu - A * mu_i ).^2);
-                    end
-                end
-                
-                if isStrucutredLabelSimilarity
-                    if this.STRUCTURED_NO_VERTEX ~= structured.previousVertex
-                        structured.prev_mu = prev_mu( :, structured.previousVertex ).'; % make row vector
-                        prev_difference_matrix = ...
-                            structured.prev_mu(ones(1, num_labels),:) - mu_i(:, ones(num_labels, 1));
-                        % note the transpose on the label similarity matrix
-                        prev_weighted_difference = labelSimilarityMatrix_transposed .* (prev_difference_matrix.^2);
-                        R_i = R_i + 0.5 * zeta * sum(prev_weighted_difference,2);
+                    y_i  = this.m_priorY(vertex_i,:).';
+                    mu_i = prev_mu(:,vertex_i);
+                    numNeighbours = length( neighbours_indices );
+                    neighbours_mu = prev_mu( :, neighbours_indices );
+                    neighbours_v  = prev_v ( :, neighbours_indices );
+                    neighboursSquaredDiff = zeros(num_labels, numNeighbours);
+                    for neighbour_i=1:numNeighbours
+                        if isObjectiveHarmonicMean
+                            neighboursSquaredDiff(:,neighbour_i) = ...
+                                neighbours_weights(neighbour_i) * ...
+                                    ((mu_i - neighbours_mu(:,neighbour_i)).^2);
+                        else
+                            neighboursSquaredDiff(:,neighbour_i) =         ...
+                                    neighbours_weights(neighbour_i) *      ...
+                                    (1./neighbours_v(:,neighbour_i)) .*     ...
+                                    ((mu_i - neighbours_mu(:,neighbour_i)).^2);
+                        end
                     end
 
-                    if this.STRUCTURED_NO_VERTEX ~= structured.nextVertex;
-                        structured.next_mu = prev_mu( :, structured.nextVertex ).'; % make row vector
-                        next_difference_matrix = ...
-                            structured.next_mu(ones(1, num_labels),:) - mu_i(:, ones(num_labels, 1));
-                        next_weighted_difference = labelSimilarityMatrix .* (next_difference_matrix.^2);
-                        R_i = R_i + 0.5 * zeta * sum(next_weighted_difference,2);
+                    R_i = 0.5 * sum(neighboursSquaredDiff,2);
+
+                    if isLabeled
+                       R_i = R_i +  0.5 * isLabeledFactor * ((mu_i - y_i).^2);
                     end
-                end
-                
-                new_v = (beta + sqrt( beta^2 + 4 * alpha * R_i))...
-                        / (2 * alpha);
-                current_v(:, vertex_i) = new_v ;
-            
-                if this.DESCEND_MODE_AM == this.m_descendMode
-                    prev_v(:,vertex_i) = current_v( :, vertex_i);
-                end
-            end % end second order update loop
+
+                    if isStructuredAnyKind
+                        structured.previousVertex = this.m_structuredInfo.previous(vertex_i);
+                        structured.nextVertex     = this.m_structuredInfo.next(vertex_i);
+                    end
+
+                    if isStructuresTransitionMatrix
+                        if this.STRUCTURED_NO_VERTEX ~= structured.previousVertex
+                            structured.prev_mu = prev_mu( :, structured.previousVertex );
+                            R_i = R_i + 0.5 * zeta * (( mu_i - A * structured.prev_mu ).^2);
+                        end
+
+                        if this.STRUCTURED_NO_VERTEX ~= structured.nextVertex;
+                            structured.next_mu = prev_mu( :, structured.nextVertex );
+                            R_i = R_i + 0.5 * zeta * (( structured.next_mu - A * mu_i ).^2);
+                        end
+                    end
+
+                    if isStrucutredLabelSimilarity
+                        if this.STRUCTURED_NO_VERTEX ~= structured.previousVertex
+                            structured.prev_mu = prev_mu( :, structured.previousVertex ).'; % make row vector
+                            prev_difference_matrix = ...
+                                structured.prev_mu(ones(1, num_labels),:) - mu_i(:, ones(num_labels, 1));
+                            % note the transpose on the label similarity matrix
+                            prev_weighted_difference = labelSimilarityMatrix_transposed .* (prev_difference_matrix.^2);
+                            R_i = R_i + 0.5 * zeta * sum(prev_weighted_difference,2);
+                        end
+
+                        if this.STRUCTURED_NO_VERTEX ~= structured.nextVertex;
+                            structured.next_mu = prev_mu( :, structured.nextVertex ).'; % make row vector
+                            next_difference_matrix = ...
+                                structured.next_mu(ones(1, num_labels),:) - mu_i(:, ones(num_labels, 1));
+                            next_weighted_difference = labelSimilarityMatrix .* (next_difference_matrix.^2);
+                            R_i = R_i + 0.5 * zeta * sum(next_weighted_difference,2);
+                        end
+                    end
+
+                    new_v = (beta + sqrt( beta^2 + 4 * alpha * R_i))...
+                            / (2 * alpha);
+                    current_v(:, vertex_i) = new_v ;
+
+                    if this.DESCEND_MODE_AM == this.m_descendMode
+                        prev_v(:,vertex_i) = current_v( :, vertex_i);
+                    end
+                end % end second order update loop
+            end % else (! isObjectiveWeightsUncertainty )
         end % end if using second order
 
         if this.m_descendMode == this.DESCEND_MODE_COORIDNATE_DESCENT 
             iteration_diff = sum(sum((prev_mu - current_mu).^2));
-            prev_mu = current_mu;
-            prev_v  = current_v;
+            prev_mu             = current_mu;
+            prev_v              = current_v;
+            prev_edges_v        = curr_edges_v;
+            prev_edges_prior_v  = curr_edges_prior_v;
         end
         % descend mode 2 - current mu already updated after finishing mu
         % update loop
         if this.m_descendMode == this.DESCEND_MODE_2 
-            prev_v  = current_v;
+            prev_v              = current_v;
+            prev_edges_v        = curr_edges_v;
+            prev_edges_prior_v  = curr_edges_prior_v;
         end
         if this.m_save_all_iterations
-            allIterations.mu( :, :, iter_i) = current_mu;
-            allIterations.v ( :, :, iter_i) = current_v;
+            allIterations.mu     ( :, :, iter_i)    = current_mu;
+            allIterations.v      ( :, :, iter_i)    = current_v;
+            allIterations.edges_v( :, :, iter_i)    = curr_edges_v;
         end
         if this.m_isCalcObjective
             this.calcObjective( current_mu, current_v );
@@ -324,15 +408,19 @@ function R = run( this )
     
     if this.m_save_all_iterations
         for iter_i=1:size(allIterations.mu,3)
-            iterationResult_mu = allIterations.mu(:,:,iter_i);
-            iterationResult_v  = allIterations.v(:,:,iter_i);
-            R.mu(:,:,iter_i) = iterationResult_mu.';
-            R.v (:,:,iter_i) = iterationResult_v.';
+            iterationResult_mu      = allIterations.mu(:,:,iter_i);
+            iterationResult_v       = allIterations.v(:,:,iter_i);
+            iterationResult_edges_v = allIterations.edges_v(:,:,iter_i);
+            R.mu      (:,:,iter_i) = iterationResult_mu.';
+            R.v       (:,:,iter_i) = iterationResult_v.';
+            R.edges_v (:,:,iter_i) = iterationResult_edges_v.';
         end
     else
-        R.v  = current_v.';
-        R.mu = current_mu.';
+        R.v               = current_v.';
+        R.mu              = current_mu.';
+        R.edges_v         = curr_edges_v.';
     end
+    R.vertexToEdgeMap = vertexToEdgeMap;
 
     toc(ticID);
 end

@@ -33,6 +33,12 @@ classdef CSSL_Result < handle
             r = sprintf('(%6.4f,%6.4f)', mu, v);
         end
         
+        %% edgeText
+        
+        function r = edgeText(this, start_vertex_idx, end_vertex_idx, iteration_i)
+            r = [];
+        end
+        
         function r = allColors(this, iteration_i)
             r = this.m_mu(:, iteration_i);
         end
