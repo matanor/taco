@@ -56,6 +56,9 @@ properties( Constant)
     OBJECTIVE_MULTIPLICATIVE = 2;
     % Objective based on uncertainty parameters per edge. sigma_{i,j}
     OBJECTIVE_WEIGHTS_UNCERTAINTY = 3;
+    % Objective based on additive factors in teh denominator for neighbouring 
+    % uncertainty parameters. (20.11.2012)    
+    OBJECTIVE_ADDITIVE = 4;
 end
 
 properties( Constant)

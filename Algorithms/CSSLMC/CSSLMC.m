@@ -29,6 +29,7 @@ function R = run( this )
     isObjectiveHarmonicMean      = (objectiveType == CSSLBase.OBJECTIVE_HARMONIC_MEAN);
     isObjectiveMultiplicative    = (objectiveType == CSSLBase.OBJECTIVE_MULTIPLICATIVE);
     isObjectiveWeightsUncertainty= (objectiveType == CSSLBase.OBJECTIVE_WEIGHTS_UNCERTAINTY);
+    isObjectiveAdditive          = (objectiveType == CSSLBase.OBJECTIVE_ADDITIVE);
     
     this.displayParams(CSSLMC.name());
 
@@ -169,6 +170,8 @@ function R = run( this )
                     K_i_j = w_i_j * ((1./single_neighbour_v) .* (1./v_i));
                 elseif isObjectiveWeightsUncertainty
                     K_i_j = w_i_j ./ single_neighbour_v;
+                elseif isObjectiveAdditive
+                    K_i_j = w_i_j * (1./(single_neighbour_v + v_i));
                 else
                     Logger.log('CSSLMC::Run. Error unknown objective type');
                 end
@@ -189,6 +192,10 @@ function R = run( this )
                 else
                     P_i = zeros(num_labels,1);
                 end
+            elseif isObjectiveAdditive
+                P_i = isLabeled * ( 1./(v_i + gamma) );
+            else
+                Logger.log('CSSLMC::Run. Error unknown objective type');
             end
             % y_i size is (num_labels X 1)
             y_i = this.m_priorY(vertex_i,:).';
