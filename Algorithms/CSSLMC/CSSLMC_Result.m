@@ -17,6 +17,7 @@ classdef CSSLMC_Result < SSLMC_Result
             clearOutput@SSLMC_Result(this);
             this.m_v        = [];
             this.m_edges_v  = [];
+            this.m_vertexToEdgeMap = [];
         end
     
         %% set_results
