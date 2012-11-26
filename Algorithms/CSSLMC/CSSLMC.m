@@ -708,7 +708,7 @@ function R = run_weights_uncertainty( this )
 
     if this.m_save_all_iterations
         allIterations.mu     = zeros( num_labels, num_vertices, num_iterations );
-        allIterations.edges_v= ones ( num_labels, num_edges,    num_iterations ) * initFactor_v;
+        allIterations.edges_v= ones ( uncertaintyValuesPerEdge, num_edges, num_iterations ) * initFactor_v;
     end
 
     this.prepareGraph();
@@ -726,7 +726,7 @@ function R = run_weights_uncertainty( this )
             Logger.log([  'converged after '   num2str(iter_i-1) ' iterations'...
                           ' iteration_diff = ' num2str(iteration_diff)]);
             if this.m_save_all_iterations
-                allIterations.mu(:,:, iter_i:end) = [];
+                allIterations.mu     (:,:, iter_i:end) = [];
                 allIterations.edges_v(:,:, iter_i:end) = [];
             end
             break;
@@ -803,12 +803,10 @@ function R = run_weights_uncertainty( this )
         Logger.log('Updating second order...');
 
         if isUsingSecondOrder      
-%             [vertex_rows, vertex_cols, weights_i_j] = find(triu(this.m_W));
             for edge_i=1:num_edges
                 if ( mod(edge_i, 1000000) == 0 )
                     Logger.log([ 'edge_i = ' num2str(edge_i)]);
                 end
-                % vertexToEdgeMap(i,j) gives the index of the edge between v_i and v_j
                 vertex_i    = edgeToVertexMap(edge_i, 1);
                 vertex_j    = edgeToVertexMap(edge_i, 2);
                 weights_i_j = edgeToVertexMap(edge_i, 3);
@@ -824,16 +822,12 @@ function R = run_weights_uncertainty( this )
             
             for prior_edge_i = 1:num_labeled    
                 labeled_vertex_i = priorEdgeToLabeledMap(prior_edge_i);
-%             for labeled_i=labeled_indices.'
                 prev_mu_i = prev_mu( :, labeled_vertex_i );
                 y_i  = this.m_priorY(labeled_vertex_i,:).';
                 R_i = (prev_mu_i - y_i).^2;
                 if 1 == uncertaintyValuesPerEdge
                     R_i = sum(R_i);
                 end
-                % labeledToPriorEdgeMap(v_i) = edge of
-                % uncertainty parameter for v_i in prev_edges_prior_v
-%                 priorEdgeIndex = labeledToPriorEdgeMap(labeled_i);
                 curr_edges_prior_v(:,prior_edge_i) = ...
                     (beta + sqrt( beta^2 + 2 * alpha / gamma * R_i)) / (2 * alpha);
             end
@@ -853,11 +847,11 @@ function R = run_weights_uncertainty( this )
         end
         if this.m_save_all_iterations
             allIterations.mu     ( :, :, iter_i)    = current_mu;
-            allIterations.edges_v( :, :, iter_i)    = curr_edges_v;
+            allIterations.edges_v( :, :, iter_i)= curr_edges_v;
         end
-        if this.m_isCalcObjective
-            this.calcObjective( current_mu, current_v );
-        end
+%         if this.m_isCalcObjective
+%             this.calcObjective( current_mu, current_v );
+%         end
     end % end loop over all iterations
     
     if this.m_save_all_iterations
@@ -865,11 +859,9 @@ function R = run_weights_uncertainty( this )
             iterationResult_mu      = allIterations.mu(:,:,iter_i);
             iterationResult_edges_v = allIterations.edges_v(:,:,iter_i);
             R.mu      (:,:,iter_i) = iterationResult_mu.';
-%             R.v       (:,:,iter_i) = iterationResult_v.';
             R.edges_v (:,:,iter_i) = iterationResult_edges_v.';
         end
     else
-%         R.v               = current_v.';
         R.mu              = current_mu.';
         R.edges_v         = curr_edges_v.';
     end
@@ -880,7 +872,7 @@ end
 
 function [labeledToPriorEdgeMap priorEdgeToLabeledMap num_labeled] ...
          = createLabeledToPriorEdgeMap(this)
-        % create a map that labeledToPriorEdgeMap(vertex_i) = edge of
+    % create a map that labeledToPriorEdgeMap(vertex_i) = edge of
     % uncertainty parameter for v_i in prev_edges_prior_v
     num_vertices = this.numVertices();
     num_labeled = sum(this.m_isLabeledVector);
@@ -940,7 +932,12 @@ function R = run( this )
     end
     if ~isfield( R, 'edges_v' )
         [vertexToEdgeMap, ~, num_edges ] = this.createVertexToEdgeMap();
-        R.edges_v = ones(1, num_edges);
+        if this.m_save_all_iterations
+            num_iterations      = this.m_num_iterations;
+            R.edges_v = ones(num_edges, 1, num_iterations);
+        else
+            R.edges_v = ones(num_edges, 1, 1);
+        end
         R.vertexToEdgeMap = vertexToEdgeMap;
     end
 

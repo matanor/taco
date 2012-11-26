@@ -65,10 +65,16 @@ classdef CSSLMC_Result < SSLMC_Result
          
         function r = edgeText(this, start_vertex, end_vertex, iteration_i)
             edgeIndex      = this.m_vertexToEdgeMap(start_vertex, end_vertex);
-            edgeConfidence.positive = this.m_edges_v(edgeIndex, this.POSITIVE, iteration_i);
-            edgeConfidence.negative = this.m_edges_v(edgeIndex, this.NEGATIVE, iteration_i);
-            r = sprintf('(%6.4f,%6.4f)\n', ...
-                edgeConfidence.positive, edgeConfidence.negative);
+            num_classes = size(this.m_edges_v, 2);
+            if num_classes > 1
+                edgeConfidence.positive = this.m_edges_v(edgeIndex, this.POSITIVE, iteration_i);
+                edgeConfidence.negative = this.m_edges_v(edgeIndex, this.NEGATIVE, iteration_i);
+                r = sprintf('(%6.4f,%6.4f)\n', ...
+                    edgeConfidence.positive, edgeConfidence.negative);
+            else
+                edgeConfidence = this.m_edges_v(edgeIndex, 1, iteration_i);
+                r = sprintf('(%6.4f)\n', edgeConfidence);
+            end                
         end
         
         %% allColors 
