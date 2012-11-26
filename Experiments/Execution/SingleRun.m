@@ -64,7 +64,13 @@ classdef SingleRun < handle
             this.m_unlabeled_num_mistakes = zeros( SingleRun.numAvailableAlgorithms(),1 );
             this.m_algorithmsCollection = AlgorithmsCollection;
             this.m_cachedResults = [];
-            this.m_isCalcPRBEP = 0;
+            if isfield(this.m_constructionParams.fileProperties, 'isCalcPRBEP')
+                this.m_isCalcPRBEP = this.m_constructionParams.fileProperties.isCalcPRBEP;
+            else
+                this.m_isCalcPRBEP = 0;
+            end
+            Logger.log(['SingleRun::contructor(). m_isCalcPRBEP = ' ...
+                         num2str(this.m_isCalcPRBEP)]);
         end
         
         %% set_fileFullPath
