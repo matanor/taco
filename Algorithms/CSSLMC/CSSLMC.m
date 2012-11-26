@@ -558,8 +558,7 @@ function R = run_multiplicative( this )
                 w_i_j = neighbours_weights(neighbour_i);
                 % K_i_j should be vector of size (num_labels X 1)
                 K_i_j = w_i_j * ( 1 ./ (single_neighbour_v .* v_i) );
-                sum_K_i_j = sum_K_i_j + ...
-                    K_i_j .* single_neighbour_mu;
+                sum_K_i_j = sum_K_i_j + K_i_j .* single_neighbour_mu;
                 Q_i = Q_i + K_i_j;
             end
             % P_i size is (num_labels X 1)
@@ -683,8 +682,12 @@ function R = run_weights_uncertainty( this )
     end
 
     % Create a mapping such that vertexToEdgeMap(i,j) gives the index of
-    % the edge between v_i and v_j, make the map symmetric.
-    [vertexToEdgeMap  num_edges] = this.createVertexToEdgeMap();
+    % the edge between v_i and v_j, the map is symmetric.
+    % Create the inverse mapping such that edgeToVertexMap(edge_i) gives
+    % the indices of the connected edges.
+    [vertexToEdgeMap edgeToVertexMap num_edges] = this.createVertexToEdgeMap();
+    vertexToEdgeMap = vertexToEdgeMap.';
+    Logger.log(['CSSLMC::run_weights_uncertainty. num_edges = ' num2str(num_edges)])
 
     if isObjectiveWeightsUncertainty
         % Size is (num_labels X num_edges )
@@ -696,11 +699,8 @@ function R = run_weights_uncertainty( this )
     prev_edges_v = ones ( uncertaintyValuesPerEdge, num_edges ) * initFactor_v;
     curr_edges_v = prev_edges_v;
     
-    % create a map that labeledToPriorEdgeMap(vertex_i) = edge of
-    % uncertainty parameter for v_i in prev_edges_prior_v
-    num_labeled = sum(this.m_isLabeledVector);
-    [labeled_indices, ~, ~] = find(this.m_isLabeledVector);
-    labeledToPriorEdgeMap = sparse(labeled_indices, ones(num_labeled,1), 1:num_labeled, num_vertices, 1);
+    [labeledToPriorEdgeMap priorEdgeToLabeledMap num_labeled] = ...
+        this.createLabeledToPriorEdgeMap();
     
     % Size is (num_labels X num_labeled_vertices)
     prev_edges_prior_v = ones(uncertaintyValuesPerEdge, num_labeled) * initFactor_v;
@@ -749,7 +749,8 @@ function R = run_weights_uncertainty( this )
             % neighbours_v: matrix size (num_labels X num_neighbours)
             % Each column is uncertainty for all neighbours, for a
             % given class. 
-            neighbouring_edges_indices = vertexToEdgeMap(vertex_i, neighbours_indices);
+            neighbouring_edges_indices = vertexToEdgeMap(neighbours_indices, vertex_i);
+            [~,~,neighbouring_edges_indices]= find(neighbouring_edges_indices);
             neighbours_v               = prev_edges_v( :, neighbouring_edges_indices );
             sum_K_i_j = zeros(num_labels, 1);
             Q_i       = zeros(num_labels, 1);
@@ -767,13 +768,16 @@ function R = run_weights_uncertainty( this )
                 Q_i = Q_i + K_i_j;
             end
             % P_i size is (num_labels X 1)
-            priorEdgeIndex = labeledToPriorEdgeMap(vertex_i);
-            if 1 ~= uncertaintyValuesPerEdge
-                P_i = isLabeled * (1/gamma) * ...
-                      prev_edges_prior_v(:,priorEdgeIndex);
+            if isLabeled
+                priorEdgeIndex = labeledToPriorEdgeMap(vertex_i);
+                if 1 ~= uncertaintyValuesPerEdge
+                    P_i = (1/gamma) * prev_edges_prior_v(:,priorEdgeIndex);
+                else
+                    P_i = (1/gamma) * prev_edges_prior_v(:,priorEdgeIndex) ...
+                                    * ones(num_labels, 1);
+                end
             else
-                P_i = isLabeled * (1/gamma) * ...
-                      prev_edges_prior_v(:,priorEdgeIndex) * ones(num_labels, 1);
+                P_i = zeros(num_labels, 1);
             end
             % y_i size is (num_labels X 1)
             y_i = this.m_priorY(vertex_i,:).';
@@ -799,32 +803,38 @@ function R = run_weights_uncertainty( this )
         Logger.log('Updating second order...');
 
         if isUsingSecondOrder      
-            [vertex_rows, vertex_cols, weights_i_j] = find(triu(this.m_W));
+%             [vertex_rows, vertex_cols, weights_i_j] = find(triu(this.m_W));
             for edge_i=1:num_edges
+                if ( mod(edge_i, 1000000) == 0 )
+                    Logger.log([ 'edge_i = ' num2str(edge_i)]);
+                end
                 % vertexToEdgeMap(i,j) gives the index of the edge between v_i and v_j
-                vertex_i = vertex_rows(edge_i);
-                vertex_j = vertex_cols(edge_i);
+                vertex_i    = edgeToVertexMap(edge_i, 1);
+                vertex_j    = edgeToVertexMap(edge_i, 2);
+                weights_i_j = edgeToVertexMap(edge_i, 3);
                 prev_mu_i = prev_mu( :, vertex_i );
                 prev_mu_j = prev_mu( :, vertex_j );
-                R_i_j = weights_i_j(edge_i) * (prev_mu_i - prev_mu_j).^2;
+                R_i_j = weights_i_j * (prev_mu_i - prev_mu_j).^2;
                 if 1 == uncertaintyValuesPerEdge
                     R_i_j = sum(R_i_j);
                 end
-                edge_update_index = vertexToEdgeMap(vertex_i,vertex_j);
-                curr_edges_v(:,edge_update_index) = ...
+                curr_edges_v(:,edge_i) = ...
                     (beta + sqrt( beta^2 + alpha * R_i_j)) / (2 * alpha);
             end
-            for labeled_i=labeled_indices.'
-                prev_mu_i = prev_mu( :, labeled_i );
-                y_i  = this.m_priorY(labeled_i,:).';
+            
+            for prior_edge_i = 1:num_labeled    
+                labeled_vertex_i = priorEdgeToLabeledMap(prior_edge_i);
+%             for labeled_i=labeled_indices.'
+                prev_mu_i = prev_mu( :, labeled_vertex_i );
+                y_i  = this.m_priorY(labeled_vertex_i,:).';
                 R_i = (prev_mu_i - y_i).^2;
                 if 1 == uncertaintyValuesPerEdge
                     R_i = sum(R_i);
                 end
                 % labeledToPriorEdgeMap(v_i) = edge of
                 % uncertainty parameter for v_i in prev_edges_prior_v
-                priorEdgeIndex = labeledToPriorEdgeMap(labeled_i);
-                curr_edges_prior_v(:,priorEdgeIndex) = ...
+%                 priorEdgeIndex = labeledToPriorEdgeMap(labeled_i);
+                curr_edges_prior_v(:,prior_edge_i) = ...
                     (beta + sqrt( beta^2 + 2 * alpha / gamma * R_i)) / (2 * alpha);
             end
         end % end if using second order
@@ -863,22 +873,40 @@ function R = run_weights_uncertainty( this )
         R.mu              = current_mu.';
         R.edges_v         = curr_edges_v.';
     end
-    R.vertexToEdgeMap = vertexToEdgeMap;
+    R.vertexToEdgeMap = vertexToEdgeMap.';
 end 
+
+%% createLabeledToPriorEdgeMap
+
+function [labeledToPriorEdgeMap priorEdgeToLabeledMap num_labeled] ...
+         = createLabeledToPriorEdgeMap(this)
+        % create a map that labeledToPriorEdgeMap(vertex_i) = edge of
+    % uncertainty parameter for v_i in prev_edges_prior_v
+    num_vertices = this.numVertices();
+    num_labeled = sum(this.m_isLabeledVector);
+    [labeled_indices, ~, ~] = find(this.m_isLabeledVector);
+    labeledToPriorEdgeMap = sparse(labeled_indices, ones(num_labeled,1), ...
+                                   1:num_labeled, num_vertices, 1);
+    priorEdgeToLabeledMap = labeled_indices;
+end
 
 %% createVertexToEdgeMap
 
-function [R num_edges] = createVertexToEdgeMap( this )
+function [vertexToEdgeMap edgeToVertexMap num_edges] = createVertexToEdgeMap( this )
     % Note: W is assumed symmetric so only upper triangular part is
     % considered
-    [vertex_rows, vertex_cols, ~] = find(triu(this.m_W));
+    [vertex_rows, vertex_cols, edgeWeights] = find(triu(this.m_W));
     num_edges = length(vertex_rows);
 
     % Create a mapping such that vertexToEdgeMap(i,j) gives the index of
     % the edge between v_i and v_j, make the map symmetric.
-    R = sparse([vertex_rows vertex_cols], ...
+    vertexToEdgeMap = sparse([vertex_rows vertex_cols], ...
                [vertex_cols vertex_rows], ...
                [1:num_edges 1:num_edges]);
+           
+    % Create the inverse mapping such that edgeToVertexMap(edge_i) gives
+    % the indices of the connected edges.
+    edgeToVertexMap = [vertex_rows vertex_cols edgeWeights];
 end
 
 %% run
