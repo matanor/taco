@@ -64,6 +64,9 @@ properties( Constant)
     % Objective based on uncertainty parameters per edge. sigma_{i,j},
     % but only a single uncertainty per edge.
     OBJECTIVE_WEIGHTS_UNCERTAINTY_SINGLE = 5;
+    % Objective based on harmonic mean between neighbouring uncertainty 
+    % parameters, but only a single uncertainty value per node.
+    OBJECTIVE_HARMONIC_MEAN_SINGLE = 6;
 end
 
 properties( Constant)

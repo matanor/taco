@@ -11,7 +11,12 @@ function R = run_TACO( this )
     gamma               = this.m_labeledConfidence;
     isUsingL2Regularization = this.m_isUsingL2Regularization;
     isUsingSecondOrder  = this.m_isUsingSecondOrder;
+    objectiveType       = this.m_objectiveType;
     
+    isObjectiveHarmonicMean       = (objectiveType == CSSLBase.OBJECTIVE_HARMONIC_MEAN);
+    isObjectiveHarmonicMeanSingle = (objectiveType == CSSLBase.OBJECTIVE_HARMONIC_MEAN_SINGLE );
+    assert (isObjectiveHarmonicMean || isObjectiveHarmonicMeanSingle);
+
     num_vertices = this.numVertices();
     num_labels   = this.numLabels();
 
@@ -24,12 +29,20 @@ function R = run_TACO( this )
         initFactor_v = 1;
     end
     
-    prev_v      =  ones ( num_labels, num_vertices ) * initFactor_v;
-    current_v   =  ones ( num_labels, num_vertices ) * initFactor_v;
+    if isObjectiveHarmonicMean
+        % Size is (num_labels X num_edges )
+        uncertaintyValuesPerNode = num_labels;
+    else
+        % Size is (1 X num_edges )
+        uncertaintyValuesPerNode = 1;
+    end
+    
+    prev_v      =  ones ( uncertaintyValuesPerNode, num_vertices ) * initFactor_v;
+    current_v   =  ones ( uncertaintyValuesPerNode, num_vertices ) * initFactor_v;
 
     if this.m_save_all_iterations
-        allIterations.mu     = zeros( num_labels, num_vertices, num_iterations );
-        allIterations.v      = ones ( num_labels, num_vertices, num_iterations ) * initFactor_v;
+        allIterations.mu     = zeros( num_labels,               num_vertices, num_iterations );
+        allIterations.v      = ones ( uncertaintyValuesPerNode, num_vertices, num_iterations ) * initFactor_v;
     end
 
     this.prepareGraph();
@@ -83,12 +96,20 @@ function R = run_TACO( this )
                 single_neighbour_v  = neighbours_v (:,neighbour_i);
                 w_i_j = neighbours_weights(neighbour_i);
                 % K_i_j should be vector of size (num_labels X 1)
-                K_i_j = w_i_j * ((1./single_neighbour_v) + (1./v_i));
+                if 1 ~= uncertaintyValuesPerNode
+                    K_i_j = w_i_j * ((1./single_neighbour_v) + (1./v_i));
+                else
+                    K_i_j = w_i_j * ((1/single_neighbour_v) + (1/v_i)) * ones(num_labels, 1);
+                end
                 sum_K_i_j = sum_K_i_j + K_i_j .* single_neighbour_mu;
                 Q_i = Q_i + K_i_j;
             end
             % P_i size is (num_labels X 1)
-            P_i = isLabeled * ( 1./v_i + 1 / gamma );
+            if 1 ~= uncertaintyValuesPerNode
+                P_i = isLabeled * ( 1./v_i + 1 / gamma );
+            else
+                P_i = isLabeled * ( 1/v_i + 1 / gamma ) * ones(num_labels, 1);
+            end
             
             % y_i size is (num_labels X 1)
             y_i = this.m_priorY(vertex_i,:).';
@@ -134,6 +155,9 @@ function R = run_TACO( this )
                 end
                 R_i = 0.5 * sum(neighboursSquaredDiff,2) + ...
                       0.5 * isLabeled * ((mu_i - y_i).^2);
+                if 1 == uncertaintyValuesPerNode
+                    R_i = sum(R_i); % sum over all classes
+                end
 
                 new_v = (beta + sqrt( beta^2 + 4 * alpha * R_i))...
                         / (2 * alpha);
@@ -915,7 +939,8 @@ function R = run( this )
     this.displayParams(CSSLMC.name());
     
     switch this.m_objectiveType
-        case CSSLBase.OBJECTIVE_HARMONIC_MEAN
+        case {CSSLBase.OBJECTIVE_HARMONIC_MEAN, ...
+              CSSLBase.OBJECTIVE_HARMONIC_MEAN_SINGLE}
             R = this.run_TACO();
         case CSSLBase.OBJECTIVE_MULTIPLICATIVE
             R = this.run_multiplicative();

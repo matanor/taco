@@ -53,12 +53,19 @@ classdef CSSLMC_Result < SSLMC_Result
         
         function r = asText( this, vertex_i, iteration_i)
             mu.positive = this.m_Y( vertex_i, this.POSITIVE, iteration_i );
-            v.positive  = this.m_v( vertex_i, this.POSITIVE, iteration_i );
             mu.negative = this.m_Y( vertex_i, this.NEGATIVE, iteration_i );
-            v.negative  = this.m_v( vertex_i, this.NEGATIVE, iteration_i );
+            
+            num_uncertainty_values_per_node = size(this.m_v, 2);
+            if num_uncertainty_values_per_node > 1
+                v.positive  = this.m_v( vertex_i, this.POSITIVE, iteration_i );
+                v.negative  = this.m_v( vertex_i, this.NEGATIVE, iteration_i );
+            else
+                v.positive  = this.m_v( vertex_i, 1, iteration_i );
+                v.negative  = v.positive;
+            end
             
             r = sprintf('(%6.4f,%6.4f)\n(%6.4f,%6.4f)', ...
-                mu.positive, v.positive, mu.negative, v.negative);
+                    mu.positive, v.positive, mu.negative, v.negative);
         end
         
         %% edgeText
