@@ -95,7 +95,10 @@ methods (Access = public)
             tfidf = [];
         end
         
-        webkb_constructed    = [ rootDir 'webkb/data/Rapid_Miner_Result/webkb_constructed.mat'];
+        webkb_constructed.development    = [ rootDir 'webkb/data/Rapid_Miner_Result/webkb_constructed.mat'];
+        webkb_constructed.test = [];
+        webkb_constructed.transductionSetFileFormat = [];
+        
         webkb_amar           = [ rootDir 'webkb/data/from_amar/webkb_amar.mat'];
         webkb_html           = [ rootDir 'webkb/data/With_Html/webkb_with_html.mat'];
         sentiment_5k         = [ rootDir 'sentiment/data/from_yoav/sentiment_5k.mat'];
@@ -173,9 +176,9 @@ methods (Access = public)
                                      isNumeric, fileProperties );
                                  
         if (optimize)
-%             kOptimizationRange = [100 500 1000 2000];
-            kOptimizationRange = [10];
-            this = this.createNumericParameter(  'K', kOptimizationRange );
+            kOptimizationRange.text = [100 500 1000 2000];
+            kOptimizationRange.speech = [10];
+            this = this.createNumericParameter(  'K', kOptimizationRange.text );
         else
             this = this.createNumericParameter(  'K', [1000] );
         end
@@ -188,15 +191,17 @@ methods (Access = public)
         %beta.range = [10^(-5), 10^(-4), 0.001, 0.01, 1, 10^2, 10^4 ];
         %labeledConfidence.range = [0.01,0.1];
         if (optimize)
-            alphaOptimizationRange = [1e-4 1e-2 1 1e2 1e4 ];
-            betaOptimizationRange  = [1e-4 1e-2 1 1e2 ];
-%            zetaOptimizationRange  = [1e-4 1e-2 0 1 5 10 100];
+            alphaOptimizationRange.speech = [1e-4 1e-2 1 1e2 1e4 ];
+            alphaOptimizationRange.text   = [1e-8 1e-4 1e-2 1 10 100 ];
+            betaOptimizationRange.speech  = [1e-4 1e-2 1 1e2 ];
+            betaOptimizationRange.text  = [1e-8 1e-4 1e-2 1 10 100 ];
             zetaOptimizationRange  = [0];
-            gammaOptimizationRange = [1 1e2];
+            gammaOptimizationRange.speech = [1 100];
+            gammaOptimizationRange.text = [1 2 5];
 
-            this = this.createNumericParameter( 'alpha', alphaOptimizationRange );
-            this = this.createNumericParameter( 'beta',  betaOptimizationRange );
-            this = this.createNumericParameter( 'labeledConfidence', gammaOptimizationRange );
+            this = this.createNumericParameter( 'alpha',                alphaOptimizationRange.text );
+            this = this.createNumericParameter( 'beta',                 betaOptimizationRange.text );
+            this = this.createNumericParameter( 'labeledConfidence',    gammaOptimizationRange.text );
             this = this.createNumericParameter( 'zeta',  zetaOptimizationRange );
         else
             this = this.createNumericParameter( 'alpha', [1] );
@@ -221,10 +226,10 @@ methods (Access = public)
         
         if isTesting
             this = this.createNumericParameter( 'structuredTermType',  ...
-                [CSSLBase.STRUCTURED_TRANSITION_MATRIX] );
+                [CSSLBase.NO_STRUCTURED_TERM] );
         else
             this = this.createNumericParameter( 'structuredTermType',  ...
-                [CSSLBase.STRUCTURED_TRANSITION_MATRIX] );
+                [CSSLBase.NO_STRUCTURED_TERM] );
         end
         
         if isTesting
@@ -241,7 +246,7 @@ methods (Access = public)
         this.m_defaultParamsCSSL.K = 1000;
         this.m_defaultParamsCSSL.alpha = 1;
         this.m_defaultParamsCSSL.beta = 1;
-        this.m_defaultParamsCSSL.zeta = 1;
+        this.m_defaultParamsCSSL.zeta = 0;
         this.m_defaultParamsCSSL.labeledConfidence = 1;
         
         this = this.createNumericParameter( 'mu1', [1] );
