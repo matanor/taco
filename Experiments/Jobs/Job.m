@@ -62,7 +62,9 @@ methods (Access=private)
         Logger.log(['checking log file ' FileHelper.fileName(this.logFile)]);
         logFileInfo         = dir(this.logFile);
         if (isempty(logFileInfo))
-            Logger.log(['Log file '  FileHelper.fileName(this.logFile) 'does not exist yet']);
+            Logger.log(['Log file '  FileHelper.fileName(this.logFile) 'does not exist yet.' ...
+                         'idleCount = ' num2str(this.idleCount)]);
+            this.idleCount = this.idleCount + 1;
             R = Job.JOB_STATUS_IDLE;
             return;
         end
