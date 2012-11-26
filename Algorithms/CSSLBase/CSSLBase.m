@@ -17,6 +17,7 @@ classdef CSSLBase < GraphTrunsductionBase
         m_structuredTermType;
         m_isCalcObjective;
         m_objectiveType;
+        m_diffEpsilon;
     end
     
 properties( Constant)
@@ -54,11 +55,15 @@ properties( Constant)
     % Objective based on multiplicative factors for neighbouring 
     % uncertainty parameters. (20.11.2012)
     OBJECTIVE_MULTIPLICATIVE = 2;
-    % Objective based on uncertainty parameters per edge. sigma_{i,j}
+    % Objective based on uncertainty parameters per edge. 
+    % a vector sigma_{i,j} with uncertainty values per class
     OBJECTIVE_WEIGHTS_UNCERTAINTY = 3;
-    % Objective based on additive factors in teh denominator for neighbouring 
+    % Objective based on additive factors in the denominator for neighbouring 
     % uncertainty parameters. (20.11.2012)    
     OBJECTIVE_ADDITIVE = 4;
+    % Objective based on uncertainty parameters per edge. sigma_{i,j},
+    % but only a single uncertainty per edge.
+    OBJECTIVE_WEIGHTS_UNCERTAINTY_SINGLE = 5;
 end
 
 properties( Constant)
@@ -79,6 +84,7 @@ methods (Access=public)
         this.m_objectiveType        = CSSLBase.OBJECTIVE_HARMONIC_MEAN;
         this.m_isCalcObjective      = 0;
         this.m_structuredInfo.transitionMatrix = [];
+        this.m_diffEpsilon          = 0.0001; %0.0000001; 
     end
     
     %% setTransitionMatrix

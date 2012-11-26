@@ -2,8 +2,889 @@ classdef CSSLMC < CSSLBase
 
 methods (Access=public)
     
-%% run
+%% run_TACO
     
+function R = run_TACO( this )
+    alpha               = this.m_alpha;
+    beta                = this.m_beta;
+    num_iterations      = this.m_num_iterations;
+    gamma               = this.m_labeledConfidence;
+    isUsingL2Regularization = this.m_isUsingL2Regularization;
+    isUsingSecondOrder  = this.m_isUsingSecondOrder;
+    
+    num_vertices = this.numVertices();
+    num_labels   = this.numLabels();
+
+    prev_mu     =  zeros( num_labels, num_vertices );
+    current_mu  =  zeros( num_labels, num_vertices );
+    
+    if 0 == isUsingSecondOrder
+        initFactor_v = (beta / alpha);
+    else
+        initFactor_v = 1;
+    end
+    
+    prev_v      =  ones ( num_labels, num_vertices ) * initFactor_v;
+    current_v   =  ones ( num_labels, num_vertices ) * initFactor_v;
+
+    if this.m_save_all_iterations
+        allIterations.mu     = zeros( num_labels, num_vertices, num_iterations );
+        allIterations.v      = ones ( num_labels, num_vertices, num_iterations ) * initFactor_v;
+    end
+
+    this.prepareGraph();
+    
+    iteration_diff = Inf;
+    diff_epsilon = this.m_diffEpsilon; 
+
+    %if this.DESCEND_MODE_AM == this.m_descendMode
+     %   vertexUpdateOrder = randperm(num_vertices);
+    %else
+        vertexUpdateOrder = 1:num_vertices;
+    %end
+    
+    % note iteration index starts from 2
+    for iter_i = 2:num_iterations
+        Logger.log([ '#Iteration = ' num2str(iter_i)...
+                     ' iteration_diff = ' num2str(iteration_diff)]);
+        if iteration_diff < diff_epsilon
+            Logger.log([  'converged after '   num2str(iter_i-1) ' iterations'...
+                          ' iteration_diff = ' num2str(iteration_diff)]);
+            if this.m_save_all_iterations
+                allIterations.mu(:,:, iter_i:end) = [];
+                allIterations.v(:,:, iter_i:end) = [];
+            end
+            break;
+        end
+        iteration_diff = 0;
+        
+        Logger.log('Updating first order...');
+        
+        for vertex_i=vertexUpdateOrder
+            if ( mod(vertex_i, 100000) == 0 )
+                Logger.log([ 'vertex_i = ' num2str(vertex_i)]);
+            end
+
+            col = this.m_W(:, vertex_i);
+            [neighbours_indices, ~, neighbours_weights] = find(col);
+    
+            isLabeled = this.m_isLabeledVector(vertex_i);
+            neighbours_mu = prev_mu( :, neighbours_indices );
+            numNeighbours = length(neighbours_indices);
+            % neighbours_v: matrix size (num_labels X num_neighbours)
+            % Each column is uncertainty for all neighbours, for a
+            % given class. 
+            neighbours_v  = prev_v ( :, neighbours_indices );
+            v_i           = prev_v ( :, vertex_i);
+            sum_K_i_j = zeros(num_labels, 1);
+            Q_i       = zeros(num_labels, 1);
+            for neighbour_i=1:numNeighbours
+                single_neighbour_mu = neighbours_mu(:,neighbour_i);
+                single_neighbour_v  = neighbours_v (:,neighbour_i);
+                w_i_j = neighbours_weights(neighbour_i);
+                % K_i_j should be vector of size (num_labels X 1)
+                K_i_j = w_i_j * ((1./single_neighbour_v) + (1./v_i));
+                sum_K_i_j = sum_K_i_j + K_i_j .* single_neighbour_mu;
+                Q_i = Q_i + K_i_j;
+            end
+            % P_i size is (num_labels X 1)
+            P_i = isLabeled * ( 1./v_i + 1 / gamma );
+            
+            % y_i size is (num_labels X 1)
+            y_i = this.m_priorY(vertex_i,:).';
+            numerator   = sum_K_i_j + (P_i .* y_i); % .* because P_i is only main diagonal
+            denominator = Q_i + P_i + isUsingL2Regularization * 1;
+            
+            new_mu = numerator .\ denominator ;
+            current_mu(:, vertex_i) = new_mu ;
+            
+            if this.DESCEND_MODE_AM == this.m_descendMode
+                % for true AM
+                iteration_diff = iteration_diff + ...
+                                 sum((current_mu(:, vertex_i) - prev_mu(:,vertex_i)).^2);
+                prev_mu(:,vertex_i) = current_mu( :, vertex_i);
+            end
+        end % end first order update loop
+
+        if this.m_descendMode == this.DESCEND_MODE_2 
+            iteration_diff = sum(sum((prev_mu - current_mu).^2));
+            prev_mu = current_mu ;
+        end
+        
+        Logger.log('Updating second order...');
+
+        if isUsingSecondOrder
+            for vertex_i=1:num_vertices
+                if ( mod(vertex_i, 100000) == 0 )
+                    Logger.log([ 'vertex_i = ' num2str(vertex_i)]);
+                end
+                isLabeled = this.m_isLabeledVector(vertex_i);
+                col = this.m_W(:, vertex_i);
+                [neighbours_indices, ~, neighbours_weights] = find(col);
+
+                y_i  = this.m_priorY(vertex_i,:).';
+                mu_i = prev_mu(:,vertex_i);
+                numNeighbours = length( neighbours_indices );
+                neighbours_mu = prev_mu( :, neighbours_indices );
+                neighbours_v  = prev_v ( :, neighbours_indices );
+                neighboursSquaredDiff = zeros(num_labels, numNeighbours);
+                for neighbour_i=1:numNeighbours
+                    if isObjectiveHarmonicMean
+                        neighboursSquaredDiff(:,neighbour_i) = ...
+                            neighbours_weights(neighbour_i) * ...
+                                ((mu_i - neighbours_mu(:,neighbour_i)).^2);
+                    else
+                        neighboursSquaredDiff(:,neighbour_i) =         ...
+                                neighbours_weights(neighbour_i) *      ...
+                                (1./neighbours_v(:,neighbour_i)) .*     ...
+                                ((mu_i - neighbours_mu(:,neighbour_i)).^2);
+                    end
+                end
+                R_i = 0.5 * sum(neighboursSquaredDiff,2) + ...
+                      0.5 * isLabeled * ((mu_i - y_i).^2);
+
+                new_v = (beta + sqrt( beta^2 + 4 * alpha * R_i))...
+                        / (2 * alpha);
+                current_v(:, vertex_i) = new_v ;
+
+                if this.DESCEND_MODE_AM == this.m_descendMode
+                    prev_v(:,vertex_i) = current_v( :, vertex_i);
+                end
+            end % end second order update loop
+        end % end if using second order
+
+        if this.m_descendMode == this.DESCEND_MODE_COORIDNATE_DESCENT 
+            iteration_diff = sum(sum((prev_mu - current_mu).^2));
+            prev_mu             = current_mu;
+            prev_v              = current_v;
+        end
+        % descend mode 2 - current mu already updated after finishing mu
+        % update loop
+        if this.m_descendMode == this.DESCEND_MODE_2 
+            prev_v              = current_v;
+        end
+        if this.m_save_all_iterations
+            allIterations.mu     ( :, :, iter_i)    = current_mu;
+            allIterations.v      ( :, :, iter_i)    = current_v;
+        end
+        if this.m_isCalcObjective
+            this.calcObjective( current_mu, current_v );
+        end
+    end % end loop over all iterations
+    
+    if this.m_save_all_iterations
+        for iter_i=1:size(allIterations.mu,3)
+            iterationResult_mu      = allIterations.mu(:,:,iter_i);
+            iterationResult_v       = allIterations.v(:,:,iter_i);
+            R.mu      (:,:,iter_i) = iterationResult_mu.';
+            R.v       (:,:,iter_i) = iterationResult_v.';
+        end
+    else
+        R.v               = current_v.';
+        R.mu              = current_mu.';
+    end
+
+    toc(ticID);
+end
+
+%% run_structured
+
+function R = run_structured( this )
+    alpha               = this.m_alpha;
+    beta                = this.m_beta;
+    zeta                = this.m_zeta;
+    num_iterations      = this.m_num_iterations;
+    gamma               = this.m_labeledConfidence;
+    isUsingL2Regularization = this.m_isUsingL2Regularization;
+    isUsingSecondOrder  = this.m_isUsingSecondOrder;
+    
+    % save flags in local boolean variables - for performance (this is stupid but fast)
+    isStructuresTransitionMatrix = (this.m_structuredTermType == CSSLBase.STRUCTURED_TRANSITION_MATRIX);
+    isStrucutredLabelSimilarity  = (this.m_structuredTermType == CSSLBase.STRUCTURED_LABELS_SIMILARITY);
+    isStructuredAnyKind          = isStrucutredLabelSimilarity || isStructuresTransitionMatrix ;
+    assert( isStructuredAnyKind == 1);
+    
+    num_vertices = this.numVertices();
+    num_labels   = this.numLabels();
+
+    prev_mu     =  zeros( num_labels, num_vertices );
+    current_mu  =  zeros( num_labels, num_vertices );
+    
+    if 0 == isUsingSecondOrder
+        initFactor_v = (beta / alpha);
+    else
+        initFactor_v = 1;
+    end
+    
+    prev_v      =  ones ( num_labels, num_vertices ) * initFactor_v;
+    current_v   =  ones ( num_labels, num_vertices ) * initFactor_v;
+
+    if this.m_save_all_iterations
+        allIterations.mu     = zeros( num_labels, num_vertices, num_iterations );
+        allIterations.v      = ones ( num_labels, num_vertices, num_iterations ) * initFactor_v;
+    end
+
+    this.prepareGraph();
+    
+    iteration_diff = Inf;
+%     diff_epsilon = 0.0001;
+    diff_epsilon = this.m_diffEpsilon;
+
+    vertexUpdateOrder = 1:num_vertices;
+    
+    A = this.transitionMatrix();
+    column_sum = sum(A,1);
+    rows_sum = sum(A,2);
+    if max(abs(column_sum - 1)) < 10^-8
+        Logger.log('CSSLMC::run. Transition matrix column sum to 1. Transposing...');    
+        A = A.';
+    end
+    
+    if max(abs(rows_sum - 1)) < 10^-8
+        Logger.log('CSSLMC::run. Transition matrix rows sum to 1.');    
+    end
+    % pre compute all you can
+    labelSimilarityMatrix = A;
+    zeta_times_labelSimilarityMatrix = zeta * labelSimilarityMatrix ;
+    labelSimilarityMatrix_transposed = labelSimilarityMatrix.';
+    zeta_times_labelSimilarityMatrix_transposed = zeta * labelSimilarityMatrix_transposed;
+    zeta_times_A_tran = zeta * A.';
+    
+    % note iteration index starts from 2
+    for iter_i = 2:num_iterations
+        Logger.log([ '#Iteration = ' num2str(iter_i)...
+                     ' iteration_diff = ' num2str(iteration_diff)]);
+        if iteration_diff < diff_epsilon
+            Logger.log([  'converged after '   num2str(iter_i-1) ' iterations'...
+                          ' iteration_diff = ' num2str(iteration_diff)]);
+            if this.m_save_all_iterations
+                allIterations.mu(:,:, iter_i:end) = [];
+                allIterations.v(:,:, iter_i:end) = [];
+            end
+            break;
+        end
+        iteration_diff = 0;
+        
+        Logger.log('Updating first order...');
+        
+        for vertex_i=vertexUpdateOrder
+            if ( mod(vertex_i, 100000) == 0 )
+                Logger.log([ 'vertex_i = ' num2str(vertex_i)]);
+            end
+
+            col = this.m_W(:, vertex_i);
+            [neighbours_indices, ~, neighbours_weights] = find(col);
+    
+            isLabeled = this.m_isLabeledVector(vertex_i);
+            neighbours_mu = prev_mu( :, neighbours_indices );
+            numNeighbours = length(neighbours_indices);
+            % neighbours_v: matrix size (num_labels X num_neighbours)
+            % Each column is uncertainty for all neighbours, for a
+            % given class. 
+            neighbours_v  = prev_v ( :, neighbours_indices );
+            v_i           = prev_v ( :, vertex_i);
+            sum_K_i_j = zeros(num_labels, 1);
+            Q_i       = zeros(num_labels, 1);
+            for neighbour_i=1:numNeighbours
+                single_neighbour_mu = neighbours_mu(:,neighbour_i);
+                single_neighbour_v  = neighbours_v (:,neighbour_i);
+                w_i_j = neighbours_weights(neighbour_i);
+                
+                % K_i_j should be vector of size (num_labels X 1)
+                K_i_j = w_i_j * ((1./single_neighbour_v) + (1./v_i));
+                sum_K_i_j = sum_K_i_j + K_i_j .* single_neighbour_mu;
+                Q_i = Q_i + K_i_j;
+            end
+            % P_i size is (num_labels X 1)
+            P_i = isLabeled * ( 1./v_i + 1 / gamma );
+            % y_i size is (num_labels X 1)
+            y_i = this.m_priorY(vertex_i,:).';
+            numerator   = sum_K_i_j + (P_i .* y_i); % .* because P_i is only main diagonal
+            denominator = diag(Q_i + P_i + isUsingL2Regularization * 1);
+            
+            if isStructuresTransitionMatrix
+                structuredPreviousVertex = this.m_structuredInfo.previous(vertex_i);
+                if this.STRUCTURED_NO_VERTEX ~= structuredPreviousVertex
+                    structuredPrev_mu = prev_mu( :, structuredPreviousVertex );
+                    structuredPrev_v  = prev_v ( :, structuredPreviousVertex);
+                    G_i = 1./v_i + 1./structuredPrev_v;
+                    denominator  = denominator + zeta * diag(G_i);
+                    numerator    = numerator   + ...
+                                   zeta * (G_i .* (A * structuredPrev_mu));
+                end
+
+                structuredNextVertex     = this.m_structuredInfo.next(vertex_i);
+                if this.STRUCTURED_NO_VERTEX ~= structuredNextVertex;
+                    structuredNext_mu = prev_mu( :, structuredNextVertex);
+                    structuredNext_v  = prev_v ( :, structuredNextVertex);
+                    G_i_plus1 = 1./v_i + 1./structuredNext_v;
+                    % This is what repmat does - only without all the time
+                    % wasting if's
+                    G_i_plus1_repmat = G_i_plus1(:, ones(num_labels, 1));
+                    denominator  = denominator + ...
+                                   zeta_times_A_tran * ( G_i_plus1_repmat .* A );
+                    numerator    = numerator   + ...
+                                   zeta_times_A_tran * (G_i_plus1 .* structuredNext_mu);
+                end
+            end
+            
+            if isStrucutredLabelSimilarity
+                structuredPreviousVertex = this.m_structuredInfo.previous(vertex_i);
+                if this.STRUCTURED_NO_VERTEX ~= structuredPreviousVertex
+                    structuredPrev_mu = prev_mu( :, structuredPreviousVertex );
+                    structuredPrev_v  = prev_v ( :, structuredPreviousVertex);
+                    % This will create a matrix with element r,s equals to
+                    % v_{i,r} + v_{i-1,s}
+                    structuredPrev_v = structuredPrev_v.'; % make row vector
+                    prev_uncertainty_matrix = ...
+                        structuredPrev_v(ones(1, num_labels),:) + v_i(:, ones(num_labels, 1));
+                    % note the transpose on the label similarity matrix
+                    prev_weights_matrix = zeta_times_labelSimilarityMatrix_transposed .* prev_uncertainty_matrix;
+                    
+                    numerator = numerator + prev_weights_matrix * structuredPrev_mu;
+                    denominator = denominator + diag(sum(prev_weights_matrix,2));    
+                end
+                
+                structuredNextVertex     = this.m_structuredInfo.next(vertex_i);
+                if this.STRUCTURED_NO_VERTEX ~= structuredNextVertex;
+                    structuredNext_mu = prev_mu( :, structuredNextVertex);
+                    structuredNext_v  = prev_v ( :, structuredNextVertex).'; % make row vector
+                    % This will create a matrix with element r,s equals to
+                    % v_{i,r} + v_{i+1,s}
+                    next_uncertainty_matrix = ...
+                        structuredNext_v(ones(1, num_labels),:) + v_i(:, ones(num_labels, 1));
+                    % note NO transpose on the label similarity matrix
+                    next_weights_matrix = zeta_times_labelSimilarityMatrix .* next_uncertainty_matrix;
+                    
+                    numerator = numerator + ...
+                        next_weights_matrix * structuredNext_mu;
+                    denominator = denominator + diag(sum(next_weights_matrix,2));
+                end
+            end
+
+            if ~isempty(find(numerator,1))
+                new_mu = denominator \ numerator;
+            else
+                new_mu = zeros(1,num_labels);
+            end
+            current_mu(:, vertex_i) = new_mu ;
+            
+            if this.DESCEND_MODE_AM == this.m_descendMode
+                % for true AM
+                iteration_diff = iteration_diff + ...
+                                 sum((current_mu(:, vertex_i) - prev_mu(:,vertex_i)).^2);
+                prev_mu(:,vertex_i) = current_mu( :, vertex_i);
+            end
+        end % end first order update loop
+
+        if this.m_descendMode == this.DESCEND_MODE_2 
+            iteration_diff = sum(sum((prev_mu - current_mu).^2));
+            prev_mu = current_mu ;
+        end
+        
+        Logger.log('Updating second order...');
+
+        if isUsingSecondOrder
+            for vertex_i=1:num_vertices
+                if ( mod(vertex_i, 100000) == 0 )
+                    Logger.log([ 'vertex_i = ' num2str(vertex_i)]);
+                end
+                isLabeled = this.m_isLabeledVector(vertex_i);
+                col = this.m_W(:, vertex_i);
+                [neighbours_indices, ~, neighbours_weights] = find(col);
+
+                y_i  = this.m_priorY(vertex_i,:).';
+                mu_i = prev_mu(:,vertex_i);
+                numNeighbours = length( neighbours_indices );
+                neighbours_mu = prev_mu( :, neighbours_indices );
+                neighboursSquaredDiff = zeros(num_labels, numNeighbours);
+                for neighbour_i=1:numNeighbours
+                    neighboursSquaredDiff(:,neighbour_i) = ...
+                        neighbours_weights(neighbour_i) * ...
+                        ((mu_i - neighbours_mu(:,neighbour_i)).^2);
+                end
+
+                R_i = 0.5 * sum(neighboursSquaredDiff,2) + ...
+                      0.5 * isLabeled *  ((mu_i - y_i).^2);
+
+                if isStructuredAnyKind
+                    structured.previousVertex = this.m_structuredInfo.previous(vertex_i);
+                    structured.nextVertex     = this.m_structuredInfo.next(vertex_i);
+                end
+
+                if isStructuresTransitionMatrix
+                    if this.STRUCTURED_NO_VERTEX ~= structured.previousVertex
+                        structured.prev_mu = prev_mu( :, structured.previousVertex );
+                        R_i = R_i + 0.5 * zeta * (( mu_i - A * structured.prev_mu ).^2);
+                    end
+
+                    if this.STRUCTURED_NO_VERTEX ~= structured.nextVertex;
+                        structured.next_mu = prev_mu( :, structured.nextVertex );
+                        R_i = R_i + 0.5 * zeta * (( structured.next_mu - A * mu_i ).^2);
+                    end
+                end
+
+                if isStrucutredLabelSimilarity
+                    if this.STRUCTURED_NO_VERTEX ~= structured.previousVertex
+                        structured.prev_mu = prev_mu( :, structured.previousVertex ).'; % make row vector
+                        prev_difference_matrix = ...
+                            structured.prev_mu(ones(1, num_labels),:) - mu_i(:, ones(num_labels, 1));
+                        % note the transpose on the label similarity matrix
+                        prev_weighted_difference = labelSimilarityMatrix_transposed .* (prev_difference_matrix.^2);
+                        R_i = R_i + 0.5 * zeta * sum(prev_weighted_difference,2);
+                    end
+
+                    if this.STRUCTURED_NO_VERTEX ~= structured.nextVertex;
+                        structured.next_mu = prev_mu( :, structured.nextVertex ).'; % make row vector
+                        next_difference_matrix = ...
+                            structured.next_mu(ones(1, num_labels),:) - mu_i(:, ones(num_labels, 1));
+                        next_weighted_difference = labelSimilarityMatrix .* (next_difference_matrix.^2);
+                        R_i = R_i + 0.5 * zeta * sum(next_weighted_difference,2);
+                    end
+                end
+
+                new_v = (beta + sqrt( beta^2 + 4 * alpha * R_i))...
+                        / (2 * alpha);
+                current_v(:, vertex_i) = new_v ;
+
+                if this.DESCEND_MODE_AM == this.m_descendMode
+                    prev_v(:,vertex_i) = current_v( :, vertex_i);
+                end
+            end % end second order update loop
+        end % end if using second order
+
+        if this.m_descendMode == this.DESCEND_MODE_COORIDNATE_DESCENT 
+            iteration_diff = sum(sum((prev_mu - current_mu).^2));
+            prev_mu             = current_mu;
+            prev_v              = current_v;
+        end
+        % descend mode 2 - current mu already updated after finishing mu
+        % update loop
+        if this.m_descendMode == this.DESCEND_MODE_2 
+            prev_v              = current_v;
+        end
+        if this.m_save_all_iterations
+            allIterations.mu     ( :, :, iter_i)    = current_mu;
+            allIterations.v      ( :, :, iter_i)    = current_v;
+        end
+        if this.m_isCalcObjective
+            this.calcObjective( current_mu, current_v );
+        end
+    end % end loop over all iterations
+    
+    if this.m_save_all_iterations
+        for iter_i=1:size(allIterations.mu,3)
+            iterationResult_mu      = allIterations.mu(:,:,iter_i);
+            iterationResult_v       = allIterations.v(:,:,iter_i);
+            R.mu      (:,:,iter_i) = iterationResult_mu.';
+            R.v       (:,:,iter_i) = iterationResult_v.';
+        end
+    else
+        R.v               = current_v.';
+        R.mu              = current_mu.';
+    end
+
+    toc(ticID);
+end
+
+%% run_multiplicative (reformulation 2)
+
+function R = run_multiplicative( this )
+    alpha               = this.m_alpha;
+    beta                = this.m_beta;
+    num_iterations      = this.m_num_iterations;
+    gamma               = this.m_labeledConfidence;
+    isUsingL2Regularization = this.m_isUsingL2Regularization;
+    isUsingSecondOrder  = this.m_isUsingSecondOrder;
+    
+    num_vertices = this.numVertices();
+    num_labels   = this.numLabels();
+
+    prev_mu     =  zeros( num_labels, num_vertices );
+    current_mu  =  zeros( num_labels, num_vertices );
+    
+    if 0 == isUsingSecondOrder
+        initFactor_v = (beta / alpha);
+    else
+        initFactor_v = 1;
+    end
+    
+    prev_v      =  ones ( num_labels, num_vertices ) * initFactor_v;
+    current_v   =  ones ( num_labels, num_vertices ) * initFactor_v;
+
+    if this.m_save_all_iterations
+        allIterations.mu     = zeros( num_labels, num_vertices, num_iterations );
+        allIterations.v      = ones ( num_labels, num_vertices, num_iterations ) * initFactor_v;
+    end
+
+    this.prepareGraph();
+    
+    iteration_diff = Inf;
+%     diff_epsilon = 0.0001;
+    diff_epsilon = this.m_diffEpsilon;
+
+    vertexUpdateOrder = 1:num_vertices;
+   
+    % note iteration index starts from 2
+    for iter_i = 2:num_iterations
+        Logger.log([ '#Iteration = ' num2str(iter_i)...
+                     ' iteration_diff = ' num2str(iteration_diff)]);
+        if iteration_diff < diff_epsilon
+            Logger.log([  'converged after '   num2str(iter_i-1) ' iterations'...
+                          ' iteration_diff = ' num2str(iteration_diff)]);
+            if this.m_save_all_iterations
+                allIterations.mu(:,:, iter_i:end) = [];
+                allIterations.v(:,:, iter_i:end) = [];
+            end
+            break;
+        end
+        iteration_diff = 0;
+        
+        Logger.log('Updating first order...');
+        
+        for vertex_i=vertexUpdateOrder
+            if ( mod(vertex_i, 100000) == 0 )
+                Logger.log([ 'vertex_i = ' num2str(vertex_i)]);
+            end
+
+            col = this.m_W(:, vertex_i);
+            [neighbours_indices, ~, neighbours_weights] = find(col);
+    
+            isLabeled = this.m_isLabeledVector(vertex_i);
+            neighbours_mu = prev_mu( :, neighbours_indices );
+            numNeighbours = length(neighbours_indices);
+            % neighbours_v: matrix size (num_labels X num_neighbours)
+            % Each column is uncertainty for all neighbours, for a
+            % given class. 
+            neighbours_v  = prev_v ( :, neighbours_indices );
+            v_i           = prev_v ( :, vertex_i);
+            sum_K_i_j = zeros(num_labels, 1);
+            Q_i       = zeros(num_labels, 1);
+            for neighbour_i=1:numNeighbours
+                single_neighbour_mu = neighbours_mu(:,neighbour_i);
+                single_neighbour_v  = neighbours_v (:,neighbour_i);
+                w_i_j = neighbours_weights(neighbour_i);
+                % K_i_j should be vector of size (num_labels X 1)
+                K_i_j = w_i_j * ( 1 ./ (single_neighbour_v .* v_i) );
+                sum_K_i_j = sum_K_i_j + ...
+                    K_i_j .* single_neighbour_mu;
+                Q_i = Q_i + K_i_j;
+            end
+            % P_i size is (num_labels X 1)
+            P_i = isLabeled * ( 1./ (v_i * gamma) );
+            % y_i size is (num_labels X 1)
+            y_i = this.m_priorY(vertex_i,:).';
+            numerator   = sum_K_i_j + (P_i .* y_i); % .* because P_i is only main diagonal
+            denominator = Q_i + P_i + isUsingL2Regularization * 1;
+            
+            new_mu = numerator ./ denominator;
+            current_mu(:, vertex_i) = new_mu ;
+            
+            if this.DESCEND_MODE_AM == this.m_descendMode
+                % for true AM
+                iteration_diff = iteration_diff + ...
+                                 sum((current_mu(:, vertex_i) - prev_mu(:,vertex_i)).^2);
+                prev_mu(:,vertex_i) = current_mu( :, vertex_i);
+            end
+        end % end first order update loop
+
+        if this.m_descendMode == this.DESCEND_MODE_2 
+            iteration_diff = sum(sum((prev_mu - current_mu).^2));
+            prev_mu = current_mu ;
+        end
+        
+        Logger.log('Updating second order...');
+
+        if isUsingSecondOrder
+            for vertex_i=1:num_vertices
+                if ( mod(vertex_i, 100000) == 0 )
+                    Logger.log([ 'vertex_i = ' num2str(vertex_i)]);
+                end
+                isLabeled = this.m_isLabeledVector(vertex_i);
+                col = this.m_W(:, vertex_i);
+                [neighbours_indices, ~, neighbours_weights] = find(col);
+
+                y_i  = this.m_priorY(vertex_i,:).';
+                mu_i = prev_mu(:,vertex_i);
+                numNeighbours = length( neighbours_indices );
+                neighbours_mu = prev_mu( :, neighbours_indices );
+                neighbours_v  = prev_v ( :, neighbours_indices );
+                neighboursSquaredDiff = zeros(num_labels, numNeighbours);
+                for neighbour_i=1:numNeighbours
+                    neighboursSquaredDiff(:,neighbour_i) =         ...
+                            neighbours_weights(neighbour_i) *      ...
+                            (1./neighbours_v(:,neighbour_i)) .*     ...
+                            ((mu_i - neighbours_mu(:,neighbour_i)).^2);
+                end
+
+                R_i = 0.5 * sum(neighboursSquaredDiff,2) + ...
+                      0.5 * isLabeled * (1/gamma) * ((mu_i - y_i).^2);
+
+                new_v = (beta + sqrt( beta^2 + 4 * alpha * R_i))...
+                        / (2 * alpha);
+                current_v(:, vertex_i) = new_v ;
+
+                if this.DESCEND_MODE_AM == this.m_descendMode
+                    prev_v(:,vertex_i) = current_v( :, vertex_i);
+                end
+            end % end second order update loop
+        end % end if using second order
+
+        if this.m_descendMode == this.DESCEND_MODE_COORIDNATE_DESCENT 
+            iteration_diff = sum(sum((prev_mu - current_mu).^2));
+            prev_mu             = current_mu;
+            prev_v              = current_v;
+        end
+        % descend mode 2 - current mu already updated after finishing mu
+        % update loop
+        if this.m_descendMode == this.DESCEND_MODE_2 
+            prev_v              = current_v;
+        end
+        if this.m_save_all_iterations
+            allIterations.mu     ( :, :, iter_i)    = current_mu;
+            allIterations.v      ( :, :, iter_i)    = current_v;
+        end
+        if this.m_isCalcObjective
+            this.calcObjective( current_mu, current_v );
+        end
+    end % end loop over all iterations
+    
+    if this.m_save_all_iterations
+        for iter_i=1:size(allIterations.mu,3)
+            iterationResult_mu      = allIterations.mu(:,:,iter_i);
+            iterationResult_v       = allIterations.v(:,:,iter_i);
+            R.mu      (:,:,iter_i) = iterationResult_mu.';
+            R.v       (:,:,iter_i) = iterationResult_v.';
+        end
+    else
+        R.v               = current_v.';
+        R.mu              = current_mu.';
+    end
+
+    toc(ticID);
+end
+
+%% run_weights_uncertainty (reformulation 3 - regular multiclass)
+
+function R = run_weights_uncertainty( this )
+    alpha               = this.m_alpha;
+    beta                = this.m_beta;
+    num_iterations      = this.m_num_iterations;
+    gamma               = this.m_labeledConfidence;
+    isUsingL2Regularization = this.m_isUsingL2Regularization;
+    isUsingSecondOrder  = this.m_isUsingSecondOrder;
+    objectiveType       = this.m_objectiveType;
+    isObjectiveWeightsUncertainty       = (objectiveType == CSSLBase.OBJECTIVE_WEIGHTS_UNCERTAINTY);
+    isObjectiveWeightsUncertaintySingle = (objectiveType == CSSLBase.OBJECTIVE_WEIGHTS_UNCERTAINTY_SINGLE );
+    assert (isObjectiveWeightsUncertainty || isObjectiveWeightsUncertaintySingle);
+    
+    num_vertices = this.numVertices();
+    num_labels   = this.numLabels();
+
+    prev_mu     =  zeros( num_labels, num_vertices );
+    current_mu  =  zeros( num_labels, num_vertices );
+    
+    if 0 == isUsingSecondOrder
+        initFactor_v = (beta / alpha);
+    else
+        initFactor_v = 1;
+    end
+    
+    % Note: W is assumed symmetric so only upper triangular part is
+    % considered
+    [vertex_rows, vertex_cols, ~] = find(triu(this.m_W));
+    num_edges = length(vertex_rows);
+
+    % Create a mapping such that vertexToEdgeMap(i,j) gives the index of
+    % the edge between v_i and v_j, make the map symmetric.
+    vertexToEdgeMap = sparse([vertex_rows vertex_cols], ...
+                             [vertex_cols vertex_rows], ...
+                             [1:num_edges 1:num_edges]);
+    clear vertex_rows;
+    clear vertex_cols;
+
+    if isObjectiveWeightsUncertainty
+        % Size is (num_labels X num_edges )
+        uncertaintyValuesPerEdge = num_labels;
+    else
+        % Size is (1 X num_edges )
+        uncertaintyValuesPerEdge = 1;
+    end
+    prev_edges_v = ones ( uncertaintyValuesPerEdge, num_edges ) * initFactor_v;
+    curr_edges_v = prev_edges_v;
+    
+    % create a map that labeledToPriorEdgeMap(vertex_i) = edge of
+    % uncertainty parameter for v_i in prev_edges_prior_v
+    num_labeled = sum(this.m_isLabeledVector);
+    [labeled_indices, ~, ~] = find(this.m_isLabeledVector);
+    labeledToPriorEdgeMap = sparse(labeled_indices, ones(num_labeled,1), 1:num_labeled, num_vertices, 1);
+    
+    % Size is (num_labels X num_labeled_vertices)
+    prev_edges_prior_v = ones(uncertaintyValuesPerEdge, num_labeled) * initFactor_v;
+    curr_edges_prior_v = prev_edges_prior_v;
+
+    if this.m_save_all_iterations
+        allIterations.mu     = zeros( num_labels, num_vertices, num_iterations );
+        allIterations.edges_v= ones ( num_labels, num_edges,    num_iterations ) * initFactor_v;
+    end
+
+    this.prepareGraph();
+    
+    iteration_diff = Inf;
+    diff_epsilon = this.m_diffEpsilon;
+
+    vertexUpdateOrder = 1:num_vertices;
+    
+    % note iteration index starts from 2
+    for iter_i = 2:num_iterations
+        Logger.log([ '#Iteration = ' num2str(iter_i)...
+                     ' iteration_diff = ' num2str(iteration_diff)]);
+        if iteration_diff < diff_epsilon
+            Logger.log([  'converged after '   num2str(iter_i-1) ' iterations'...
+                          ' iteration_diff = ' num2str(iteration_diff)]);
+            if this.m_save_all_iterations
+                allIterations.mu(:,:, iter_i:end) = [];
+                allIterations.edges_v(:,:, iter_i:end) = [];
+            end
+            break;
+        end
+        iteration_diff = 0;
+        
+        Logger.log('Updating first order...');
+        
+        for vertex_i=vertexUpdateOrder
+            if ( mod(vertex_i, 100000) == 0 )
+                Logger.log([ 'vertex_i = ' num2str(vertex_i)]);
+            end
+
+            col = this.m_W(:, vertex_i);
+            [neighbours_indices, ~, neighbours_weights] = find(col);
+    
+            isLabeled = this.m_isLabeledVector(vertex_i);
+            neighbours_mu = prev_mu( :, neighbours_indices );
+            numNeighbours = length(neighbours_indices);
+            % neighbours_v: matrix size (num_labels X num_neighbours)
+            % Each column is uncertainty for all neighbours, for a
+            % given class. 
+            neighbouring_edges_indices = vertexToEdgeMap(vertex_i, neighbours_indices);
+            neighbours_v               = prev_edges_v( :, neighbouring_edges_indices );
+            sum_K_i_j = zeros(num_labels, 1);
+            Q_i       = zeros(num_labels, 1);
+            for neighbour_i=1:numNeighbours
+                single_neighbour_mu = neighbours_mu(:,neighbour_i);
+                single_neighbour_v  = neighbours_v (:,neighbour_i);
+                w_i_j = neighbours_weights(neighbour_i);
+                % K_i_j size is (num_labels X 1)
+                if 1 ~= uncertaintyValuesPerEdge
+                    K_i_j = w_i_j ./ single_neighbour_v;
+                else
+                    K_i_j = (w_i_j / single_neighbour_v) * ones(num_labels, 1);
+                end
+                sum_K_i_j = sum_K_i_j + K_i_j .* single_neighbour_mu;
+                Q_i = Q_i + K_i_j;
+            end
+            % P_i size is (num_labels X 1)
+            priorEdgeIndex = labeledToPriorEdgeMap(vertex_i);
+            if 1 ~= uncertaintyValuesPerEdge
+                P_i = isLabeled * (1/gamma) * ...
+                      prev_edges_prior_v(:,priorEdgeIndex);
+            else
+                P_i = isLabeled * (1/gamma) * ...
+                      prev_edges_prior_v(:,priorEdgeIndex) * ones(num_labels, 1);
+            end
+            % y_i size is (num_labels X 1)
+            y_i = this.m_priorY(vertex_i,:).';
+            numerator   = sum_K_i_j + (P_i .* y_i); % .* because P_i is only main diagonal
+            denominator = Q_i + P_i + isUsingL2Regularization * 1;
+            
+            new_mu = numerator ./ denominator;
+            current_mu(:, vertex_i) = new_mu ;
+            
+            if this.DESCEND_MODE_AM == this.m_descendMode
+                % for true AM
+                iteration_diff = iteration_diff + ...
+                                 sum((current_mu(:, vertex_i) - prev_mu(:,vertex_i)).^2);
+                prev_mu(:,vertex_i) = current_mu( :, vertex_i);
+            end
+        end % end first order update loop
+
+        if this.m_descendMode == this.DESCEND_MODE_2 
+            iteration_diff = sum(sum((prev_mu - current_mu).^2));
+            prev_mu = current_mu ;
+        end
+        
+        Logger.log('Updating second order...');
+
+        if isUsingSecondOrder      
+            [vertex_rows, vertex_cols, weights_i_j] = find(triu(this.m_W));
+            for edge_i=1:num_edges
+                % vertexToEdgeMap(i,j) gives the index of the edge between v_i and v_j
+                vertex_i = vertex_rows(edge_i);
+                vertex_j = vertex_cols(edge_i);
+                prev_mu_i = prev_mu( :, vertex_i );
+                prev_mu_j = prev_mu( :, vertex_j );
+                R_i_j = weights_i_j(edge_i) * (prev_mu_i - prev_mu_j).^2;
+                if 1 == uncertaintyValuesPerEdge
+                    R_i_j = sum(R_i_j);
+                end
+                edge_update_index = vertexToEdgeMap(vertex_i,vertex_j);
+                curr_edges_v(:,edge_update_index) = ...
+                    (beta + sqrt( beta^2 + alpha * R_i_j)) / (2 * alpha);
+            end
+            for labeled_i=labeled_indices.'
+                prev_mu_i = prev_mu( :, labeled_i );
+                y_i  = this.m_priorY(labeled_i,:).';
+                R_i = (prev_mu_i - y_i).^2;
+                if 1 == uncertaintyValuesPerEdge
+                    R_i = sum(R_i);
+                end
+                % labeledToPriorEdgeMap(v_i) = edge of
+                % uncertainty parameter for v_i in prev_edges_prior_v
+                priorEdgeIndex = labeledToPriorEdgeMap(labeled_i);
+                curr_edges_prior_v(:,priorEdgeIndex) = ...
+                    (beta + sqrt( beta^2 + 2 * alpha / gamma * R_i)) / (2 * alpha);
+            end
+        end % end if using second order
+
+        if this.m_descendMode == this.DESCEND_MODE_COORIDNATE_DESCENT 
+            iteration_diff = sum(sum((prev_mu - current_mu).^2));
+            prev_mu             = current_mu;
+            prev_edges_v        = curr_edges_v;
+            prev_edges_prior_v  = curr_edges_prior_v;
+        end
+        % descend mode 2 - current mu already updated after finishing mu
+        % update loop
+        if this.m_descendMode == this.DESCEND_MODE_2 
+            prev_edges_v        = curr_edges_v;
+            prev_edges_prior_v  = curr_edges_prior_v;
+        end
+        if this.m_save_all_iterations
+            allIterations.mu     ( :, :, iter_i)    = current_mu;
+            allIterations.edges_v( :, :, iter_i)    = curr_edges_v;
+        end
+        if this.m_isCalcObjective
+            this.calcObjective( current_mu, current_v );
+        end
+    end % end loop over all iterations
+    
+    if this.m_save_all_iterations
+        for iter_i=1:size(allIterations.mu,3)
+            iterationResult_mu      = allIterations.mu(:,:,iter_i);
+            iterationResult_edges_v = allIterations.edges_v(:,:,iter_i);
+            R.mu      (:,:,iter_i) = iterationResult_mu.';
+%             R.v       (:,:,iter_i) = iterationResult_v.';
+            R.edges_v (:,:,iter_i) = iterationResult_edges_v.';
+        end
+    else
+%         R.v               = current_v.';
+        R.mu              = current_mu.';
+        R.edges_v         = curr_edges_v.';
+    end
+    R.vertexToEdgeMap = vertexToEdgeMap;
+end 
+
+%% run
+
 function R = run( this )
 
     ticID = tic;
@@ -12,6 +893,8 @@ function R = run( this )
         1 == this.m_useClassPriorNormalization)
         this.classPriorNormalization();
     end
+    
+    this.displayParams(CSSLMC.name());
 
     alpha               = this.m_alpha;
     beta                = this.m_beta;
@@ -31,8 +914,6 @@ function R = run( this )
     isObjectiveWeightsUncertainty= (objectiveType == CSSLBase.OBJECTIVE_WEIGHTS_UNCERTAINTY);
     isObjectiveAdditive          = (objectiveType == CSSLBase.OBJECTIVE_ADDITIVE);
     
-    this.displayParams(CSSLMC.name());
-
     num_vertices = this.numVertices();
     num_labels   = this.numLabels();
 
@@ -52,11 +933,14 @@ function R = run( this )
     % considered
     [vertex_rows, vertex_cols, ~] = find(triu(this.m_W));
     num_edges = length(vertex_rows);
+
     % Create a mapping such that vertexToEdgeMap(i,j) gives the index of
     % the edge between v_i and v_j, make the map symmetric.
     vertexToEdgeMap = sparse([vertex_rows vertex_cols], ...
                              [vertex_cols vertex_rows], ...
                              [1:num_edges 1:num_edges]);
+    clear vertex_rows;
+    clear vertex_cols;
 
     % Size is (num_labels X num_edges )
     prev_edges_v = ones ( num_labels, num_edges ) * initFactor_v;
