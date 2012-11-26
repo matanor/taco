@@ -939,7 +939,7 @@ function R = run( this )
         R.v = ones( size( R.mu ) );
     end
     if ~isfield( R, 'edges_v' )
-        [vertexToEdgeMap num_edges ] = this.createVertexToEdgeMap();
+        [vertexToEdgeMap, ~, num_edges ] = this.createVertexToEdgeMap();
         R.edges_v = ones(1, num_edges);
         R.vertexToEdgeMap = vertexToEdgeMap;
     end
