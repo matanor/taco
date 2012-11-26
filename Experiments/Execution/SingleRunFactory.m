@@ -14,7 +14,14 @@ methods (Access = public)
         this.m_constructionParams   = constructionParams;
         this.m_graph                = graph;
         this.m_trunsductionSet      = trunsductionSet;
-        this.m_clearAlgorithmOutput = ParamsManager.CLEAR_ALGORITHM_OUTPUT;
+        if isfield(this.m_constructionParams.fileProperties, 'clearAlgorithmOutput')
+            this.m_clearAlgorithmOutput = ...
+                this.m_constructionParams.fileProperties.clearAlgorithmOutput;
+        else
+            this.m_clearAlgorithmOutput = ParamsManager.CLEAR_ALGORITHM_OUTPUT;
+        end
+        Logger.log(['SingleRunFactory::contructor(). m_clearAlgorithmOutput = ' ...
+                         num2str(this.m_clearAlgorithmOutput)]);
     end
     
     %% set_graph
