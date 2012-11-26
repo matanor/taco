@@ -95,7 +95,7 @@ function R = run_TACO( this )
             numerator   = sum_K_i_j + (P_i .* y_i); % .* because P_i is only main diagonal
             denominator = Q_i + P_i + isUsingL2Regularization * 1;
             
-            new_mu = numerator .\ denominator ;
+            new_mu = numerator ./ denominator ;
             current_mu(:, vertex_i) = new_mu ;
             
             if this.DESCEND_MODE_AM == this.m_descendMode
@@ -126,19 +126,11 @@ function R = run_TACO( this )
                 mu_i = prev_mu(:,vertex_i);
                 numNeighbours = length( neighbours_indices );
                 neighbours_mu = prev_mu( :, neighbours_indices );
-                neighbours_v  = prev_v ( :, neighbours_indices );
                 neighboursSquaredDiff = zeros(num_labels, numNeighbours);
                 for neighbour_i=1:numNeighbours
-                    if isObjectiveHarmonicMean
                         neighboursSquaredDiff(:,neighbour_i) = ...
                             neighbours_weights(neighbour_i) * ...
                                 ((mu_i - neighbours_mu(:,neighbour_i)).^2);
-                    else
-                        neighboursSquaredDiff(:,neighbour_i) =         ...
-                                neighbours_weights(neighbour_i) *      ...
-                                (1./neighbours_v(:,neighbour_i)) .*     ...
-                                ((mu_i - neighbours_mu(:,neighbour_i)).^2);
-                    end
                 end
                 R_i = 0.5 * sum(neighboursSquaredDiff,2) + ...
                       0.5 * isLabeled * ((mu_i - y_i).^2);
@@ -184,7 +176,7 @@ function R = run_TACO( this )
         R.mu              = current_mu.';
     end
 
-    toc(ticID);
+    
 end
 
 %% run_structured
@@ -484,7 +476,7 @@ function R = run_structured( this )
         R.mu              = current_mu.';
     end
 
-    toc(ticID);
+    
 end
 
 %% run_multiplicative (reformulation 2)
@@ -661,7 +653,7 @@ function R = run_multiplicative( this )
         R.mu              = current_mu.';
     end
 
-    toc(ticID);
+    
 end
 
 %% run_weights_uncertainty (reformulation 3 - regular multiclass)
@@ -689,19 +681,10 @@ function R = run_weights_uncertainty( this )
     else
         initFactor_v = 1;
     end
-    
-    % Note: W is assumed symmetric so only upper triangular part is
-    % considered
-    [vertex_rows, vertex_cols, ~] = find(triu(this.m_W));
-    num_edges = length(vertex_rows);
 
     % Create a mapping such that vertexToEdgeMap(i,j) gives the index of
     % the edge between v_i and v_j, make the map symmetric.
-    vertexToEdgeMap = sparse([vertex_rows vertex_cols], ...
-                             [vertex_cols vertex_rows], ...
-                             [1:num_edges 1:num_edges]);
-    clear vertex_rows;
-    clear vertex_cols;
+    [vertexToEdgeMap  num_edges] = this.createVertexToEdgeMap();
 
     if isObjectiveWeightsUncertainty
         % Size is (num_labels X num_edges )
@@ -883,6 +866,21 @@ function R = run_weights_uncertainty( this )
     R.vertexToEdgeMap = vertexToEdgeMap;
 end 
 
+%% createVertexToEdgeMap
+
+function [R num_edges] = createVertexToEdgeMap( this )
+    % Note: W is assumed symmetric so only upper triangular part is
+    % considered
+    [vertex_rows, vertex_cols, ~] = find(triu(this.m_W));
+    num_edges = length(vertex_rows);
+
+    % Create a mapping such that vertexToEdgeMap(i,j) gives the index of
+    % the edge between v_i and v_j, make the map symmetric.
+    R = sparse([vertex_rows vertex_cols], ...
+               [vertex_cols vertex_rows], ...
+               [1:num_edges 1:num_edges]);
+end
+
 %% run
 
 function R = run( this )
@@ -895,6 +893,33 @@ function R = run( this )
     end
     
     this.displayParams(CSSLMC.name());
+    
+    switch this.m_objectiveType
+        case CSSLBase.OBJECTIVE_HARMONIC_MEAN
+            R = this.run_TACO();
+        case CSSLBase.OBJECTIVE_MULTIPLICATIVE
+            R = this.run_multiplicative();
+        case {CSSLBase.OBJECTIVE_WEIGHTS_UNCERTAINTY, ...
+              CSSLBase.OBJECTIVE_WEIGHTS_UNCERTAINTY_SINGLE}
+            R = this.run_weights_uncertainty();
+        otherwise
+            Logger.log(['CSSLMC::Run. Error unknown objective type' ...
+                         num2str( objectiveType) ]);
+    end  
+    
+    if ~isfield( R, 'v' )
+        R.v = ones( size( R.mu ) );
+    end
+    if ~isfield( R, 'edges_v' )
+        [vertexToEdgeMap num_edges ] = this.createVertexToEdgeMap();
+        R.edges_v = ones(1, num_edges);
+        R.vertexToEdgeMap = vertexToEdgeMap;
+    end
+
+%     isObjectiveAdditive          = (objectiveType == CSSLBase.OBJECTIVE_ADDITIVE);
+
+    toc(ticID);
+    return ;
 
     alpha               = this.m_alpha;
     beta                = this.m_beta;
@@ -904,15 +929,6 @@ function R = run( this )
     isUsingL2Regularization = this.m_isUsingL2Regularization;
     isUsingSecondOrder  = this.m_isUsingSecondOrder;
     objectiveType       = this.m_objectiveType;
-    
-    % save flags in local boolean variables - for performance (this is stupid but fast)
-    isStructuresTransitionMatrix = (this.m_structuredTermType == CSSLBase.STRUCTURED_TRANSITION_MATRIX);
-    isStrucutredLabelSimilarity  = (this.m_structuredTermType == CSSLBase.STRUCTURED_LABELS_SIMILARITY);
-    isStructuredAnyKind          = isStrucutredLabelSimilarity || isStructuresTransitionMatrix ;
-    isObjectiveHarmonicMean      = (objectiveType == CSSLBase.OBJECTIVE_HARMONIC_MEAN);
-    isObjectiveMultiplicative    = (objectiveType == CSSLBase.OBJECTIVE_MULTIPLICATIVE);
-    isObjectiveWeightsUncertainty= (objectiveType == CSSLBase.OBJECTIVE_WEIGHTS_UNCERTAINTY);
-    isObjectiveAdditive          = (objectiveType == CSSLBase.OBJECTIVE_ADDITIVE);
     
     num_vertices = this.numVertices();
     num_labels   = this.numLabels();
@@ -1313,7 +1329,7 @@ function R = run( this )
     end
     R.vertexToEdgeMap = vertexToEdgeMap;
 
-    toc(ticID);
+    
 end
 
 %% calcObjective
