@@ -58,8 +58,8 @@ methods (Access=public)
             end
         end
 
-        iteration_diff = 10^1000;
-        diff_epsilon = 0.0001;
+        iteration_diff = Inf;
+        diff_epsilon = this.m_diffEpsilon;
 
         % note iteration index starts from 2
         for iter_i = 2:num_iterations

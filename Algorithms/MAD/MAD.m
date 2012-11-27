@@ -70,8 +70,8 @@ classdef MAD < GraphTrunsductionBase
                 allIterations.Y = zeros( numLabels, numVertices, maxIterations );
             end
             
-            iteration_diff = 10^1000;
-            diff_epsilon = 0.00001;
+            iteration_diff = Inf;
+            diff_epsilon = this.m_diffEpsilon;
             W_transposed = this.m_W.';
             
             % note iteration index starts from 2
