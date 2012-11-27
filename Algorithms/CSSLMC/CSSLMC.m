@@ -758,7 +758,7 @@ function R = run_weights_uncertainty( this )
         iteration_diff = 0;
         
         Logger.log('Updating first order...');
-        
+    
         for vertex_i=vertexUpdateOrder
             if ( mod(vertex_i, 100000) == 0 )
                 Logger.log([ 'vertex_i = ' num2str(vertex_i)]);
@@ -773,8 +773,7 @@ function R = run_weights_uncertainty( this )
             % neighbours_v: matrix size (num_labels X num_neighbours)
             % Each column is uncertainty for all neighbours, for a
             % given class. 
-            neighbouring_edges_indices = vertexToEdgeMap(neighbours_indices, vertex_i);
-            [~,~,neighbouring_edges_indices]= find(neighbouring_edges_indices);
+            [~,~,neighbouring_edges_indices] = find(vertexToEdgeMap(:, vertex_i));           
             neighbours_v               = prev_edges_v( :, neighbouring_edges_indices );
             sum_K_i_j = zeros(num_labels, 1);
             Q_i       = zeros(num_labels, 1);
@@ -782,19 +781,17 @@ function R = run_weights_uncertainty( this )
                 single_neighbour_mu = neighbours_mu(:,neighbour_i);
                 single_neighbour_v  = neighbours_v (:,neighbour_i);
                 w_i_j = neighbours_weights(neighbour_i);
-                % K_i_j size is (num_labels X 1)
-                if 1 ~= uncertaintyValuesPerEdge
-                    K_i_j = w_i_j ./ single_neighbour_v;
-                else
-                    K_i_j = (w_i_j / single_neighbour_v) * ones(num_labels, 1);
-                end
+                % K_i_j size is (num_labels X 1) or a scalar
+                % if we have only one uncertainty value per node
+                % either case, using ./ is faster than the / operator
+                K_i_j = w_i_j ./ single_neighbour_v;
                 sum_K_i_j = sum_K_i_j + K_i_j .* single_neighbour_mu;
                 Q_i = Q_i + K_i_j;
             end
             % P_i size is (num_labels X 1)
             if isLabeled
                 priorEdgeIndex = labeledToPriorEdgeMap(vertex_i);
-                if 1 ~= uncertaintyValuesPerEdge
+                if isObjectiveWeightsUncertainty
                     P_i = (1/gamma) * prev_edges_prior_v(:,priorEdgeIndex);
                 else
                     P_i = (1/gamma) * prev_edges_prior_v(:,priorEdgeIndex) ...
