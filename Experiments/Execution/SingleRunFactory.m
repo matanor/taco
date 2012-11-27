@@ -153,6 +153,9 @@ methods (Static)
                 algorithm.m_v      = params.am_v;
                 algorithm.m_mu     = params.am_mu;
                 algorithm.m_alpha  = params.am_alpha;
+            case SingleRun.QC
+                algorithm.m_mu2    = params.qc_mu2;
+                algorithm.m_mu3    = params.qc_mu3;
             otherwise
                 Logger.log(['loadSpecificAlgorithmParams::Error. unknown algorithm type ' ...
                         num2str( algorithmType) ]);
@@ -175,6 +178,9 @@ methods (Static)
             case SingleRun.AM
                 algorithm = AM;
                 algorithm_result = AM_Result;
+            case SingleRun.QC
+                algorithm = QC;
+                algorithm_result = QC_Result;
             otherwise
                 Logger.log(['createAlgorithm::Error. unknown algorithm type ' ...
                         num2str( algorithmType) ]);

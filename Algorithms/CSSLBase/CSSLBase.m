@@ -17,7 +17,6 @@ classdef CSSLBase < GraphTrunsductionBase
         m_structuredTermType;
         m_isCalcObjective;
         m_objectiveType;
-        m_diffEpsilon;
     end
     
 properties( Constant)
@@ -87,7 +86,6 @@ methods (Access=public)
         this.m_objectiveType        = CSSLBase.OBJECTIVE_HARMONIC_MEAN;
         this.m_isCalcObjective      = 0;
         this.m_structuredInfo.transitionMatrix = [];
-        this.m_diffEpsilon          = 0.0001; %0.0000001; 
     end
     
     %% setTransitionMatrix

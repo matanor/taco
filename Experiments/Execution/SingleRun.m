@@ -13,11 +13,12 @@ classdef SingleRun < handle
         MAD = 4;
         CSSLMCF = 5;
         AM = 6;
+        QC = 7;
     end
     
     methods (Static)
         function r = numAvailableAlgorithms()
-            r = 6;
+            r = 7;
         end
     end
     
@@ -32,6 +33,7 @@ classdef SingleRun < handle
         m_CSSLMC_result;
         m_CSSLMCF_result;
         m_AM_result;
+        m_QC_result;
         
         m_algorithmsCollection;
         m_trunsductionSet;
@@ -167,6 +169,8 @@ classdef SingleRun < handle
                 this.m_CSSLMCF_result = R;
             elseif (algorithmType == this.AM)
                 this.m_AM_result = R;
+            elseif (algorithmType == this.QC)
+                this.m_QC_result = R;                
             end
             this.m_algorithmsCollection.setRun( algorithmType );
         end
@@ -523,6 +527,8 @@ classdef SingleRun < handle
                 r = this.m_CSSLMCF_result;
             elseif (algorithmType == this.AM)
                 r = this.m_AM_result;
+            elseif (algorithmType == this.QC)
+                r = this.m_QC_result;
             end
         end
         

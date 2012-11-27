@@ -13,6 +13,7 @@ classdef GraphTrunsductionBase < handle
         m_save_all_iterations; % 1 - save all iterations info in algorithm output
                                % 0 - algorithm output is only the final
                                % values.
+        m_diffEpsilon;
     end
     
 methods
@@ -20,6 +21,7 @@ methods
     function this = GraphTrunsductionBase()
         this.m_useClassPriorNormalization = 1; % use class prior normalization by default.
         this.m_save_all_iterations = 0;
+        this.m_diffEpsilon          = 0.0001; %0.0000001; 
     end
     
     %% numVertices

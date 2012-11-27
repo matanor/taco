@@ -20,6 +20,9 @@ properties (GetAccess = public, SetAccess = private)
     m_am_mu;
     m_am_K;
     m_am_alpha;
+    m_qc_K;
+    m_qc_mu2;
+    m_qc_mu3;
     m_makeSymetric;
     m_maxIterations;
     m_numLabeled;
@@ -33,6 +36,7 @@ properties (GetAccess = public, SetAccess = private)
     m_defaultParamsCSSL;
     m_defaultParamsMAD;
     m_defaultParamsAM;
+    m_defaultParamsQC;
     m_isCalculateKNN;
     m_descendMethodCSSL;
 end
@@ -98,6 +102,7 @@ methods (Access = public)
         webkb_constructed.development    = [ rootDir 'webkb/data/Rapid_Miner_Result/webkb_constructed.mat'];
         webkb_constructed.test = [];
         webkb_constructed.transductionSetFileFormat = [];
+        webkb_constructed.isCalcPRBEP = 1;
         
         webkb_amar           = [ rootDir 'webkb/data/from_amar/webkb_amar.mat'];
         webkb_html           = [ rootDir 'webkb/data/With_Html/webkb_with_html.mat'];
@@ -290,6 +295,23 @@ methods (Access = public)
         this.m_defaultParamsAM.am_mu = 1e-2;
         this.m_defaultParamsAM.am_alpha = 2;
         
+        if (optimize)
+            this = this.createNumericParameter...
+                ( 'qc_mu2',    [1e-8 1e-4 0.01 0.1 1 10 100]);
+            this = this.createNumericParameter...
+                ( 'qc_mu3',    [1e-8 1e-4 0.01 0.1 1 10 100]);
+            this = this.createNumericParameter...
+                ( 'qc_K',     kOptimizationRange); 
+        else
+            this = this.createNumericParameter( 'qc_mu2',   [1]);
+            this = this.createNumericParameter( 'qc_mu3',   [1]);
+            this = this.createNumericParameter( 'qc_K',     [2000]);
+        end
+        
+        this.m_defaultParamsQC.K = 1000;
+        this.m_defaultParamsQC.qc_mu2 = 1;
+        this.m_defaultParamsQC.qc_mu3 = 1;
+        
         this = this.createNumericParameter( 'makeSymetric', [1] );     
         
         if isTesting
@@ -363,6 +385,7 @@ methods (Access = public)
         R = AlgorithmsCollection;
 %         R.setRun(SingleRun.MAD);
         R.setRun(SingleRun.CSSLMC);
+%         R.setRun(SingleRun.QC);
 %         R.setRun(SingleRun.CSSLMCF);
 %         R.setRun(SingleRun.AM);
     end
@@ -378,8 +401,9 @@ methods (Access = public)
     
     function this = createParameter( this, name, range , isNumeric, nonNumericValues)
         memebrName = ['m_' name];
-        if (1 == strcmp(name, 'am_K') || ...
-            1 == strcmp(name, 'mad_K') )
+        if (1 == strcmp(name,  'am_K')  || ...
+            1 == strcmp(name,  'mad_K') || ...
+            1 == strcmp(name, 'qc_K')  )
             name = 'K';
         end
         this.(memebrName).range = range;
@@ -434,16 +458,28 @@ methods (Access = public)
         R = [ this.m_am_K, this.m_am_v, this.m_am_mu, this.m_am_alpha ];
     end
     
+    %% optimizationParamsQC
+    
+    function R = optimizationParamsQC(this)
+        R = [ this.m_qc_K, this.m_qc_mu2, this.m_qc_mu3 ];
+    end
+    
     %% defaultParamsMAD
     
     function R = defaultParamsMAD(this)
         R = this.m_defaultParamsMAD;
     end
     
-    %% defaulPatamsAM
+    %% defaultParamsAM
     
     function R = defaultParamsAM(this)
         R = this.m_defaultParamsAM;
+    end
+    
+    %% defaultParamsQC
+    
+    function R = defaultParamsQC(this)
+        R = this.m_defaultParamsQC;
     end
     
     %% optimizationParams_allOptions
@@ -455,6 +491,8 @@ methods (Access = public)
             optimizationParamProperties = this.optimizationParamsMAD();
         elseif (SingleRun.AM == algorithmType)
             optimizationParamProperties = this.optimizationParamsAM();
+        elseif (SingleRun.QC == algorithmType)
+            optimizationParamProperties = this.optimizationParamsQC();
         else
            Logger.log([ 'Error: not parameter to optimize for algorithm' num2str(algorithmType) ]);
         end
@@ -483,6 +521,8 @@ methods (Access = public)
                 R = this.defaultParamsMAD();
             elseif (SingleRun.AM == algorithmType)
                 R = this.defaultParamsAM();
+            elseif (SingleRun.QC == algorithmType)
+                R = this.defaultParamsQC();
             else
                Logger.log([ 'Error: no default parameter for algorithm' num2str(algorithmType) ]);
             end
