@@ -103,6 +103,7 @@ methods (Access = public)
         webkb_constructed.test = [];
         webkb_constructed.transductionSetFileFormat = [];
         webkb_constructed.isCalcPRBEP = 1;
+        webkb_constructed.clearAlgorithmOutput = 0;
         
         webkb_amar           = [ rootDir 'webkb/data/from_amar/webkb_amar.mat'];
         webkb_html           = [ rootDir 'webkb/data/With_Html/webkb_with_html.mat'];
