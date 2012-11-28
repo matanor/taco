@@ -54,7 +54,7 @@ methods  (Static)
             [~, name, ~] = fileparts(inputFilesFullPath{file_i});
         end
         
-        outputFileFullPath = [ inputDirectory 'trainAndDev.instances.' fileIdentifier '.mat'];
+        outputFileFullPath = [ inputDirectory 'trainAndDev/trainAndDev.instances.' fileIdentifier '.mat'];
         graph.instances = [allFeatures{TRAIN}.instances; allFeatures{DEV}.instances].';
         graph.labels    = [allFeatures{TRAIN}.labels;    allFeatures{DEV}.labels];
         graph.name      = ['trainAndDev.' fileIdentifier]; %#ok<STRNU>
@@ -63,7 +63,7 @@ methods  (Static)
         save(outputFileFullPath, 'graph');
         clear graph;
         
-        outputFileFullPath = [ inputDirectory 'trainAndTest.instances.' fileIdentifier '.mat'];
+        outputFileFullPath = [ inputDirectory 'trainAndTest/trainAndTest.instances.' fileIdentifier '.mat'];
         graph.instances = [allFeatures{TRAIN}.instances; allFeatures{TEST}.instances].';
         graph.labels    = [allFeatures{TRAIN}.labels;    allFeatures{TEST}.labels];
         graph.name      = ['trainAndTest.' fileIdentifier]; %#ok<STRNU>
