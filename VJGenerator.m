@@ -55,7 +55,7 @@ methods  (Static)
         end
         
         outputFileFullPath = [ inputDirectory 'trainAndDev.instances.' fileIdentifier '.mat'];
-        graph.instances = [allFeatures{TRAIN}.instances; allFeatures{DEV}.instances];
+        graph.instances = [allFeatures{TRAIN}.instances; allFeatures{DEV}.instances].';
         graph.labels    = [allFeatures{TRAIN}.labels;    allFeatures{DEV}.labels];
         graph.name      = ['trainAndDev.' fileIdentifier]; %#ok<STRNU>
         Logger.log(['sparseKnn::vjFormatToMatlab. (trainAndDev) num_instances = ' num2str(length(graph.labels))]);
@@ -64,7 +64,7 @@ methods  (Static)
         clear graph;
         
         outputFileFullPath = [ inputDirectory 'trainAndTest.instances.' fileIdentifier '.mat'];
-        graph.instances = [allFeatures{TRAIN}.instances; allFeatures{TEST}.instances];
+        graph.instances = [allFeatures{TRAIN}.instances; allFeatures{TEST}.instances].';
         graph.labels    = [allFeatures{TRAIN}.labels;    allFeatures{TEST}.labels];
         graph.name      = ['trainAndTest.' fileIdentifier]; %#ok<STRNU>
         Logger.log(['sparseKnn::vjFormatToMatlab. (trainAndTest) num_instances = ' num2str(length(graph.labels))]);
