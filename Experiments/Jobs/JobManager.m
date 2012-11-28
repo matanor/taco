@@ -32,7 +32,8 @@ methods (Static)
                                (fileFullPath, functionName, codeRoot);
 
         queueNameSwitch         = ' -q ';
-        runName = runName(1:15); % for PBS job name is limited to 15
+        lastJobNameIndex = min(15, length(runName));% for PBS job name is limited to 15
+        runName = runName(1:lastJobNameIndex); 
         
         command = ['qsub -N ' runName ...
                    queueNameSwitch JobManager.QUEUE_NAME_STUB ...
