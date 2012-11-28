@@ -148,7 +148,12 @@ methods (Static)
 %             singleInstanceData = row_distances;
 %             end
             row_distances = sparse(row_distances);
-            assert (nnz(row_distances) == K);
+            if nnz(row_distances) ~= K;
+                Logger.log(['sparseKnn::calcKnnFromInstances. ' ...
+                             ' number of non-zeros under K, probably because of identical instances '...
+                             ' instance_i = ' num2str(instance_i)]);
+            end
+            assert(nnz(row_distances) <= K );
             % Profiling shows this is not the bottleneck
             result( instance_i, :) = row_distances; %#ok<SPRIX>
         end
