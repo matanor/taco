@@ -556,25 +556,59 @@ function createWeightsFromDistances_lihi_wrapper(filePrefix)
     Logger.log('Done');
     instancesFile = fileData.graph;
     clear fileData;
-    labels              = instancesFile.phoneids39;
-    structuredEdges     = instancesFile.structuredEdges;
-    segments            = instancesFile.segments;
-    transitionMatrix    = instancesFile.transitionMatrix39;
+    
+    % get correct label information
+    
+    if isfield(instancesFile, 'phoneids39')
+        labels = instancesFile.phoneids39;
+    else
+        labels = instancesFile.phoneids39;
+    end
+    
+    % get structured information from instances file, if available
+    
+    if isfield(instancesFile, 'structuredEdges')
+        structuredEdges     = instancesFile.structuredEdges;
+    end
+    if isfield(instancesFile, 'segments')
+        segments            = instancesFile.segments;
+    end
+    if isfield(instancesFile, 'transitionMatrix39')
+        transitionMatrix    = instancesFile.transitionMatrix39;
+    end
     clear instancesFile;
+    
+    % load K-NN graph
+    
     knnGraphPath = [filePrefix '.k_10.mat'];
     Logger.log(['Loading K-NN graph from ''' knnGraphPath '''']);
     fileData = load(knnGraphPath,'graph');
     Logger.log('Done');
     graph = fileData.graph;
     clear fileData;
+    
+    % transform weights to distances
+    
     Logger.log('Creating weights from distances...(lihi)');
     K = 10;
     graph = StructuredGenerator.createWeightsFromDistances_lihi(graph, K);
     graph.name = [graph.name '_lihi'];
     graph.labels = labels;
-    graph.structuredEdges = structuredEdges;
-    graph.segments = segments;
-    graph.transitionMatrix = transitionMatrix;
+    
+    % set structured information on output graph, if any
+    
+    if exist('structuredEdges') %#ok<EXIST>
+        graph.structuredEdges   = structuredEdges;
+    end
+    if exist('segments') %#ok<EXIST>
+        graph.segments          = segments;
+    end
+    if exist('transitionMatrix') %#ok<EXIST>
+        graph.transitionMatrix  = transitionMatrix;
+    end
+    
+    % write output
+    
     outputFilePath = [filePrefix '.k_10.lihi.mat'];
     Logger.log(['Saving scaled output graph to ''' outputFilePath '''']);
     save(outputFilePath,'graph','-v7.3');
@@ -585,6 +619,15 @@ end
 %  This works well on dektop (~3 minutes) but is very alow on odin
 %  (over a day and didn't finish). Might be because the difference
 %  in matlab version.
+%  input:
+%  graph - should contain a graph.distances field, containing a matrix
+%          of squared distances.
+%          matrix has to contain per each row its nearest neighbours.
+%          it does not have to be symmetric.
+%  K     - The distance to the K-th nearest neighbour is considered as
+%          the local sigma.
+%  output:
+%  graph - adds a field graph.weights with the edge weights.
 
 function graph = createWeightsFromDistances_lihi(graph, K)
     squared_distances = sparseKnn.makeSymetric(graph.distances);
