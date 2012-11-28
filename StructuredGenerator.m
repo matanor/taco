@@ -562,7 +562,7 @@ function createWeightsFromDistances_lihi_wrapper(filePrefix)
     if isfield(instancesFile, 'phoneids39')
         labels = instancesFile.phoneids39;
     else
-        labels = instancesFile.phoneids39;
+        labels = instancesFile.labels;
     end
     
     % get structured information from instances file, if available
@@ -639,6 +639,13 @@ function graph = createWeightsFromDistances_lihi(graph, K)
         [~,~,squared_distance_i] = find(squared_distances(:,instance_i));
         [~, sortOrder] = sort(squared_distance_i, 1, 'ascend' ); % ascending order
         sigma(instance_i) = sqrt(squared_distance_i(sortOrder(K)));
+        if sigma(instance_i) == 0
+            sigma(instance_i) = max(squared_distance_i);
+            Logger.log(['StructuredGenerator::createWeightsFromDistances_lihi.' ...
+                        ' Warning, distance to K-th (' num2str(K) ') NN is 0.'   ...
+                        ' instance_i = ' num2str(sigma(instance_i)) ...
+                        ' set sigma to ' num2str(sigma(instance_i))]);
+        end
     end
     
     allRows = [];
@@ -647,8 +654,9 @@ function graph = createWeightsFromDistances_lihi(graph, K)
     Logger.log(['Number of non zeros distances = ' num2str(nnz(squared_distances))]);
     Logger.log('Calculating weights...');
     for instance_i=1:numInstances
-        if mod(numInstances, 10) == 0
-            Logger.log(['createWeightsFromDistances_lihi. numInstances = ' num2str(numInstances)]);
+        if mod(instance_i, 10000) == 0
+            Logger.log(['createWeightsFromDistances_lihi. ' ...
+                        'instance_i = ' num2str(instance_i)]);
         end
         [rows,~,values] = find(squared_distances(:,instance_i));
         sigma_for_instance = sigma(instance_i) * sigma(rows);
