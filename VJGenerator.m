@@ -7,6 +7,25 @@ end
 
 methods  (Static)  
 
+    %% createWeightsFromDistances_lihi_main
+    
+    function createWeightsFromDistances_lihi_main()
+        rootDirectoty = 'c:/technion/theses/experiments/VJ/';
+        allFilePrefixes{1} = [rootDirectoty 'trainAndDev/trainAndDev.instances.v4.w1'];
+        allFilePrefixes{2} = [rootDirectoty 'trainAndDev/trainAndDev.instances.v4.w7'];
+        allFilePrefixes{3} = [rootDirectoty 'trainAndDev/trainAndDev.instances.v8.w7'];
+        allFilePrefixes{4} = [rootDirectoty 'trainAndTest/trainAndTest.instances.v4.w1'];
+        allFilePrefixes{5} = [rootDirectoty 'trainAndTest/trainAndTest.instances.v4.w7'];
+        allFilePrefixes{6} = [rootDirectoty 'trainAndTest/trainAndTest.instances.v8.w7'];
+%         allFilePrefixes{7} = [rootDirectoty 'trainAndDev/trainAndDev.instances.v8.w7'];
+%         allFilePrefixes{8} = [rootDirectoty 'trainAndTest/trainAndTest.instances.v8.w7'];
+        num_files = length(allFilePrefixes);
+        for file_i = 1:num_files
+            filePrefix = allFilePrefixes{file_i};
+            StructuredGenerator.createWeightsFromDistances_lihi_wrapper(filePrefix);
+        end
+    end
+    
     %% vjFormatToMatlabMain
     
     function vjFormatToMatlabMain()
