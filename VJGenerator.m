@@ -52,13 +52,12 @@ methods  (Static)
             allFeatures{file_i}.instances = features; %#ok<AGROW>
             allFeatures{file_i}.labels    = labels; %#ok<AGROW>
             [~, name, ~] = fileparts(inputFilesFullPath{file_i});
-            allFeatures{file_i}.name      = name; %#ok<AGROW>
         end
         
         outputFileFullPath = [ inputDirectory 'trainAndDev.instances.' fileIdentifier '.mat'];
         graph.instances = [allFeatures{TRAIN}.instances; allFeatures{DEV}.instances];
         graph.labels    = [allFeatures{TRAIN}.labels;    allFeatures{DEV}.labels];
-        graph.name      = ['trainAndDev' allFeatures{TRAIN}.name]; %#ok<STRNU>
+        graph.name      = ['trainAndDev.' fileIdentifier]; %#ok<STRNU>
         Logger.log(['sparseKnn::vjFormatToMatlab. (trainAndDev) num_instances = ' num2str(length(graph.labels))]);
         Logger.log(['sparseKnn::vjFormatToMatlab. output file = ''' outputFileFullPath '''']);
         save(outputFileFullPath, 'graph');
@@ -67,7 +66,7 @@ methods  (Static)
         outputFileFullPath = [ inputDirectory 'trainAndTest.instances.' fileIdentifier '.mat'];
         graph.instances = [allFeatures{TRAIN}.instances; allFeatures{TEST}.instances];
         graph.labels    = [allFeatures{TRAIN}.labels;    allFeatures{TEST}.labels];
-        graph.name      = ['trainAndTest' allFeatures{TRAIN}.name]; %#ok<STRNU>
+        graph.name      = ['trainAndTest.' fileIdentifier]; %#ok<STRNU>
         Logger.log(['sparseKnn::vjFormatToMatlab. (trainAndTest) num_instances = ' num2str(length(graph.labels))]);
         Logger.log(['sparseKnn::vjFormatToMatlab. output file = ''' outputFileFullPath '''']);
         save(outputFileFullPath, 'graph');
