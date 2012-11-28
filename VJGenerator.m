@@ -43,7 +43,7 @@ methods  (Static)
             Logger.log(['sparseKnn::vjFormatToMatlab. loading = ''' inputFilesFullPath{file_i} '''']);
             data = load(inputFilesFullPath{file_i}); 
             labels = data(:,1);
-            features = data(:,2:2:end);
+            features = data(:,3:2:end);
             num_instances = length(labels);
             Logger.log(['sparseKnn::vjFormatToMatlab. num_instances = ' num2str(num_instances)]);
             num_features = size(features, 2);
