@@ -5,9 +5,9 @@ methods (Static)
     
     function calcKnnMain(inputFileFullPath, K, instancesPerJob, ...
                          maxInstances,      outputManager)
-        Logger.log(['Loading file ''' inputFileFullPath '''']);
+        Logger.log(['sparseKnn::calcKnnMain. Loading file ''' inputFileFullPath '''']);
         fileData = load(inputFileFullPath);
-        Logger.log('Done');
+        Logger.log('sparseKnn::calcKnnMain. Done');
         inputGraph = fileData.graph;
         numInstances = size(inputGraph.instances, 2);
         numFeatures  = size(inputGraph.instances, 1);
@@ -15,7 +15,8 @@ methods (Static)
         numJobs = ceil(numInstancesToCompute / instancesPerJob);
         job_i_zero_based = 0;
         allJobs = [];
-        Logger.log(['numJobs = '       num2str(numJobs) ...
+        Logger.log(['sparseKnn::calcKnnMain.' ...
+                    ' numJobs = '       num2str(numJobs) ...
                     ' numInstances = ' num2str(numInstances) ...
                     ' numFeatures = '  num2str(numFeatures)]);
         for job_i=1:numJobs
@@ -31,13 +32,13 @@ methods (Static)
         save(jobsOutputFile, 'allJobs');
         JobManager.executeJobs( allJobs );
         
-        Logger.log('Connecting all results to one graph');
+        Logger.log('sparseKnn::calcKnnMain. Connecting all results to one graph');
         tic;
         allRowIndices       = [];
         allColumnIndices    = [];
         allValues           = [];
         for job_i=1:numJobs
-            Logger.log(['job_i = ' num2str(job_i)]);
+            Logger.log(['sparseKnn::calcKnnMain. job_i = ' num2str(job_i)]);
             job = allJobs(job_i);
             partialDistances = JobManager.loadJobOutput(job.fileFullPath);
             [rows_indices,column_indices,value] = find(partialDistances);
@@ -45,7 +46,8 @@ methods (Static)
             allColumnIndices = [allColumnIndices; column_indices]; %#ok<AGROW>
             allValues        = [allValues; value]; %#ok<AGROW>
             instancesRange = jobInfo{job_i}.instancesRange;
-            Logger.log(['instancesRange = ' num2str(instancesRange(1)) '_' ...
+            Logger.log(['sparseKnn::calcKnnMain. ' ... 
+                        'instancesRange = ' num2str(instancesRange(1)) '_' ...
                                             num2str(instancesRange(end))]);
         end
         
@@ -53,10 +55,12 @@ methods (Static)
                             numInstances, numInstances);
         toc;
         
-        outputFileFullPath = [inputFileFullPath '.k_' num2str(K) '.mat'];
+        [path, name, ~] = fileparts(inputFileFullPath);
+        outputFileFullPath = [path name '.k_' num2str(K) '.mat'];
         graph.name = [inputGraph.name '_K_' num2str(K)];
         %outputGraph
         graph.distances = allDistances; %#ok<STRNU>
+        Logger.log(['sparseKnn::calcKnnMain. Saving output to ''' outputFileFullPath '''']);
         save(outputFileFullPath, 'graph');
     end
     
