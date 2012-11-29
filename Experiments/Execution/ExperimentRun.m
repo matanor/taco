@@ -81,10 +81,18 @@ methods (Access = public)
     
     function R = trunsductionSetsFileName(this)
         transductionSetFileFormat = this.m_constructionParams.fileProperties.transductionSetFileFormat;
+        useNumLabeledToPrecent = 1; % default is 1
+        if isfield(this.m_constructionParams.fileProperties,'useNumLabeledToPrecent');
+            useNumLabeledToPrecent    = this.m_constructionParams.fileProperties.useNumLabeledToPrecent;
+        end
         numLabeled = this.m_constructionParams.numLabeled;
         if ~isempty(transductionSetFileFormat)
-            precentSampled = this.numLabeledToPrecent(numLabeled);
-            R = sprintf(transductionSetFileFormat, precentSampled);
+            if useNumLabeledToPrecent
+                fileNamePart = this.numLabeledToPrecent(numLabeled);
+            else
+                fileNamePart = num2str(numLabeled);
+            end
+            R = sprintf(transductionSetFileFormat, fileNamePart);
         else
             R = this.constructTransductionSetFilePath...
                 (this.m_constructionParams.fileProperties.development,...
