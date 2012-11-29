@@ -156,6 +156,11 @@ methods (Access = public)
         timit_cms_white_lihi.test        = [ rootDir 'timit/features_39_cms_white/trainAndTest/trainAndTest_cms_white.k_10.lihi.mat' ];
         timit_cms_white_lihi.transductionSetFileFormat = cms_white_transduction_file_format;
 
+        vj_v4_w1 = this.createVJdataset(rootDir, 'v4.w1');
+        vj_v4_w7 = this.createVJdataset(rootDir, 'v4.w7');
+        vj_v8_w1 = this.createVJdataset(rootDir, 'v8.w1');
+        vj_v8_w7 = this.createVJdataset(rootDir, 'v8.w7');
+
         if config.isOnOdin
            fileProperties = [ {timit_cms_white_c7_alex} ...
                               {timit_cms_white_c7_lihi} ...
@@ -388,7 +393,16 @@ methods (Access = public)
         R.setRun(SingleRun.CSSLMC);
 %         R.setRun(SingleRun.QC);
 %         R.setRun(SingleRun.CSSLMCF);
-%         R.setRun(SingleRun.AM);
+        R.setRun(SingleRun.AM);
+    end
+    
+    %% createVJdataset
+    
+    function R = createVJdataset(~, rootDir, fileIdentifier)
+        R.development = [ rootDir 'VJ/' fileIdentifier '/trainAndDev/trainAndDev.instances.'   fileIdentifier '.k_10.lihi.mat' ];
+        R.test        = [ rootDir 'VJ/' fileIdentifier '/trainAndTest/trainAndTest.instances.' fileIdentifier '.k_10.lihi.mat' ];
+        R.transductionSetFileFormat = [ rootDir 'VJ/' fileIdentifier '/' fileIdentifier '.TrunsSet_%s.mat' ];
+        R.useNumLabeledToPrecent    = 0;
     end
     
     %% createNumericParameter
