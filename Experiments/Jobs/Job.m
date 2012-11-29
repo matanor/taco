@@ -36,6 +36,8 @@ methods (Access = public)
     
     function R = jobID( this )
         % e.g. result = '379.admin';
+        Logger.log(['Job::jobID. Getting id from submit result '''...
+                    this.submitResult '''']);
         items = textscan(this.submitResult, '%d.%s');
         R = items{1};
     end
