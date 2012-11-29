@@ -18,6 +18,6 @@ echo logFile = $logFile
 mkdir $resultsDirectory
 cd $workingDirectory
 echo currentDirectory = "$(pwd)"
-echo "matlab -nodesktop -r "\""$1('$resultsDirectory','$codeRoot')"\"" "
+echo "matlab -nodesktop -nojvm -r "\""$1('$resultsDirectory','$codeRoot')"\"" "
 matlab -nodesktop -r "$1('$resultsDirectory','$codeRoot');quit;" -logfile $logFile
 cd $startDirectory
