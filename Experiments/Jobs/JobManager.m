@@ -303,13 +303,18 @@ methods (Static)
         job.submitResult = result;
         job.lastLogFileSize = 0;
         job.idleCount = 0;
-        Logger.log(['JobManager::startJob. result = ' result]);
+        Logger.log(['JobManager::startJob. result = ''' result '''']);
     end
     
     %% deleteJob
     
     function deleteJob(job)
         id = job.jobID();
+        if (id == -1)
+            Logger.log(['Error deleting job run. job id =  ' ...
+                         num2str(id)]);
+            return;
+        end
         deleteCommand = ['qdel ' num2str(id) ];
         Logger.log(['deleteCommand = "' deleteCommand '"']);
         [status, result] = system(deleteCommand);

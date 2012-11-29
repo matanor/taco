@@ -38,8 +38,12 @@ methods (Access = public)
         % e.g. result = '379.admin';
         Logger.log(['Job::jobID. Getting id from submit result '''...
                     this.submitResult '''']);
-        items = textscan(this.submitResult, '%d.%s');
-        R = items{1};
+        if ~isempty(this.submitResult)
+            items = textscan(this.submitResult, '%d.%s');
+            R = items{1};    
+        else
+            R = -1; % failed
+        end
     end
     
     %% checkJobStatus
