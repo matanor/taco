@@ -64,7 +64,7 @@ methods (Static)
         
         schellScript = fopen(shellScriptPath, 'w');
         cdLine =     ['cd  ' startDirectory];
-        matlabLine = [' matlab -nodesktop -r "' functionName '(''' ...
+        matlabLine = [' matlab -nodesktop -nojvm -r "' functionName '(''' ...
                         fileFullPath ''',''' codeRoot ''')" -logfile ' logFile ];
         fprintf(schellScript, [cdLine       '\n']);
         fprintf(schellScript, [matlabLine   '\n']);
