@@ -28,7 +28,7 @@ methods  (Static)
     %% generateTrunsductionSets
     
     function generateTrunsductionSets(fileIdentifier)
-        rootDirectory = 'c:/technion/theses/experiments/VJ/';
+        rootDirectory = ['c:/technion/theses/experiments/VJ/' fileIdentifier '/'];
         
         fileExtension = '.mat';
         trainFullPath = [rootDirectory 'train.' fileIdentifier fileExtension];
@@ -38,16 +38,17 @@ methods  (Static)
         dev   = load(devFullPath);
         test  = load(testFullPath);
         numTrain = length(train.labels);
+        labelsTrain = train.labels;
         numDev   = length(dev.labels);
         numTest  = length(test.labels);
         
-        precentLabeledToSample = [1 5 10 20 30 50];
+        precentLabeledToSample = [0.01 0.1];
         for precent_labeled_i=precentLabeledToSample
             numLabeled = floor(precent_labeled_i * numTrain / 100);
             trunsductionSets  = VJGenerator.createExperimentTransductionSets...
-                                (numTrain, numDev, numTest, numLabeled); %#ok<NASGU>
+                                (numTrain, numDev, numTest, numLabeled, labelsTrain); %#ok<NASGU>
             trunsductionSetsOutputFullPath = ...
-                 [rootDirectory fileIdentifier '.TrunsSet_' num2str(numLabeled) '.mat'];
+                 [rootDirectory fileIdentifier '.TrunsSet_' num2str(precent_labeled_i) '.mat'];
             Logger.log(['Saving to file ''' trunsductionSetsOutputFullPath '''']);
             save(trunsductionSetsOutputFullPath,'trunsductionSets');
         end
@@ -55,7 +56,8 @@ methods  (Static)
     
     %% createExperimentTransductionSets
     
-    function R = createExperimentTransductionSets(numTrain, numDev, numTest, numLabeled)
+    function R = createExperimentTransductionSets...
+                (numTrain, numDev, numTest, numLabeled, labelsTrain)
         t = ExperimentTrunsductionSets();
         Logger.log(['VJGenerator::createExperimentTransductionSets.' ...
                     ' numTrain = '      num2str(numTrain) ...
@@ -63,21 +65,23 @@ methods  (Static)
                     ' numTest = '       num2str(numTest) ...
                     ' numLabeled = '    num2str(numLabeled) ...
                     ]);
-        t.m_optimizationSets = VJGenerator.createTransductionSet(numTrain, numDev,  numLabeled);
-        t.m_evaluationSets   = VJGenerator.createTransductionSet(numTrain, numTest, numLabeled);
+        t.m_optimizationSets = VJGenerator.createTransductionSet(numTrain, numDev,  numLabeled, labelsTrain);
+        t.m_evaluationSets   = VJGenerator.createTransductionSet(numTrain, numTest, numLabeled, labelsTrain);
         
         R = t;
     end
     
         %% createTransductionSet
     
-    function R = createTransductionSet(numTrain, numTest, numLabeled)
+    function R = createTransductionSet(numTrain, numTest, numLabeled, labelsTrain)
         t = TrunsductionSet(1);
         % all are column vectors
         t.m_training        = (1:numTrain).';
         t.m_testing         = numTrain + ((1:numTest).');
         randomPermutation   = randperm(numTrain);
         sampled             = (randomPermutation(1:numLabeled)).';
+        labeledSampled = labelsTrain(sampled);
+        Logger.log(['unique(labeledSampled) = ' num2str(unique(labeledSampled).')]);
         t.m_labeled         = sampled;
         
         R = t;
