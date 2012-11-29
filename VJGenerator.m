@@ -2,7 +2,11 @@ classdef VJGenerator
     %VJGenerator Summary of this class goes here
     %   Detailed explanation goes here
     
-properties
+properties (Constant)
+    V4_W1 = 1;
+    V4_W7 = 2;
+    V8_W1 = 3;
+    V8_W7 = 4;
 end
 
 methods  (Static)  

@@ -25,7 +25,7 @@ properties (GetAccess = public, SetAccess = private)
     m_qc_mu3;
     m_makeSymetric;
     m_maxIterations;
-    m_numLabeled;
+    m_precentLabeled;
     m_numFolds;
     m_useGraphHeuristics;
     m_fileProperties;
@@ -156,10 +156,10 @@ methods (Access = public)
         timit_cms_white_lihi.test        = [ rootDir 'timit/features_39_cms_white/trainAndTest/trainAndTest_cms_white.k_10.lihi.mat' ];
         timit_cms_white_lihi.transductionSetFileFormat = cms_white_transduction_file_format;
 
-        vj_v4_w1 = this.createVJdataset(rootDir, 'v4.w1');
-        vj_v4_w7 = this.createVJdataset(rootDir, 'v4.w7');
-        vj_v8_w1 = this.createVJdataset(rootDir, 'v8.w1');
-        vj_v8_w7 = this.createVJdataset(rootDir, 'v8.w7');
+        vj_v4_w1 = this.createVJdataset(rootDir, 'v4.w1', VJGenerator.V4_W1);
+        vj_v4_w7 = this.createVJdataset(rootDir, 'v4.w7', VJGenerator.V4_W7);
+        vj_v8_w1 = this.createVJdataset(rootDir, 'v8.w1', VJGenerator.V8_W1);
+        vj_v8_w7 = this.createVJdataset(rootDir, 'v8.w7', VJGenerator.V8_W7);
 
         if config.isOnOdin
            fileProperties = [ {timit_cms_white_c7_alex} ...
@@ -329,9 +329,9 @@ methods (Access = public)
         end
         
         if isTesting
-            this = this.createNumericParameter( 'numLabeled', [111133] );    
+            this = this.createNumericParameter( 'precentLabeled', [1] );    
         else
-            this = this.createNumericParameter( 'numLabeled', [111133] );    
+            this = this.createNumericParameter( 'precentLabeled', [1] );    
         end
         %11101 - 0.01% (dev)
         %110606 - 0.1% (dev)
@@ -398,11 +398,12 @@ methods (Access = public)
     
     %% createVJdataset
     
-    function R = createVJdataset(~, rootDir, fileIdentifier)
+    function R = createVJdataset(this, rootDir, fileIdentifier, datasetID)
         R.development = [ rootDir 'VJ/' fileIdentifier '/trainAndDev/trainAndDev.instances.'   fileIdentifier '.k_10.lihi.mat' ];
         R.test        = [ rootDir 'VJ/' fileIdentifier '/trainAndTest/trainAndTest.instances.' fileIdentifier '.k_10.lihi.mat' ];
         R.transductionSetFileFormat = [ rootDir 'VJ/' fileIdentifier '/' fileIdentifier '.TrunsSet_%s.mat' ];
         R.useNumLabeledToPrecent    = 0;
+        R.precentToNumLabeledTable = this.precentToNumLabeledTable_VJ(datasetID);
     end
     
     %% createNumericParameter
@@ -445,7 +446,7 @@ methods (Access = public)
     %% constructionParamsProperties
     
     function R = constructionParamsProperties(this)
-        R = [  this.m_fileProperties,   this.m_numLabeled, ...
+        R = [  this.m_fileProperties,   this.m_precentLabeled, ...
                this.m_numFolds,         this.m_balanced, ...
                this.m_numEvaluationRuns];
     end
@@ -572,6 +573,59 @@ methods (Access = public)
             end
         end
         R = evaluationParams;
+    end
+    
+    %% precentToNumLabeledTable_timit
+    %  for speech, transduction sets are common to more than one graph.
+    %  so the naming scheme for the transduction sets file name is
+    %  different, this function translates from a precentage of labeled frames
+    %  in the test graph, to the precent of labeled data used, which is
+    %  part of the transduction file name scheme
+    
+    function R = precentToNumLabeledTable_timit(~)
+        % KeyType is uint32.
+        numLabeledToPrecentMap = containers.Map(uint32(1), 1); 
+        remove(numLabeledToPrecentMap,1);
+        numLabeledToPrecentMap(1)  = '11147';
+        numLabeledToPrecentMap(5)  = '55456';
+        numLabeledToPrecentMap(10) = '111133';
+        numLabeledToPrecentMap(20) = '221254';
+        numLabeledToPrecentMap(30) = '331793';
+        numLabeledToPrecentMap(50) = '553041';
+        R = numLabeledToPrecentMap;
+    end
+    
+    %% precentToNumLabeledTable_VJ
+    %  for speech, transduction sets are common to more than one graph.
+    %  so the naming scheme for the transduction sets file name is
+    %  different, this function translates from a precentage of labeled frames
+    %  in the test graph, to the precent of labeled data used, which is
+    %  part of the transduction file name scheme
+    
+    function R = precentToNumLabeledTable_VJ(~, vjIdentifier)
+        
+        numLabeled(VJGenerator.V4_W1,:) = [2794 13974 27948 55896  83845  139742];
+        numLabeled(VJGenerator.V4_W7,:) = [2680 13404 26808 53617  80426  134043];
+        numLabeled(VJGenerator.V8_W1,:) = [5729 28645 57291 114582 171873 286455];
+        numLabeled(VJGenerator.V8_W7,:) = [4263 21315 42630 85260  127890 213150];
+        
+        numVJDatasets = 4;
+        numTables = numVJDatasets;
+        for table_i=1:numTables
+            % KeyType is uint32.
+            numLabeledToPrecentMap = containers.Map(uint32(1), 1); 
+            remove(numLabeledToPrecentMap,1);
+
+            numLabeledToPrecentMap(1)  = numLabeled(table_i, 1);
+            numLabeledToPrecentMap(5)  = numLabeled(table_i, 2);
+            numLabeledToPrecentMap(10) = numLabeled(table_i, 3);
+            numLabeledToPrecentMap(20) = numLabeled(table_i, 4);
+            numLabeledToPrecentMap(30) = numLabeled(table_i, 5);
+            numLabeledToPrecentMap(50) = numLabeled(table_i, 6);
+            allTables{table_i} = numLabeledToPrecentMap; %#ok<AGROW>
+        end
+        
+        R = allTables{vjIdentifier};
     end
     
 end % methods (Access = public)

@@ -16,7 +16,7 @@ methods (Static)
         % create general params string
         generalParams = ...
             [' isBalanced = '           num2str(constructionParams.balanced) ...
-             ' numLabeled = '           num2str(constructionParams.numLabeled) ];
+             ' precentLabeled = '           num2str(constructionParams.precentLabeled) ];
 %              ' numLabeledPerClass = '   num2str(constructionParams.numLabeledPerClass) ];
              
         % algorithm comparison

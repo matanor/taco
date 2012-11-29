@@ -113,8 +113,8 @@ methods
         EMPTY_CELL = SEPERATOR ;
         R = [];
         R = [R fileName SEPERATOR ];
-        numLabeled = this.m_constructionParams.numLabeled;
-        R = [R num2str(numLabeled) SEPERATOR ];
+        precentLabeled = this.m_constructionParams.precentLabeled;
+        R = [R num2str(precentLabeled) SEPERATOR ];
         R = [R num2str(this.m_parameterValues.maxIterations) SEPERATOR ];
         R = [R num2str(this.m_constructionParams.balanced) SEPERATOR ];
         R = [R num2str(this.m_parameterValues.useGraphHeuristics) SEPERATOR ];

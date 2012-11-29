@@ -77,6 +77,7 @@ methods (Access = public)
         numLabeledToPrecentMap(553041) = '050';
         R = numLabeledToPrecentMap(numLabeled);
     end
+        
     %% trunsductionSetsFileName
     
     function R = trunsductionSetsFileName(this)
@@ -85,18 +86,18 @@ methods (Access = public)
         if isfield(this.m_constructionParams.fileProperties,'useNumLabeledToPrecent');
             useNumLabeledToPrecent    = this.m_constructionParams.fileProperties.useNumLabeledToPrecent;
         end
-        numLabeled = this.m_constructionParams.numLabeled;
+        numLabeled = this.precentLabeledToNumLabeled(this.m_constructionParams);
         if ~isempty(transductionSetFileFormat)
             if useNumLabeledToPrecent
                 fileNamePart = this.numLabeledToPrecent(numLabeled);
             else
-                fileNamePart = num2str(numLabeled);
+                fileNamePart = num2str(this.m_constructionParams.precentLabeled);
             end
             R = sprintf(transductionSetFileFormat, fileNamePart);
         else
             R = this.constructTransductionSetFilePath...
                 (this.m_constructionParams.fileProperties.development,...
-                 this.m_constructionParams.numLabeled,...
+                 numLabeled,...
                  this.m_constructionParams.balanced);
         end
     end
@@ -121,7 +122,7 @@ methods (Access = public)
         fileFullPath = this.trunsductionSetsFileName();
         Logger.log(['Loading trunsduction sets from ''' fileFullPath '''']);
         
-        numLabeledRequired = this.m_constructionParams.numLabeled;
+        numLabeledRequired = this.precentLabeledToNumLabeled(this.m_constructionParams);
         fileData = load(fileFullPath);
         experimentTrunsductionSet = fileData.trunsductionSets;
         if (experimentTrunsductionSet.hasOptimizationSets())
@@ -190,6 +191,19 @@ methods (Access = public)
     end
 
 end
+
+methods (Static)
+    
+    %% precentLabeledToNumLabeled
+    
+    function r = precentLabeledToNumLabeled(constructionParams)
+        precentLabeled           = constructionParams.precentLabeled;
+        precentToNumLabeledTable = constructionParams.fileProperties.precentToNumLabeledTable;
+        r = precentToNumLabeledTable(precentLabeled);
+    end
+    
+end
+
     
 end
 

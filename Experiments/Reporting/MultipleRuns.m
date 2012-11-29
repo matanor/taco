@@ -173,7 +173,7 @@ methods (Access = private)
     function checkConstructionParams(this, constructionParams)
         cp = this.constructionParams;
         assert( cp.K                    == constructionParams.K);
-        assert( cp.numLabeled           == constructionParams.numLabeled);
+        assert( cp.precentLabeled       == constructionParams.precentLabeled);
         assert( cp.numInstancesPerClass == constructionParams.numInstancesPerClass);
     end
 

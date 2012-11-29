@@ -47,7 +47,7 @@ methods
     function R = createTrunsductionSet(this)
         isBalanced      = this.m_constructionParams.balanced;
         numFolds        = this.m_constructionParams.numFolds;
-        numLabeled      = this.m_constructionParams.numLabeled;
+        numLabeled      = ExperimentRun.precentLabeledToNumLabeled(this.m_constructionParams);
         
         splitter = Splitter(this.m_graph);
         trunsductionSet = splitter.create(isBalanced, numFolds);
