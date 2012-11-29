@@ -21,7 +21,8 @@ methods
     function this = GraphTrunsductionBase()
         this.m_useClassPriorNormalization = 1; % use class prior normalization by default.
         this.m_save_all_iterations = 0;
-        this.m_diffEpsilon          = 0.0001; %0.0000001; 
+        this.m_diffEpsilon          = 0.0000001; %0.0000001; 
+        Logger.log(['GraphTrunsductionBase::contructor. m_diffEpsilon = ' num2str(m_diffEpsilon)]);
     end
     
     %% numVertices
