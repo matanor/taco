@@ -198,6 +198,7 @@ methods (Static)
     
     function r = precentLabeledToNumLabeled(constructionParams)
         precentLabeled           = constructionParams.precentLabeled;
+        Logger.log(['ExperimentRun::precentLabeledToNumLabeled. precentLabeled = ' num2str(precentLabeled) ]);
         precentToNumLabeledTable = constructionParams.fileProperties.precentToNumLabeledTable;
         r = precentToNumLabeledTable(precentLabeled);
     end
