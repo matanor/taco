@@ -51,8 +51,10 @@ methods
     
     function startExperimentRun(this, experiment_run_i, constructionParams)
         [~, name, ~]  = fileparts(constructionParams.fileProperties.development);
+        precentLabeledString = num2str(constructionParams.precentLabeled);
+        precentLabeledString(precentLabeledString  == '.') = '_';
         this.stepIntoFolder(['Experiment_run_' num2str(experiment_run_i)...
-                             '_' name '_' num2str(constructionParams.precentLabeled)]);
+                             '_' name '_' precentLabeledString]);
     end
     
     %% startParametersRun
