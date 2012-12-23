@@ -9,34 +9,44 @@ classdef CSSLMCF < CSSLBase
         
         this.classPriorNormalization();
         
-        alpha               = this.m_alpha;
-        beta                = this.m_beta;
-        num_iterations      = this.m_num_iterations;
-        gamma               = this.m_labeledConfidence;
+        alpha                   = this.m_alpha;
+        beta                    = this.m_beta;
+        num_iterations          = this.m_num_iterations;
+        gamma                   = this.m_labeledConfidence;
         isUsingL2Regularization = this.m_isUsingL2Regularization;
-        isUsingSecondOrder  = this.m_isUsingSecondOrder;
+        isUsingSecondOrder      = this.m_isUsingSecondOrder;
         
         num_vertices = this.numVertices();
         num_labels   = this.numLabels();
         this.displayParams(CSSLMCF.name());
+        
+        prev_mu     =  zeros( num_labels, num_vertices, 'single' );
+        current_mu  =  zeros( num_labels, num_vertices, 'single' );
 
-        result.mu     = zeros( num_vertices, num_labels, num_iterations );
-        result.sigma  = ones ( num_labels, num_labels, num_vertices, num_iterations );
-        for vertex_i=1:num_vertices
-            for iteration_i=1:num_iterations
-                result.sigma(:,:,vertex_i,iteration_i) = eye( num_labels );
-            end
-        end
         if 0 == isUsingSecondOrder
-            result.sigma = result.sigma * (beta/alpha);
+            initFactor_v = (beta / alpha);
+        else
+            initFactor_v = 1;
+        end
+        
+        prev_sigma  =  ones ( num_labels, num_labels, num_vertices, 'single' ) * initFactor_v;
+        curr_sigma  =  ones ( num_labels, num_labels, num_vertices, 'single' ) * initFactor_v;
+
+        if this.m_save_all_iterations
+            allIterations.mu     = zeros( num_labels,               num_vertices, num_iterations );
+            allIterations.sigma  = ones ( num_labels, num_labels,   num_vertices, num_iterations ) * initFactor_v;
+        end
+        
+        for vertex_i=1:num_vertices
+            prev_sigma(:,:,vertex_i) = eye( num_labels );
         end
 
         inv_gamma = diag( zeros(1,num_labels) + 1 / gamma );
         
         this.prepareGraph();
         
-        iteration_diff  = 10^1000;
-        diff_epsilon    = 0.0001;
+        iteration_diff  = Inf;
+        diff_epsilon    = this.m_diffEpsilon; 
         
         % note iteration index starts from 2
         for iter_i = 2:num_iterations
@@ -47,39 +57,38 @@ classdef CSSLMCF < CSSLBase
             if iteration_diff < diff_epsilon
                 Logger.log(['converged after ' num2str(iter_i-1) ' iterations.'...
                       ' iteration_diff = ' num2str(iteration_diff)]);
-                result.mu(:,:, iter_i:end) = [];
-                result.sigma(:,:,:, iter_i:end) = [];
+                allIterations.mu   (:,:,   iter_i:end) = [];
+                allIterations.sigma(:,:,:, iter_i:end) = [];
                 break;
             end
             
-            prev_mu     = result.mu    ( :, :, iter_i - 1) ;
-            prev_sigma  = result.sigma ( :, :, :, iter_i - 1) ;
-
             inv_prev_sigma = zeros( num_labels, num_labels, num_vertices );
             for vertex_i=1:num_vertices
-                sigma_i = prev_sigma(:,:,vertex_i );
+                sigma_i                        = prev_sigma(:,:,vertex_i );
                 inv_prev_sigma(:, :, vertex_i) = inv( sigma_i );
             end
             
             for vertex_i=1:num_vertices
                 inv_sigma_i = inv_prev_sigma(:,:,vertex_i);
                 
-                isLabeled = this.injectionProbability(vertex_i);
+                isLabeled = this.m_isLabeledVector(vertex_i);
                 
                 P_i = isLabeled * (inv_sigma_i + inv_gamma);
                     
-                neighbours      = getNeighbours( this.m_W, vertex_i);
-                num_neighbours  = length( neighbours.weights);
+                col = this.m_W(:, vertex_i);
+                [neighbours_indices, ~, neighbours_weights] = find(col);
+                
+                num_neighbours  = length( neighbours_weights);
                 Q_i             = zeros( num_labels, num_labels );               
                 sum_K_i_j       = zeros( num_labels, 1 );
                 
                 for neighbour_i=1:num_neighbours
-                    neighbour_id     = neighbours.indices(neighbour_i);
-                    neighbour_weight = neighbours.weights(neighbour_i);
-                    neighbour_mu     = prev_mu( neighbour_id, : ).';
+                    neighbour_id     = neighbours_indices(neighbour_i); % integer
+                    weight           = neighbours_weights(neighbour_i); % scalar
+                    neighbour_mu     = prev_mu( :, neighbour_id );      % column vector
                     inv_neighbour_sigma = inv_prev_sigma(:,:,neighbour_id);
                     covariance = ...
-                        neighbour_weight * (inv_sigma_i + inv_neighbour_sigma);
+                        weight * (inv_sigma_i + inv_neighbour_sigma);
                     Q_i = Q_i + covariance;
                     K_i_j = covariance * neighbour_mu;
                     sum_K_i_j = sum_K_i_j + K_i_j;
@@ -87,43 +96,65 @@ classdef CSSLMCF < CSSLBase
                 
                 Q_i = Q_i + isUsingL2Regularization * eye(size(Q_i));
                 
-                y_i       = this.priorVector( vertex_i );
+                % y_i size is (num_labels X 1)
+                y_i    = this.m_priorY(vertex_i,:).';
                 new_mu = ( Q_i + P_i ) \ ( sum_K_i_j + P_i * y_i );
 
-                result.mu( vertex_i, :, iter_i) = new_mu.';
+                current_mu( :, vertex_i) = new_mu.';
             end
 
             if isUsingSecondOrder
                 for vertex_i=1:num_vertices
-                    isLabeled = this.injectionProbability(vertex_i);
+                    isLabeled = this.m_isLabeledVector(vertex_i);
 
-                    neighbours      = getNeighbours( this.m_W, vertex_i);
-                    num_neighbours  = length( neighbours.weights);
-                    mu_i            = prev_mu( vertex_i, : ).';
+                    col = this.m_W(:, vertex_i);
+                    [neighbours_indices, ~, neighbours_weights] = find(col);
+
+                    num_neighbours  = length( neighbours_weights);
+                    mu_i            = prev_mu( :, vertex_i ); % column vector
 
                     R_i = zeros( num_labels, num_labels );
                     for neighbour_i=1:num_neighbours
-                        neighbour_id     = neighbours.indices(neighbour_i);
-                        neighbour_weight = neighbours.weights(neighbour_i);
-                        neighbour_mu     = prev_mu( neighbour_id, : ).';
+                        neighbour_id     = neighbours_indices(neighbour_i);
+                        weight           = neighbours_weights(neighbour_i);
+                        neighbour_mu     = prev_mu( :, neighbour_id );
                         mu_diff = mu_i - neighbour_mu;
-                        R_i = R_i + neighbour_weight * (mu_diff * mu_diff.');
+                        R_i = R_i + weight * (mu_diff * mu_diff.');
                     end
 
-                    y_i       = this.priorVector( vertex_i );
+                    y_i       = this.m_priorY(vertex_i,:).';
                     mu_diff_y = mu_i - y_i;
 
                     R_i = 0.5 * (R_i + isLabeled * (mu_diff_y * mu_diff_y.'));
                     new_sigma_i = CSSLMCF.solveQuadratic( - (beta/alpha), - (1/alpha) * R_i);
-                    result.sigma( :,:, vertex_i, iter_i) = new_sigma_i;
+                    curr_sigma( :,:, vertex_i) = new_sigma_i;
                 end
             end
             
-            current_mu     = result.mu( :, :, iter_i) ;
             iteration_diff = sum((prev_mu(:) - current_mu(:)).^2);
-        end
+            
+            if this.m_save_all_iterations
+                allIterations.mu     ( :, :,    iter_i)    = current_mu;
+                allIterations.sigma  ( :, :, :, iter_i)    = current_v;
+            end
+        
+            % Advance iteration
+            prev_mu     = current_mu;
+            prev_sigma  = curr_sigma;
+        end % loop over all iterations
 
         toc(ticID);
+        
+        if this.m_save_all_iterations
+            for iter_i=1:size(allIterations.mu,3)
+                iterationResult_mu       = allIterations.mu(:,:,iter_i);
+                result.mu      (:,:,  iter_i) = iterationResult_mu.';
+            end
+            result.sigma    = allIterations.sigma;
+        else
+            result.sigma           = curr_sigma;
+            result.mu              = current_mu.';
+        end
     
         end
     end % methods (Access=public)
