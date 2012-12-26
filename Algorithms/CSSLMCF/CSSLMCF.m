@@ -69,6 +69,9 @@ classdef CSSLMCF < CSSLBase
             end
             
             for vertex_i=1:num_vertices
+                if ( mod(vertex_i, 100000) == 0 )
+                    Logger.log([ 'vertex_i = ' num2str(vertex_i)]);
+                end
                 inv_sigma_i = inv_prev_sigma(:,:,vertex_i);
                 
                 isLabeled = this.m_isLabeledVector(vertex_i);
@@ -105,6 +108,10 @@ classdef CSSLMCF < CSSLBase
 
             if isUsingSecondOrder
                 for vertex_i=1:num_vertices
+                    if ( mod(vertex_i, 100000) == 0 )
+                        Logger.log([ 'vertex_i = ' num2str(vertex_i)]);
+                    end
+
                     isLabeled = this.m_isLabeledVector(vertex_i);
 
                     col = this.m_W(:, vertex_i);
