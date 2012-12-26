@@ -4,8 +4,8 @@ classdef JobManager
     
 properties( Constant)
     QUEUE_NAME_STUB = 'QUEUE_NAME_STUB';
-    QUEUE_NAME_ALL = 'all.q';
-    QUEUE_NAME_MEM = 'mem.q';
+    QUEUE_NAME_ALL = 'all_q';
+    QUEUE_NAME_MEM = 'mem_q';
     QUEUE_NAME_NEW = 'new_q'; % for new server HERMES
     QUEUE_ID_ALL = 1;
     QUEUE_ID_MEM = 2;
