@@ -31,6 +31,8 @@ classdef CSSLMCF < CSSLBase
         
         prev_sigma  =  ones ( num_labels, num_labels, num_vertices, 'single' ) * initFactor_v;
         curr_sigma  =  ones ( num_labels, num_labels, num_vertices, 'single' ) * initFactor_v;
+        whos prev_sigma;
+        whos curr_sigma;
 
         if this.m_save_all_iterations
             allIterations.mu     = zeros( num_labels,               num_vertices, num_iterations );
