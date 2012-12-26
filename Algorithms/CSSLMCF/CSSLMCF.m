@@ -20,8 +20,8 @@ classdef CSSLMCF < CSSLBase
         num_labels   = this.numLabels();
         this.displayParams(CSSLMCF.name());
         
-        prev_mu     =  zeros( num_labels, num_vertices, 'single' );
-        current_mu  =  zeros( num_labels, num_vertices, 'single' );
+        prev_mu     =  zeros( num_labels, num_vertices );
+        current_mu  =  zeros( num_labels, num_vertices );
 
         if 0 == isUsingSecondOrder
             initFactor_v = (beta / alpha);
@@ -29,8 +29,8 @@ classdef CSSLMCF < CSSLBase
             initFactor_v = 1;
         end
         
-        prev_sigma  =  ones ( num_labels, num_labels, num_vertices, 'single' ) * initFactor_v;
-        curr_sigma  =  ones ( num_labels, num_labels, num_vertices, 'single' ) * initFactor_v;
+        prev_sigma  =  ones ( num_labels, num_labels, num_vertices ) * initFactor_v;
+        curr_sigma  =  ones ( num_labels, num_labels, num_vertices ) * initFactor_v;
         whos prev_sigma;
         whos curr_sigma;
 
