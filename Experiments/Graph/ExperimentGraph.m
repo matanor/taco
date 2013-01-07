@@ -45,7 +45,9 @@ methods
     %% createKnn
     
     function createKnn(this, K)
+        Logger.log(['ExperimentGraph::createKnn. K = ' num2str(K)]);
         rebuild = (K ~= this.m_lastUsedK);
+        Logger.log(['ExperimentGraph::createKnn. rebuild = ' num2str(rebuild)]);
         if rebuild
             if isempty(this.m_weights)
                 this.loadFromSavedFileName();

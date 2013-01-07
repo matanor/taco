@@ -13,6 +13,7 @@ methods
     %% load
     
     function load(this, graphFileName)
+        graphFileName(graphFileName == '\') = '/';
         this.m_fileName = graphFileName;
         Logger.log(['Loading file ''' graphFileName '''']);
         fileData = load( graphFileName, 'graph' );
