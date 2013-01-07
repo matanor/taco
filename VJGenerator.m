@@ -87,9 +87,9 @@ methods  (Static)
         R = t;
     end
     
-    %% createWeightsFromDistances_lihi_main
+    %% scale_all_VJ_graphs
     
-    function createWeightsFromDistances_lihi_main()
+    function scale_all_VJ_graphs()
         rootDirectoty = 'c:/technion/theses/experiments/VJ/';
         allFilePrefixes{1} = [rootDirectoty 'trainAndDev/trainAndDev.instances.v4.w1'];
         allFilePrefixes{2} = [rootDirectoty 'trainAndDev/trainAndDev.instances.v4.w7'];
@@ -102,7 +102,7 @@ methods  (Static)
         num_files = length(allFilePrefixes);
         for file_i = 1:num_files
             filePrefix = allFilePrefixes{file_i};
-            StructuredGenerator.createWeightsFromDistances_lihi_wrapper(filePrefix);
+            LocalScaling.main(filePrefix);
         end
     end
     
