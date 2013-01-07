@@ -3,8 +3,35 @@ classdef LocalScaling
 methods (Static)
 
 %% main
+%  ****** INPUT ******
+%  (1) <filePrefix>: prefix for the 2 input files:
+%  <filePrefix>.mat - Instances file, should include a 'graph'
+%  structure with fields:
+%  'phoneids39' - correct labels (optional).
+%  'labels'     - correct labels (mandatory if 'phoneids39' is missing).
+%  'structuredEdges'      - optional.
+%  'segments'             - optional.
+%  'transitionMatrix39'   - optional.
+%  <filePrefix>.k_<K>.mat - K-NN graph, should include a 'graph'
+%  structure with fields:
+%  'distances' - a matrix of squared distances.
+%  Each row in this matrix has to contain squared distances its 
+%  <K> nearest neighbours.
+%  This matrix does not have to be symmetric.
+%  (2) <K> - The distance to the K-th nearest neighbour is considered as
+%            the local sigma.
+%  ****** OUTPUT *******
+%  Output file is named <filePrefix>.k_<K>.local.mat
+%  Conains a graph structure with fields:
+%  'name'               - graph string identifier.
+%  'labels'             - correct labeles (a vector).
+%  'weights'            - graph weights (sparse).
+%  'structuredEdges'    - optional.
+%  'segments'           - optional.
+%  'transitionMatrix'   - optional.
+  
 
-function main(filePrefix)
+function main(filePrefix, K)
     instancesFilePath = [filePrefix '.mat'];
     Logger.log(['Loading instances from ''' instancesFilePath '''']);
     fileData = load(instancesFilePath,'graph');
@@ -35,7 +62,7 @@ function main(filePrefix)
     
     % load K-NN graph
     
-    knnGraphPath = [filePrefix '.k_10.mat'];
+    knnGraphPath = [filePrefix '.k_' num2str(K) '.mat'];
     Logger.log(['Loading K-NN graph from ''' knnGraphPath '''']);
     fileData = load(knnGraphPath,'graph');
     Logger.log('Done');
@@ -44,10 +71,10 @@ function main(filePrefix)
     
     % transform weights to distances
     
-    Logger.log('Creating weights from distances...(lihi)');
-    K = 10;
+    Logger.log('Creating weights from distances...(local scaling)');
     graph = LocalScaling.scaleGraph(graph, K);
-    graph.name = [graph.name '_lihi'];
+    graph = rmfield(graph, 'distances');
+    graph.name = [graph.name '_local_scaling'];
     graph.labels = labels;
     
     % set structured information on output graph, if any
@@ -64,7 +91,7 @@ function main(filePrefix)
     
     % write output
     
-    outputFilePath = [filePrefix '.k_10.local.mat'];
+    outputFilePath = [filePrefix '.k_' num2str(K) '.local.mat'];
     Logger.log(['Saving scaled output graph to ''' outputFilePath '''']);
     save(outputFilePath,'graph','-v7.3');
     Logger.log('Done');

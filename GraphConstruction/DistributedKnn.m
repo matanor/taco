@@ -4,16 +4,21 @@ methods (Static)
     %% calcKnnMain
     %  main entry point for asyncrounous calculation of K-NN
     %  on a large set of instances.
-    %  ** INPUT **
+    %  ***** INPUT *****
     %  <inputFileFullPath> - full path to input instances file.
     %  contents: a graph variable with the fields:
-    %                      instances: features X instances matrix.
+    %                      instances: (features X instances) matrix.
     %                      name:      graph name.
     %  <K>                 - Create <K>-NN graph.
     %  <instancesPerJob>   - number of instances in a single job.
     %  <maxInstances>      - maximum number of instances from the instances
     %                        file to use. for testing.
     %  <outputManager>     - an object managing output folder.
+    % ***** OUTPUT ****
+    % Output file path is <input file name without extension>'.k_'<K>'.mat'
+    % It will contain a 'graph' structure with the fields
+    % name      - set to <input graph name>_K_<K>
+    % distances - squared distances to K-NN of each node (in rows).
     
     function calcKnnMain(inputFileFullPath, K, instancesPerJob, ...
                          maxInstances,      outputManager)
@@ -201,8 +206,10 @@ methods (Static)
         %   This is a simple syncrounous version, suitable for small 
         %   graph.
         %
-        %   graph.weights - symetric weights metrix describing the graph.
-        %   K - create a K - NN graph.
+        %   <weights> - Weights matrix describing the graph.
+        %               Does not have to be symmetric.
+        %               Each row should contain weights to neighbours.
+        %   <K>       - create a K - NN graph.
         %   This will zero all N-K smallest values per each row.
         %   Assume that the weights matrix is sparse.
 
