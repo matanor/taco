@@ -78,7 +78,7 @@ methods (Static)
         %outputGraph
         graph.distances = allDistances; %#ok<STRNU>
         Logger.log(['DistributedKnn::calcKnnMain. Saving output to ''' outputFileFullPath '''']);
-        save(outputFileFullPath, 'graph');
+        save(outputFileFullPath, 'graph', '-v7.3');
     end
     
     %% scheduleAsyncKNN
