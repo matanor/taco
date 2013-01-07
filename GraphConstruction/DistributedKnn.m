@@ -1,13 +1,25 @@
-classdef sparseKnn
+classdef DistributedKnn
 methods (Static)
     
     %% calcKnnMain
+    %  main entry point for asyncrounous calculation of K-NN
+    %  on a large set of instances.
+    %  ** INPUT **
+    %  <inputFileFullPath> - full path to input instances file.
+    %  contents: a graph variable with the fields:
+    %                      instances: features X instances matrix.
+    %                      name:      graph name.
+    %  <K>                 - Create <K>-NN graph.
+    %  <instancesPerJob>   - number of instances in a single job.
+    %  <maxInstances>      - maximum number of instances from the instances
+    %                        file to use. for testing.
+    %  <outputManager>     - an object managing output folder.
     
     function calcKnnMain(inputFileFullPath, K, instancesPerJob, ...
                          maxInstances,      outputManager)
-        Logger.log(['sparseKnn::calcKnnMain. Loading file ''' inputFileFullPath '''']);
+        Logger.log(['DistributedKnn::calcKnnMain. Loading file ''' inputFileFullPath '''']);
         fileData = load(inputFileFullPath);
-        Logger.log('sparseKnn::calcKnnMain. Done');
+        Logger.log('DistributedKnn::calcKnnMain. Done');
         inputGraph = fileData.graph;
         numInstances = size(inputGraph.instances, 2);
         numFeatures  = size(inputGraph.instances, 1);
@@ -15,7 +27,7 @@ methods (Static)
         numJobs = ceil(numInstancesToCompute / instancesPerJob);
         job_i_zero_based = 0;
         allJobs = [];
-        Logger.log(['sparseKnn::calcKnnMain.' ...
+        Logger.log(['DistributedKnn::calcKnnMain.' ...
                     ' numJobs = '       num2str(numJobs) ...
                     ' numInstances = ' num2str(numInstances) ...
                     ' numFeatures = '  num2str(numFeatures)]);
@@ -24,7 +36,7 @@ methods (Static)
             lastInstanceForJob = min(numInstances, firstInstanceForJob + instancesPerJob - 1);
             job_i_zero_based = job_i_zero_based + 1;
             instancesRange = firstInstanceForJob:lastInstanceForJob;
-            newJob = sparseKnn.scheduleAsyncKNN(inputFileFullPath, instancesRange, K, outputManager);
+            newJob = DistributedKnn.scheduleAsyncKNN(inputFileFullPath, instancesRange, K, outputManager);
             jobInfo{job_i}.instancesRange = instancesRange; %#ok<AGROW>
             allJobs = [allJobs; newJob]; %#ok<AGROW>
         end
@@ -32,13 +44,13 @@ methods (Static)
         save(jobsOutputFile, 'allJobs');
         JobManager.executeJobs( allJobs );
         
-        Logger.log('sparseKnn::calcKnnMain. Connecting all results to one graph');
+        Logger.log('DistributedKnn::calcKnnMain. Connecting all results to one graph');
         tic;
         allRowIndices       = [];
         allColumnIndices    = [];
         allValues           = [];
         for job_i=1:numJobs
-            Logger.log(['sparseKnn::calcKnnMain. job_i = ' num2str(job_i)]);
+            Logger.log(['DistributedKnn::calcKnnMain. job_i = ' num2str(job_i)]);
             job = allJobs(job_i);
             partialDistances = JobManager.loadJobOutput(job.fileFullPath);
             [rows_indices,column_indices,value] = find(partialDistances);
@@ -46,7 +58,7 @@ methods (Static)
             allColumnIndices = [allColumnIndices; column_indices]; %#ok<AGROW>
             allValues        = [allValues; value]; %#ok<AGROW>
             instancesRange = jobInfo{job_i}.instancesRange;
-            Logger.log(['sparseKnn::calcKnnMain. ' ... 
+            Logger.log(['DistributedKnn::calcKnnMain. ' ... 
                         'instancesRange = ' num2str(instancesRange(1)) '_' ...
                                             num2str(instancesRange(end))]);
         end
@@ -60,21 +72,33 @@ methods (Static)
         graph.name = [inputGraph.name '_K_' num2str(K)];
         %outputGraph
         graph.distances = allDistances; %#ok<STRNU>
-        Logger.log(['sparseKnn::calcKnnMain. Saving output to ''' outputFileFullPath '''']);
+        Logger.log(['DistributedKnn::calcKnnMain. Saving output to ''' outputFileFullPath '''']);
         save(outputFileFullPath, 'graph');
     end
     
     %% scheduleAsyncKNN
+    %  create a single asyncrounous job, calcilating K-NN on some given
+    %  range of instances.
+    %  ** INPUT **
+    %  <inputFileFullPath> - full path to input instances file.
+    %  instancesRange
+    %  <instancesRange>    - The range of instances to work on.
+    %  <K>                 - Create <K>-NN graph.
+    %  <outputManager>     - an object managing output folder.
+    %  ** Method **
+    %  Directly call calcKnnFromInstances() for syncrounous runs.
+    %  For asyncrounous runs, create a job that runs asyncCalcKnn().
+    %  Then, from the job, asyncCalcKnn() will call calcKnnFromInstances().
     
     function job = scheduleAsyncKNN(inputFileFullPath, instancesRange, K,...
-                                          outputManager ) %#ok<INUSL,INUSD>
+                                          outputManager )
         Logger.log('scheduleAsyncKNN');
         Logger.log(['instancesRange = ' num2str([instancesRange(1) instancesRange(end)])]);
         firstInstance = instancesRange(1);
         fileName = ['KNN_' num2str(firstInstance) '.mat' ];
         fileFullPath = outputManager.createFileNameAtCurrentFolder(fileName);
         if ParamsManager.ASYNC_RUNS == 0
-            result = sparseKnn.calcKnnFromInstances( inputFileFullPath, instancesRange, K);
+            result = DistributedKnn.calcKnnFromInstances( inputFileFullPath, instancesRange, K);
             JobManager.saveJobOutput( result, fileFullPath);
             JobManager.signalJobIsFinished( fileFullPath );
             job = Job;
@@ -86,7 +110,13 @@ methods (Static)
     end
     
     %% calcKnnFromInstances
+    %  This is the actual K-NN calculation routine, used in both
+    %  syncrounous and asyncrounous modes.
     %  Read input file <inputFileFullPath>
+    %  contents: a graph variable with the fields:
+    %                      instances: features X instances matrix.
+    %                      covariance: optional, when isPerformWhitening=1,
+    %                      instances are whitened using this covariance.
     %  For every instane in <instancesRange>
     %      calculate distance to all other instances.
     %      Keep only distances to <K>-Nearest Neighbours,
@@ -153,8 +183,8 @@ methods (Static)
 %             end
             row_distances = sparse(row_distances);
             if nnz(row_distances) ~= K;
-                Logger.log(['sparseKnn::calcKnnFromInstances. ' ...
-                             ' number of non-zeros under K, probably because of identical instances '...
+                Logger.log(['DistributedKnn::calcKnnFromInstances. ' ...
+                             ' number of non-zeros under K, possible cause are identical instances '...
                              ' instance_i = ' num2str(instance_i)]);
             end
             assert(nnz(row_distances) <= K );
@@ -167,7 +197,10 @@ methods (Static)
     %% calcKnnOnGraph
         
     function weights = calcKnnOnGraph( weights, K )
-        %KNN Create K nearest neighbour graph
+        %   Create K nearest neighbour graph.
+        %   This is a simple syncrounous version, suitable for small 
+        %   graph.
+        %
         %   graph.weights - symetric weights metrix describing the graph.
         %   K - create a K - NN graph.
         %   This will zero all N-K smallest values per each row.
@@ -209,144 +242,5 @@ methods (Static)
         weights = sparse(allRows, allColumns, allValues, numVertices, numVertices);
     end
     
-    %% makeSymetric
-    
-    function weights = makeSymetric(weights)
-        [rows,cols,values] = find(weights);
-        [numRows numCols] = size(weights);
-        allRows     = [rows;cols];
-        allColumns  = [cols;rows];
-        allValues   = [values;values];
-        
-        indices = [allRows allColumns];
-        [uniqueIndices, usedRows,~] = unique(indices, 'rows');
-        uniqueValues = allValues(usedRows);
-        uniqueRows = uniqueIndices(:,1);
-        uniqueCols = uniqueIndices(:,2);
-        
-        weights = sparse(uniqueRows, uniqueCols, ...
-                         uniqueValues, numRows, numCols);
-    end
-    
-    %% testMakeSymetric
-    
-    function testMakeSymetric()
-        A = [1 2 3; 0 0 0; 0 0 0];
-        A = sparse(A);
-        sym = sparseKnn.makeSymetric(A);
-        A_sym = full(sym);
-    end
-    
-    %% createDummy
-    
-    function createDummy(outputFileFullPath, numInstances, K)
-        allRows = [];
-        allCols = [];
-        allValues = [];
-        for instance_i=1:numInstances
-            if mod(instance_i,1000) == 0
-                Logger.log(['Instance_i = ' num2str(instance_i)]);
-            end
-            rows = randi(numInstances, K, 1);
-            cols = instance_i * ones(K,1);
-            values = ones(K,1);
-            allRows  = [allRows; rows]; %#ok<AGROW>
-            allCols  = [allCols; cols]; %#ok<AGROW>
-            allValues = [allValues; values]; %#ok<AGROW>
-        end
-        graph.weights = sparse(allRows, allCols, allValues, numInstances, numInstances); %#ok<STRNU>
-        save(outputFileFullPath, 'graph');
-    end
-
-    %% testCalcDistance
-    
-    function testCalcDistance()
-        numInstances = 10;
-        d = 5;
-        A = rand(d, d);
-        B = rand( d, numInstances);
-        iter = 100;
-        
-        c = zeros(numInstances, 1);
-        tic
-        for i=1:iter
-            c = sum((B.' * A).' .* B);
-        end
-        toc
-        disp(c);
-
-        c = zeros(numInstances, 1);
-        tic
-        for i=1:iter
-            for j=1:numInstances
-                c(j) = B(:,j).' * A * B(:,j);
-            end
-        end
-        toc
-        disp(c);
-        
-        c = zeros(numInstances, 1);
-        tic
-        for i=1:iter
-            for j=1:numInstances
-                x = B(:,j);
-                c(j) = x.' * A * x;
-            end
-        end
-        toc
-        disp(c);
-        
-    end
-    
-    %% testSubstractVectorFromColumns
-    
-    % this will occupy the CPU ofr a few minutes. (~5-7)
-    function testSubstractVectorFromColumns()
-        n = 1e6;
-        m = 100;
-        iter = 100;
-        a = rand(1,m);
-        b = rand(n,m);
-
-%         c = zeros(size(b));
-%         tic
-%         for i = 1:iter
-%             c(:,1) = b(:,1) - a(1);
-%             c(:,2) = b(:,2) - a(2);
-%             c(:,3) = b(:,3) - a(3);
-%         end
-%         toc
-
-        c = zeros(size(b));
-        tic
-        for i = 1:iter
-            for j = 1:m
-                c(:,j) = b(:,j) - a(j);
-            end
-        end
-        toc
-
-        c = zeros(size(b));
-        tic
-        for i = 1:iter
-            c = b-repmat(a,size(b,1),1);
-        end
-        toc
-
-        tic
-        for i = 1:iter
-            c = bsxfun(@minus,b,a);
-        end
-        toc
-
-        c = zeros(size(b));
-        tic
-        for i = 1:iter
-            for j = 1:size(b,1)
-                c(j,:) = b(j,:) - a;
-            end
-        end
-        toc
-    end
 end
 end

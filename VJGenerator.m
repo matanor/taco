@@ -140,14 +140,14 @@ methods  (Static)
         num_files = length(allInputFilesFullPath);
         for file_i = 1:num_files
             inputFileFullPath = allInputFilesFullPath{file_i};
-            Logger.log(['sparseKnn::vjFormatToMatlab. loading = ''' inputFileFullPath '''']);
+            Logger.log(['VJGenerator::vjFormatToMatlab. loading = ''' inputFileFullPath '''']);
             data = load(inputFileFullPath); 
             labels = data(:,1);
             features = data(:,3:2:end);
             num_instances = length(labels);
-            Logger.log(['sparseKnn::vjFormatToMatlab. num_instances = ' num2str(num_instances)]);
+            Logger.log(['VJGenerator::vjFormatToMatlab. num_instances = ' num2str(num_instances)]);
             num_features = size(features, 2);
-            Logger.log(['sparseKnn::vjFormatToMatlab. num_features = '  num2str(num_features)]);
+            Logger.log(['VJGenerator::vjFormatToMatlab. num_features = '  num2str(num_features)]);
             assert(num_features == size(features, 2));
             allFeatures{file_i}.instances = features; %#ok<AGROW>
             allFeatures{file_i}.labels    = labels; %#ok<AGROW>
@@ -156,7 +156,7 @@ methods  (Static)
             dots = strfind(name, '.');
             name = name(1:(dots(3)-1));
             outputFeaturesFullPath = [path '/' name '.mat'];
-            Logger.log(['sparseKnn::vjFormatToMatlab. outputFeaturesFullPath = ''' outputFeaturesFullPath  '''']);
+            Logger.log(['VJGenerator::vjFormatToMatlab. outputFeaturesFullPath = ''' outputFeaturesFullPath  '''']);
             save(outputFeaturesFullPath, 'features', 'labels')
         end
         
@@ -164,8 +164,8 @@ methods  (Static)
         graph.instances = [allFeatures{TRAIN}.instances; allFeatures{DEV}.instances].';
         graph.labels    = [allFeatures{TRAIN}.labels;    allFeatures{DEV}.labels];
         graph.name      = ['trainAndDev.' fileIdentifier]; %#ok<STRNU>
-        Logger.log(['sparseKnn::vjFormatToMatlab. (trainAndDev) num_instances = ' num2str(length(graph.labels))]);
-        Logger.log(['sparseKnn::vjFormatToMatlab. output file = ''' outputFileFullPath '''']);
+        Logger.log(['VJGenerator::vjFormatToMatlab. (trainAndDev) num_instances = ' num2str(length(graph.labels))]);
+        Logger.log(['VJGenerator::vjFormatToMatlab. output file = ''' outputFileFullPath '''']);
         save(outputFileFullPath, 'graph');
         clear graph;
         
@@ -173,8 +173,8 @@ methods  (Static)
         graph.instances = [allFeatures{TRAIN}.instances; allFeatures{TEST}.instances].';
         graph.labels    = [allFeatures{TRAIN}.labels;    allFeatures{TEST}.labels];
         graph.name      = ['trainAndTest.' fileIdentifier]; %#ok<STRNU>
-        Logger.log(['sparseKnn::vjFormatToMatlab. (trainAndTest) num_instances = ' num2str(length(graph.labels))]);
-        Logger.log(['sparseKnn::vjFormatToMatlab. output file = ''' outputFileFullPath '''']);
+        Logger.log(['VJGenerator::vjFormatToMatlab. (trainAndTest) num_instances = ' num2str(length(graph.labels))]);
+        Logger.log(['VJGenerator::vjFormatToMatlab. output file = ''' outputFileFullPath '''']);
         save(outputFileFullPath, 'graph');
         clear graph;
     end

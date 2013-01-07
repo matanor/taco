@@ -525,7 +525,7 @@ function createWeightsFromDistances_alex(filePrefix)
     Logger.log('Creating weights from distances...');
     graph = StructuredGenerator.createWeightsFromDistances(graph, rbfScale);
     Logger.log('Symetrizing weights...');
-    graph.weights = sparseKnn.makeSymetric(graph.weights);
+    graph.weights = DistributedKnn.makeSymetric(graph.weights);
     graph.name = [graph.name '_alex'];
     graph.labels = labels;
     graph.structuredEdges = structuredEdges;
@@ -630,7 +630,7 @@ end
 %  graph - adds a field graph.weights with the edge weights.
 
 function graph = createWeightsFromDistances_lihi(graph, K)
-    squared_distances = sparseKnn.makeSymetric(graph.distances);
+    squared_distances = DistributedKnn.makeSymetric(graph.distances);
     numInstances = size(squared_distances,1);
 
     sigma = zeros(numInstances, 1);
@@ -643,7 +643,7 @@ function graph = createWeightsFromDistances_lihi(graph, K)
             sigma(instance_i) = max(squared_distance_i);
             Logger.log(['StructuredGenerator::createWeightsFromDistances_lihi.' ...
                         ' Warning, distance to K-th (' num2str(K) ') NN is 0.'   ...
-                        ' instance_i = ' num2str(sigma(instance_i)) ...
+                        ' instance_i = ' num2str(instance_i) ...
                         ' set sigma to ' num2str(sigma(instance_i))]);
         end
     end

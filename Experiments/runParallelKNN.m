@@ -20,7 +20,7 @@ function runParallelKNN(resultsDirectory, codeRoot)
         instancesPerJob = 500;
     %     maxInstances = 10 * instancesPerJob;
         maxInstances = Inf;
-        sparseKnn.calcKnnMain(inputFileFullPath, K, instancesPerJob, ...
+        DistributedKnn.calcKnnMain(inputFileFullPath, K, instancesPerJob, ...
                               maxInstances,      outputManager);
         outputManager.moveUpOneDirectory();
     end
