@@ -73,7 +73,7 @@ methods (Static)
         toc;
         
         [path, name, ~] = fileparts(inputFileFullPath);
-        outputFileFullPath = [path name '.k_' num2str(K) '.mat'];
+        outputFileFullPath = [path '/' name '.k_' num2str(K) '.mat'];
         graph.name = [inputGraph.name '_K_' num2str(K)];
         %outputGraph
         graph.distances = allDistances; %#ok<STRNU>
