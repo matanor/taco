@@ -65,6 +65,9 @@ end
 
 properties (Constant)
     WEBKB_CONSTRUCTED = 5;
+    TWENTY_NG_4715    = 6;
+    ENRON_FARMER      = 7;
+    ENRON_KAMINSKI    = 8;
 end
 
 properties (Constant)
@@ -103,21 +106,26 @@ methods (Access = public)
             tfidf = [];
         end
         
-        webkb_constructed.development    = [ rootDir 'webkb/data/Rapid_Miner_Result/webkb_constructed.mat'];
-        webkb_constructed.test = [];
-        webkb_constructed.transductionSetFileFormat = [];
-        webkb_constructed.isCalcPRBEP = 1;
-        webkb_constructed.clearAlgorithmOutput = 0;
-        webkb_constructed.precentToNumLabeledTable = this.precentToNumLabeledTable(ParamsManager.WEBKB_CONSTRUCTED);
+        webkbGraphPath       = 'webkb/data/Rapid_Miner_Result/webkb_constructed.mat';
+        webkb_constructed    = this.createTextDataset(webkbGraphPath, ParamsManager.WEBKB_CONSTRUCTED);
         
         webkb_amar           = [ rootDir 'webkb/data/from_amar/webkb_amar.mat'];
         webkb_html           = [ rootDir 'webkb/data/With_Html/webkb_with_html.mat'];
         sentiment_5k         = [ rootDir 'sentiment/data/from_yoav/sentiment_5k.mat'];
         sentiment_10k        = [ rootDir 'sentiment/data/from_yoav/sentiment_10k.mat'];
-        twentyNG_4715        = [ rootDir '20NG/data/twentyNG_4715.mat'];
+        
+        twentyNG_4715_graphPath = [ rootDir '20NG/data/twentyNG_4715.mat'];_
+        twentyNG_4715        = this.createTextDataset(twentyNG_4715_graphPath, ParamsManager.TWENTY_NG_4715);
+        
         twentyNG_18828       = [ rootDir '20NG/18828/twentyNG'          tfidf '.graph.mat'];
-        enronFarmer          = [ rootDir 'enron/farmer/farmer-d'        tfidf '.graph.mat'];
+        
+        enronFarmerGraphPath = [ rootDir 'enron/farmer/farmer-d'        tfidf '.graph.mat'];
+        enronFarmer          = this.createTextDataset(enronFarmerGraphPath, ParamsManager.ENRON_FARMER);
+        enronKaminskiGraphPath = [ rootDir 'enron/farmer/farmer-d'        tfidf '.graph.mat'];
+        enronKaminski          = this.createTextDataset(enronKaminskiGraphPath, ParamsManager.ENRON_KAMINSKI);
+        
         enronKaminski        = [ rootDir 'enron/kaminski/kaminski-v'    tfidf '.graph.mat'];
+        
         amazon3              = [ rootDir 'amazon/books_dvd_music/books_dvd_music' tfidf '.graph.mat'];
         amazon7              = [ rootDir 'amazon/all/all'               tfidf '.graph.mat'];
         reuters              = [ rootDir 'reuters/reuters_4_topics'     tfidf '.graph.mat'];
@@ -412,6 +420,17 @@ methods (Access = public)
         R.precentToNumLabeledTable = this.precentToNumLabeledTable(datasetID);
     end
     
+    %% createTextDataset
+     
+    function R = createTextDataset(this, rootDir, graphFullPath, datasetID)
+        R.development    = [ rootDir graphFullPath];
+        R.test = [];
+        R.transductionSetFileFormat = [];
+        R.isCalcPRBEP = 1;
+        R.clearAlgorithmOutput = 0;
+        R.precentToNumLabeledTable = this.precentToNumLabeledTable(datasetID);
+    end
+    
     %% createNumericParameter
     
     function this = createNumericParameter(this, name, range)
@@ -611,12 +630,17 @@ methods (Access = public)
     %  part of the transduction file name scheme
     
     function R = precentToNumLabeledTable(~, datasetID)
-        
-        numLabeled(VJGenerator.V4_W1,:) = [27 279 2794 13974 27948 55896  83845  139742];
-        numLabeled(VJGenerator.V4_W7,:) = [26 268 2680 13404 26808 53617  80426  134043];
-        numLabeled(VJGenerator.V8_W1,:) = [57 572 5729 28645 57291 114582 171873 286455];
-        numLabeled(VJGenerator.V8_W7,:) = [42 426 4263 21315 42630 85260  127890 213150];
-        numLabeled(ParamsManager.WEBKB_CONSTRUCTED,:) = [0 0 48   0         0     0       0      0];
+        %                                 0.01, 0.1, 1,   2.5,    5,   10,   20,    30,    50
+        numLabeled(VJGenerator.V4_W1,:) = [27   279  2794    0 13974 27948 55896  83845  139742];
+        numLabeled(VJGenerator.V4_W7,:) = [26   268  2680    0 13404 26808 53617  80426  134043];
+        numLabeled(VJGenerator.V8_W1,:) = [57   572  5729    0 28645 57291 114582 171873 286455];
+        numLabeled(VJGenerator.V8_W7,:) = [42   426  4263    0 21315 42630 85260  127890 213150];
+        numLabeled(ParamsManager.WEBKB_CONSTRUCTED,:) = ...
+                                          [0      0    48    0     0     0       0      0];
+        numLabeled(ParamsManager.TWENTY_NG_4715,:) = ...
+                                          [0      0    48  105     0   500       0      0];
+        numLabeled(ParamsManager.ENRON_FARMER,:) = ...
+                                          [0      0    48  105     0   500       0      0];
         
         numDatasets = size(numLabeled,1);
         for table_i=1:numDatasets
