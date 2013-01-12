@@ -68,6 +68,10 @@ properties (Constant)
     TWENTY_NG_4715    = 6;
     ENRON_FARMER      = 7;
     ENRON_KAMINSKI    = 8;
+    REUTERS           = 9;
+    AMAZON_3          = 10;
+    SENTIMENT_5K      = 11;
+    AMAZON_7          = 12;
 end
 
 properties (Constant)
@@ -106,29 +110,29 @@ methods (Access = public)
             tfidf = [];
         end
         
-        webkbGraphPath       = 'webkb/data/Rapid_Miner_Result/webkb_constructed.mat';
-        webkb_constructed    = this.createTextDataset(webkbGraphPath, ParamsManager.WEBKB_CONSTRUCTED);
-        
+        webkbGraphPath          = [ rootDir 'webkb/data/Rapid_Miner_Result/webkb_constructed.mat'];
+        twentyNG_4715_graphPath = [ rootDir '20NG/data/twentyNG_4715.mat'];
+        enronFarmerGraphPath    = [ rootDir 'enron/farmer/farmer-d'                  tfidf '.graph.mat'];
+        enronKaminskiGraphPath  = [ rootDir 'enron/farmer/farmer-d'                  tfidf '.graph.mat'];
+        amazon3graphPath        = [ rootDir 'amazon/books_dvd_music/books_dvd_music' tfidf '.graph.mat'];
+        amazon7graphPath        = [ rootDir 'amazon/all/all'                         tfidf '.graph.mat'];
+        reutersGraphPath        = [ rootDir 'reuters/reuters_4_topics'               tfidf '.graph.mat'];
+        sentiment_5kGraphPath   = [ rootDir 'sentiment/data/from_yoav/sentiment_5k.mat'];
+
         webkb_amar           = [ rootDir 'webkb/data/from_amar/webkb_amar.mat'];
         webkb_html           = [ rootDir 'webkb/data/With_Html/webkb_with_html.mat'];
-        sentiment_5k         = [ rootDir 'sentiment/data/from_yoav/sentiment_5k.mat'];
         sentiment_10k        = [ rootDir 'sentiment/data/from_yoav/sentiment_10k.mat'];
-        
-        twentyNG_4715_graphPath = [ rootDir '20NG/data/twentyNG_4715.mat'];_
-        twentyNG_4715        = this.createTextDataset(twentyNG_4715_graphPath, ParamsManager.TWENTY_NG_4715);
-        
         twentyNG_18828       = [ rootDir '20NG/18828/twentyNG'          tfidf '.graph.mat'];
         
-        enronFarmerGraphPath = [ rootDir 'enron/farmer/farmer-d'        tfidf '.graph.mat'];
-        enronFarmer          = this.createTextDataset(enronFarmerGraphPath, ParamsManager.ENRON_FARMER);
-        enronKaminskiGraphPath = [ rootDir 'enron/farmer/farmer-d'        tfidf '.graph.mat'];
-        enronKaminski          = this.createTextDataset(enronKaminskiGraphPath, ParamsManager.ENRON_KAMINSKI);
+        webkb_constructed = this.createTextDataset(webkbGraphPath,          ParamsManager.WEBKB_CONSTRUCTED);
+        twentyNG_4715     = this.createTextDataset(twentyNG_4715_graphPath, ParamsManager.TWENTY_NG_4715);
+        enronFarmer       = this.createTextDataset(enronFarmerGraphPath,    ParamsManager.ENRON_FARMER);
+        enronKaminski     = this.createTextDataset(enronKaminskiGraphPath,  ParamsManager.ENRON_KAMINSKI);
+        amazon3           = this.createTextDataset(amazon3graphPath,        ParamsManager.AMAZON_3);
+        amazon7           = this.createTextDataset(amazon7graphPath,        ParamsManager.AMAZON_7);
+        reuters           = this.createTextDataset(reutersGraphPath,        ParamsManager.REUTERS);
+        sentiment_5k      = this.createTextDataset(sentiment_5kGraphPath,   ParamsManager.SENTIMENT_5K);
         
-        enronKaminski        = [ rootDir 'enron/kaminski/kaminski-v'    tfidf '.graph.mat'];
-        
-        amazon3              = [ rootDir 'amazon/books_dvd_music/books_dvd_music' tfidf '.graph.mat'];
-        amazon7              = [ rootDir 'amazon/all/all'               tfidf '.graph.mat'];
-        reuters              = [ rootDir 'reuters/reuters_4_topics'     tfidf '.graph.mat'];
         phon_synth_context1  = [ rootDir 'StructureSynthetic/data/context_1.mat' ];
         phon_synth_context7  = [ rootDir 'StructureSynthetic/data/context_7.mat' ];
         dummy_timit          = [ rootDir 'timit/dummy.mat' ];
@@ -641,6 +645,16 @@ methods (Access = public)
                                           [0      0    48  105     0   500       0      0];
         numLabeled(ParamsManager.ENRON_FARMER,:) = ...
                                           [0      0    48  105     0   500       0      0];
+        numLabeled(ParamsManager.ENRON_KAMINSKI,:) = ...
+                                          [0      0    48  105     0   500       0      0];
+        numLabeled(ParamsManager.REUTERS,:) = ...
+                                          [0      0    48    0     0     0       0      0];
+        numLabeled(ParamsManager.AMAZON_3,:) = ...
+                                          [0      0    48  105     0   500       0      0];
+        numLabeled(ParamsManager.SENTIMENT_5K,:) = ...
+                                          [0      0    48  105     0   500       0      0];
+        numLabeled(ParamsManager.AMAZON_7,:) = ...
+                                          [0      0    48  105     0   500       0      0];
         
         numDatasets = size(numLabeled,1);
         for table_i=1:numDatasets
@@ -648,14 +662,25 @@ methods (Access = public)
             numLabeledToPrecentMap = containers.Map(0.1, 1); 
             remove(numLabeledToPrecentMap,0.1);
 
-            numLabeledToPrecentMap(0.01)  = numLabeled(table_i, 1);
-            numLabeledToPrecentMap(0.1)   = numLabeled(table_i, 2);
-            numLabeledToPrecentMap(1)     = numLabeled(table_i, 3);
-            numLabeledToPrecentMap(5)     = numLabeled(table_i, 4);
-            numLabeledToPrecentMap(10)    = numLabeled(table_i, 5);
-            numLabeledToPrecentMap(20)    = numLabeled(table_i, 6);
-            numLabeledToPrecentMap(30)    = numLabeled(table_i, 7);
-            numLabeledToPrecentMap(50)    = numLabeled(table_i, 8);
+            numLabeledToPrecentMap(0.01)  = numLabeled(table_i, precent_i);
+            precent_i = precent_i + 1;
+            numLabeledToPrecentMap(0.1)   = numLabeled(table_i, precent_i);
+            precent_i = precent_i + 1;
+            numLabeledToPrecentMap(1)     = numLabeled(table_i, precent_i);
+            precent_i = precent_i + 1;
+            numLabeledToPrecentMap(1)     = numLabeled(table_i, precent_i);
+            precent_i = precent_i + 1;
+            numLabeledToPrecentMap(5)     = numLabeled(table_i, precent_i);
+            precent_i = precent_i + 1;
+            numLabeledToPrecentMap(10)    = numLabeled(table_i, precent_i);
+            precent_i = precent_i + 1;
+            numLabeledToPrecentMap(20)    = numLabeled(table_i, precent_i);
+            precent_i = precent_i + 1;
+            numLabeledToPrecentMap(30)    = numLabeled(table_i, precent_i);
+            precent_i = precent_i + 1;
+            numLabeledToPrecentMap(50)    = numLabeled(table_i, precent_i);
+            precent_i = precent_i + 1;
+            
             allTables{table_i} = numLabeledToPrecentMap; %#ok<AGROW>
         end
         
