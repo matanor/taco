@@ -37,11 +37,11 @@ methods (Access = public)
         this.close();
         this.trimHeaders();
         this.createMaps();
-        isTrimLevenshtein = 0;
+        isTrimLevenshtein = 1;
         this.trimValues(isTrimLevenshtein);
-        %this.createGraphs_eilat_2012();
+        this.createGraphs_eilat_2012();
         %this.createGraphs_ecml_2012();
-        this.createTables_ecml2012();
+%         this.createTables_ecml2012();
         %this.createWebKBTable();
 %         this.createMultipleDatasetGraphs();
         this.clearAll();
@@ -366,7 +366,7 @@ methods (Access = public)
         yLimits             = [30 55];
         multiplySourceData  = 100;
         this.getDataAndPlot_eilat_2012...
-                (   this, searchProperties, numLabeledRange,...
+                (   searchProperties, numLabeledRange,...
                     optimizeByKey, presentedKey, contextSize, ...
                     yLabel, fileNameSuffix, yLimits, ...
                     multiplySourceData ...
@@ -377,11 +377,11 @@ methods (Access = public)
         optimizeByKey       = 'levenshtein';
         presentedKey        = 'avg levenshtein';
         yLabel              = 'Phone accuracy';
-        fileNameSuffix      = ['levenshtein' num2str(contextSize)];
+        fileNameSuffix      = ['levenshtein_test_context' num2str(contextSize)];
         yLimits             = [35 65];
         multiplySourceData  = 1;
         this.getDataAndPlot_eilat_2012...
-                (   this, searchProperties, numLabeledRange,...
+                (   searchProperties, numLabeledRange,...
                     optimizeByKey, presentedKey, contextSize, ...
                     yLabel, fileNameSuffix, yLimits, ...
                     multiplySourceData ...
@@ -392,11 +392,11 @@ methods (Access = public)
         optimizeByKey       = 'levenshtein';
         presentedKey        = 'optimized levenshtein';
         yLabel              = 'Phone accuracy';
-        fileNameSuffix      = ['levenshtein_development' num2str(contextSize)];
+        fileNameSuffix      = ['levenshtein_development_context' num2str(contextSize)];
         yLimits             = [35 65];
         multiplySourceData  = 1;
         this.getDataAndPlot_eilat_2012...
-                (   this, searchProperties, numLabeledRange,...
+                (   searchProperties, numLabeledRange,...
                     optimizeByKey, presentedKey, contextSize, ...
                     yLabel, fileNameSuffix, yLimits, ...
                     multiplySourceData ...
@@ -407,11 +407,11 @@ methods (Access = public)
         optimizeByKey       = 'accuracy';
         presentedKey        = 'avg macro accuracy';
         yLabel              = 'Macro-Averaged Accuracy';
-        fileNameSuffix      = ['opt_ACC_report_M_ACC' num2str(contextSize)];
+        fileNameSuffix      = ['opt_ACC_report_M_ACC_context' num2str(contextSize)];
         yLimits             = [24 50];
         multiplySourceData  = 100;
         this.getDataAndPlot_eilat_2012...
-                (   this, searchProperties, numLabeledRange,...
+                (   searchProperties, numLabeledRange,...
                     optimizeByKey, presentedKey, contextSize, ...
                     yLabel, fileNameSuffix, yLimits, ...
                     multiplySourceData ...
@@ -458,7 +458,7 @@ methods (Access = public)
         
         legend({'TACO', 'MP', 'MAD'}, 'Location', 'NorthEast');
         
-        directory = 'C:/technion/theses/Tex/SSL/2012_IEEE_eilat_TACO_speech/figures/';
+        directory = 'E:/technion/theses/Tex/SSL/2012_11_IEEE_eilat_TACO_speech/figures/';
         fileName = 'local_scaling_performance_gain' ;
         fileFullPath = [ directory fileName '.pdf'];
         saveas(fig, fileFullPath ); 
@@ -514,87 +514,109 @@ methods (Access = public)
         
         % draw
         
-        fig = figure;
-        hold on;
-        graphStyleRange = {'-',':'};
+%         graphStyleRange = {'-',':'};
         speechGraphNamesForUser = {'local', 'global'};
         LOCAL = 1; GLOBAL = 2;
         algorithmLineStyle{MAD,LOCAL}  = 'bs';
-        algorithmLineStyle{MAD,GLOBAL} = 'bd';
+        algorithmLineStyle{MAD,GLOBAL} = 'bs';
         algorithmLineStyle{AM,LOCAL}   = 'g^';
-        algorithmLineStyle{AM,GLOBAL}  = 'g>';
+        algorithmLineStyle{AM,GLOBAL}  = 'g^';
         algorithmLineStyle{CSSL,LOCAL} = 'ro';
-        algorithmLineStyle{CSSL,GLOBAL}= 'rv';
+        algorithmLineStyle{CSSL,GLOBAL}= 'ro';
         allMarkerEdgeColors{MAD} = 'b';
         allMarkerEdgeColors{AM} = 'g';
         allMarkerEdgeColors{CSSL} = 'r';
         algorithmNamesForUser = {'MAD', 'MP', 'TACO'};
-        allLegendItems = [];
         
         lineWidth = 4.5;
         markerSize = 13;
-        fontSize = 22;
-%         set(gca,'XScale','log');
-        set(gca, 'FontSize', fontSize);
-        xlabel('Number of Labeled Examples');
+        
+        numLabeledRangeAsNumbers = cellfun(@str2num, numLabeledRange);
         %highLimitY = max(barSource(:)) * 1.05;
         %lowLimitY  = min(barSource(:)) * 0.9;
-        
-        set(gca,'YLim',yLimits);
-        
-        set(gca,'XGrid','off','YGrid','on')
-        xlabel('Precentage of training set used as labeled data');
-        ylabel(yLabel);
-                
-        numLabeledRangeAsNumbers = cellfun(@str2num, numLabeledRange);
-        set(gca,'XLim',[numLabeledRangeAsNumbers(1)-9000 numLabeledRangeAsNumbers(end)+40000]);
-        set(gca, 'XTick',numLabeledRangeAsNumbers);
-        set(gca, 'XTickLabel',{'1%', '5%', '10%', '20%' '30%', '50%'});
-        
-        heightAndWidth = [1024 768] * 0.9;
-        figurePosition = [ 1 1 heightAndWidth];
-        set(fig, 'Position', figurePosition); % Maximize figure.
-%         http://dopplershifted.blogspot.co.il/2008/07/programmatically-saving-matlab-figures.html
-%       makes saveas function to not mix up the fonts by resizing the
-%       figure
-        set(fig, 'PaperPositionMode', 'auto');
 
 %         this.removeExtraWhiteSpaceMargin();
 
         speechGraphNames = this.speechGraphNames(contextSize);
-         
         numGraphs = length(speechGraphNames);
-        for algorithm_i=[CSSL AM MAD]
-            for graph_i = 1:numGraphs
-                Logger.log(['ExcelToLatexConverter::createGraphs_eilat_2012. '...
-                            'graph_i = ' num2str(graph_i) '. '...
-                            'speechGraphNames(graph_i) = ' speechGraphNames{graph_i}]);
-                graphStyle = graphStyleRange{graph_i};
+        
+        outputDirectory = 'E:/technion/theses/Tex/SSL/2012_11_IEEE_eilat_TACO_speech/figures/';
+        fileNamePrefix  = 'timit_compare_algorithms_';
+%         dbstop in ExcelToLatexConverter.m at 550;
+        
+        for graph_i = 1:numGraphs
+            fig = this.createFigure_algorithmCompare_eilat_2012(yLimits, yLabel, numLabeledRangeAsNumbers);
+            allLegendItems = [];
+            graphNameForUser = speechGraphNamesForUser{graph_i};
+            Logger.log(['ExcelToLatexConverter::createGraphs_eilat_2012. '...
+                        'graph_i = ' num2str(graph_i) '. '...
+                        'speechGraphNames(graph_i) = ' speechGraphNames{graph_i}]);
+%             graphStyle = graphStyleRange{graph_i};
+            graphStyle = '-';
+            for algorithm_i=[CSSL AM MAD]
                 markerEdgeColor = allMarkerEdgeColors{algorithm_i};
                 plot(numLabeledRangeAsNumbers, barSource(graph_i,:,algorithm_i), ...
                     [graphStyle algorithmLineStyle{algorithm_i,graph_i}]...
                     ,'LineWidth',lineWidth...
                     ,'MarkerEdgeColor',markerEdgeColor...
                     ,'MarkerFaceColor','w'...
-                    ,'MarkerSize',markerSize);
-                graphNameForUser = speechGraphNamesForUser{graph_i};
+                    ,'MarkerSize',markerSize);                
                 algorithmName = algorithmNamesForUser{algorithm_i};
-                legendItem = [algorithmName ' / ' graphNameForUser ' scaling'];
+%                 legendItem = [algorithmName ' / ' graphNameForUser ' scaling'];
+                legendItem = [algorithmName];
                 allLegendItems = [allLegendItems {legendItem}]; %#ok<AGROW>
             end
+            legend(allLegendItems, 'Location', 'SouthEast');
+            fileNameSuffixWithGraphName = [fileNameSuffix '_' graphNameForUser];
+            this.saveAndCloseFigure(fig, outputDirectory, fileNamePrefix, fileNameSuffixWithGraphName);
         end
-        legend(allLegendItems, 'Location', 'SouthEast');
-%         this.shrinkLegend(h,0.9);
+    end
+    
+    %% createFigure_algorithmCompare_eilat_2012
+    
+    function fig = createFigure_algorithmCompare_eilat_2012(~, yLimits, yLabel, numLabeledRangeAsNumbers)
+        fig = figure;
+        hold on;
+        
+        fontSize = 22;
 
-        directory = 'E:/technion/theses/Tex/SSL/2012_IEEE_eilat_TACO_speech/figures/';
-        fileName = ['compare_algorithms_' fileNameSuffix] ;
-%         fileFullPath = [ directory fileName '.jpg'];
-%         saveas(fig, fileFullPath ); 
-        fileFullPath = [ directory fileName '.pdf'];
-        saveas(fig, fileFullPath ); 
-        Logger.log(['ExcelToLatexConverter::createGraphs_eilat_2012. '...
+        %         set(gca,'XScale','log');
+        set(gca, 'FontSize', fontSize);
+        xlabel('Number of Labeled Examples');
+        
+        set(gca,'YLim',yLimits);
+
+        set(gca,'XGrid','off','YGrid','on')
+        xlabel('Precentage of training set used as labeled data');
+        ylabel(yLabel);
+        
+        set(gca,'XLim',[numLabeledRangeAsNumbers(1)-9000 numLabeledRangeAsNumbers(end)+40000]);
+        set(gca, 'XTick',numLabeledRangeAsNumbers);
+        set(gca, 'XTickLabel',{'1%', '5%', '10%', '20%' '30%', '50%'});
+        
+        heightAndWidth = [1024 768] * 0.8;
+        figurePosition = [ 1 1 heightAndWidth];
+        set(fig, 'Position', figurePosition); % Maximize figure.
+%         http://dopplershifted.blogspot.co.il/2008/07/programmatically-saving-matlab-figures.html
+%       makes saveas function to not mix up the fonts by resizing the
+%       figure
+        set(fig, 'PaperPositionMode', 'auto');
+    end
+    
+    %% saveAndCloseFigure
+    
+    function saveAndCloseFigure(~, fig, outputDirectory, fileNamePrefix, fileNameSuffix)
+        fileName = [fileNamePrefix fileNameSuffix] ;
+        fileFullPath = [ outputDirectory fileName '.pdf'];
+        Logger.log(['ExcelToLatexConverter::saveAndCloseFigure. '...
                     'Saving figure to ''' fileFullPath '''']);
-        close(fig);
+        saveas(fig, fileFullPath ); 
+        % saving directly to jpeg or tiff looks ugly (square points are missing)
+%         fileFullPath = [ outputDirectory fileName '.png'];
+%         Logger.log(['ExcelToLatexConverter::saveAndCloseFigure. '...
+%                     'Saving figure to ''' fileFullPath '''']);
+%         print(fig, '-djpeg', '-r600', fileFullPath); % -r<dots per inch>
+        close(fig);        
     end
     
 
