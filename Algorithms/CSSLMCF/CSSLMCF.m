@@ -20,6 +20,8 @@ classdef CSSLMCF < CSSLBase
         num_labels   = this.numLabels();
         this.displayParams(CSSLMCF.name());
         
+        Logger.log('Test');
+        
         prev_mu     =  zeros( num_labels, num_vertices );
         current_mu  =  zeros( num_labels, num_vertices );
 
@@ -29,18 +31,22 @@ classdef CSSLMCF < CSSLBase
             initFactor_v = 1;
         end
         
-        prev_sigma  =  ones ( num_labels, num_labels, num_vertices ) * initFactor_v;
-        curr_sigma  =  ones ( num_labels, num_labels, num_vertices ) * initFactor_v;
-        whos prev_sigma;
-        whos curr_sigma;
+        Logger.log(['initFactor_v = ' num2str(initFactor_v)]);
+        
+        curr_sigma     = ones ( num_labels, num_labels, num_vertices ) * initFactor_v;
+        inv_prev_sigma = ones ( num_labels, num_labels, num_vertices );
+        Logger.log('Printing memory');
 
+        whos curr_sigma;
+        whos inv_prev_sigma;
+        
         if this.m_save_all_iterations
             allIterations.mu     = zeros( num_labels,               num_vertices, num_iterations );
             allIterations.sigma  = ones ( num_labels, num_labels,   num_vertices, num_iterations ) * initFactor_v;
         end
         
         for vertex_i=1:num_vertices
-            prev_sigma(:,:,vertex_i) = eye( num_labels );
+            curr_sigma(:,:,vertex_i) = eye( num_labels );
         end
 
         inv_gamma = diag( zeros(1,num_labels) + 1 / gamma );
@@ -64,11 +70,12 @@ classdef CSSLMCF < CSSLBase
                 break;
             end
             
-            inv_prev_sigma = zeros( num_labels, num_labels, num_vertices );
             for vertex_i=1:num_vertices
-                sigma_i                        = prev_sigma(:,:,vertex_i );
+                sigma_i                        = curr_sigma(:,:,vertex_i );
                 inv_prev_sigma(:, :, vertex_i) = inv( sigma_i );
             end
+            
+            Logger.log('Updating first order...');
             
             for vertex_i=1:num_vertices
                 if ( mod(vertex_i, 100000) == 0 )
@@ -108,9 +115,11 @@ classdef CSSLMCF < CSSLBase
                 current_mu( :, vertex_i) = new_mu.';
             end
 
+            Logger.log('Updating second order...');
+            
             if isUsingSecondOrder
                 for vertex_i=1:num_vertices
-                    if ( mod(vertex_i, 100000) == 0 )
+                    if ( mod(vertex_i, 1000) == 0 )
                         Logger.log([ 'vertex_i = ' num2str(vertex_i)]);
                     end
 
@@ -149,7 +158,6 @@ classdef CSSLMCF < CSSLBase
         
             % Advance iteration
             prev_mu     = current_mu;
-            prev_sigma  = curr_sigma;
         end % loop over all iterations
 
         toc(ticID);
@@ -178,6 +186,34 @@ classdef CSSLMCF < CSSLBase
             sqrt_det = Vdet * (Ddet.^0.5) * Vdet.';
             X = - 0.5 * B + 0.5 * (sqrt_det);
        end
+       
+       %% test perofmance for computing matrix square root.
+       
+       function test_sqrtm()
+           % sqrtm: Elapsed time is 3.178855 seconds.
+           % eig:   Elapsed time is 1.219036 seconds.
+
+           profile on;
+            X = [    5   -4    1    0    0
+                    -4    6   -4    1    0
+                     1   -4    6   -4    1
+                     0    1   -4    6   -4
+                     0    0    1   -4    5] ; % from matlab help for sqrtm
+            numIterations = 100000;
+            tic;
+            for i = 1:numIterations
+                Y = sqrtm(X);
+            end
+            toc;
+            tic;
+            for i = 1:numIterations
+              [Vdet, Ddet] = eig(X);
+              Y = Vdet * (Ddet.^0.5) * Vdet.';
+            end
+            toc;
+            profile off;
+       end
+       
        function r = name()
            r = 'CSSLMCF';
        end
