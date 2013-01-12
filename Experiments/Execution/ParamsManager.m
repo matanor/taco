@@ -64,6 +64,10 @@ properties (Constant)
 end
 
 properties (Constant)
+    WEBKB_CONSTRUCTED = 5;
+end
+
+properties (Constant)
     ASYNC_RUNS = 0;
 end
 
@@ -104,6 +108,7 @@ methods (Access = public)
         webkb_constructed.transductionSetFileFormat = [];
         webkb_constructed.isCalcPRBEP = 1;
         webkb_constructed.clearAlgorithmOutput = 0;
+        webkb_constructed.precentToNumLabeledTable = this.precentToNumLabeledTable(ParamsManager.WEBKB_CONSTRUCTED);
         
         webkb_amar           = [ rootDir 'webkb/data/from_amar/webkb_amar.mat'];
         webkb_html           = [ rootDir 'webkb/data/With_Html/webkb_with_html.mat'];
@@ -147,6 +152,7 @@ methods (Access = public)
         timit_cms_white_c7_lihi.development = [ rootDir 'timit/features_39_cms_white/trainAndDev/trainAndDev_cms_white.context7.k_10.lihi.mat' ];
         timit_cms_white_c7_lihi.test        = [ rootDir 'timit/features_39_cms_white/trainAndTest/trainAndTest_cms_white.context7.k_10.lihi.mat' ];
         timit_cms_white_c7_lihi.transductionSetFileFormat = cms_white_transduction_file_format;
+        timit_cms_white_c7_lihi.precentToNumLabeledTable = this.precentToNumLabeledTable_timit();
 
         timit_cms_white_alex.development = [ rootDir 'timit/features_39_cms_white/trainAndDev/trainAndDev_cms_white.k_10.alex.mat' ];
         timit_cms_white_alex.test        = [ rootDir 'timit/features_39_cms_white/trainAndTest/trainAndTest_cms_white.k_10.alex.mat' ];
@@ -403,7 +409,7 @@ methods (Access = public)
         R.test        = [ rootDir 'VJ/' fileIdentifier '/trainAndTest/trainAndTest.instances.' fileIdentifier '.k_10.lihi.mat' ];
         R.transductionSetFileFormat = [ rootDir 'VJ/' fileIdentifier '/' fileIdentifier '.TrunsSet_%s.mat' ];
         R.useNumLabeledToPrecent    = 0;
-        R.precentToNumLabeledTable = this.precentToNumLabeledTable_VJ(datasetID);
+        R.precentToNumLabeledTable = this.precentToNumLabeledTable(datasetID);
     end
     
     %% createNumericParameter
@@ -584,48 +590,52 @@ methods (Access = public)
     
     function R = precentToNumLabeledTable_timit(~)
         % KeyType is uint32.
-        numLabeledToPrecentMap = containers.Map(uint32(1), 1); 
-        remove(numLabeledToPrecentMap,1);
-        numLabeledToPrecentMap(1)  = '11147';
-        numLabeledToPrecentMap(5)  = '55456';
-        numLabeledToPrecentMap(10) = '111133';
-        numLabeledToPrecentMap(20) = '221254';
-        numLabeledToPrecentMap(30) = '331793';
-        numLabeledToPrecentMap(50) = '553041';
+        numLabeledToPrecentMap = containers.Map(0.1, 1); 
+        remove(numLabeledToPrecentMap,0.1);
+        numLabeledToPrecentMap(0.01)  = 0;
+        numLabeledToPrecentMap(0.1)  = 0;
+        numLabeledToPrecentMap(1)  = 11147;
+        numLabeledToPrecentMap(5)  = 55456;
+        numLabeledToPrecentMap(10) = 111133;
+        numLabeledToPrecentMap(20) = 221254;
+        numLabeledToPrecentMap(30) = 331793;
+        numLabeledToPrecentMap(50) = 553041;
         R = numLabeledToPrecentMap;
     end
     
-    %% precentToNumLabeledTable_VJ
+    %% precentToNumLabeledTable
     %  for speech, transduction sets are common to more than one graph.
     %  so the naming scheme for the transduction sets file name is
     %  different, this function translates from a precentage of labeled frames
     %  in the test graph, to the precent of labeled data used, which is
     %  part of the transduction file name scheme
     
-    function R = precentToNumLabeledTable_VJ(~, vjIdentifier)
+    function R = precentToNumLabeledTable(~, datasetID)
         
-        numLabeled(VJGenerator.V4_W1,:) = [2794 13974 27948 55896  83845  139742];
-        numLabeled(VJGenerator.V4_W7,:) = [2680 13404 26808 53617  80426  134043];
-        numLabeled(VJGenerator.V8_W1,:) = [5729 28645 57291 114582 171873 286455];
-        numLabeled(VJGenerator.V8_W7,:) = [4263 21315 42630 85260  127890 213150];
+        numLabeled(VJGenerator.V4_W1,:) = [27 279 2794 13974 27948 55896  83845  139742];
+        numLabeled(VJGenerator.V4_W7,:) = [26 268 2680 13404 26808 53617  80426  134043];
+        numLabeled(VJGenerator.V8_W1,:) = [57 572 5729 28645 57291 114582 171873 286455];
+        numLabeled(VJGenerator.V8_W7,:) = [42 426 4263 21315 42630 85260  127890 213150];
+        numLabeled(ParamsManager.WEBKB_CONSTRUCTED,:) = [0 0 48   0         0     0       0      0];
         
-        numVJDatasets = 4;
-        numTables = numVJDatasets;
-        for table_i=1:numTables
+        numDatasets = size(numLabeled,1);
+        for table_i=1:numDatasets
             % KeyType is uint32.
-            numLabeledToPrecentMap = containers.Map(uint32(1), 1); 
-            remove(numLabeledToPrecentMap,1);
+            numLabeledToPrecentMap = containers.Map(0.1, 1); 
+            remove(numLabeledToPrecentMap,0.1);
 
-            numLabeledToPrecentMap(1)  = numLabeled(table_i, 1);
-            numLabeledToPrecentMap(5)  = numLabeled(table_i, 2);
-            numLabeledToPrecentMap(10) = numLabeled(table_i, 3);
-            numLabeledToPrecentMap(20) = numLabeled(table_i, 4);
-            numLabeledToPrecentMap(30) = numLabeled(table_i, 5);
-            numLabeledToPrecentMap(50) = numLabeled(table_i, 6);
+            numLabeledToPrecentMap(0.01)  = numLabeled(table_i, 1);
+            numLabeledToPrecentMap(0.1)   = numLabeled(table_i, 2);
+            numLabeledToPrecentMap(1)     = numLabeled(table_i, 3);
+            numLabeledToPrecentMap(5)     = numLabeled(table_i, 4);
+            numLabeledToPrecentMap(10)    = numLabeled(table_i, 5);
+            numLabeledToPrecentMap(20)    = numLabeled(table_i, 6);
+            numLabeledToPrecentMap(30)    = numLabeled(table_i, 7);
+            numLabeledToPrecentMap(50)    = numLabeled(table_i, 8);
             allTables{table_i} = numLabeledToPrecentMap; %#ok<AGROW>
         end
         
-        R = allTables{vjIdentifier};
+        R = allTables{datasetID};
     end
     
 end % methods (Access = public)
