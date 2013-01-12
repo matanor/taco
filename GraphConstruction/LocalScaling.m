@@ -16,7 +16,8 @@ methods (Static)
 %  structure with fields:
 %  'distances' - a matrix of squared distances.
 %  Each row in this matrix has to contain squared distances its 
-%  <K> nearest neighbours.
+%  nearest neighbours. The number of non-zero values should be bigger 
+%  then the input parameter <K>.
 %  This matrix does not have to be symmetric.
 %  (2) <K> - The distance to the K-th nearest neighbour is considered as
 %            the local sigma.
@@ -32,6 +33,7 @@ methods (Static)
   
 
 function main(filePrefix, K)
+    filePrefix(filePrefix == '\') = '/';
     instancesFilePath = [filePrefix '.mat'];
     Logger.log(['Loading instances from ''' instancesFilePath '''']);
     fileData = load(instancesFilePath,'graph');

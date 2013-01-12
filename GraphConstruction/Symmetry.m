@@ -8,11 +8,11 @@ methods (Static)
     function weights = makeSymetric(weights)
         if Symmetry.isSymetric( weights )
             Logger.log('Symmetry::makeSymetric. input already summetric. skipping..');
-            return;
-        end
-        if ( issparse(weights) )
+        elseif ( issparse(weights) )
+            Logger.log('Symmetry::makeSymetric. sparse input.');
             weights = Symmetry.sparse_makeSymetric(weights);
         else
+            Logger.log('Symmetry::makeSymetric. dense input.');
             weights = Symmetry.dense_makeSymetric(weights);
         end
     end
