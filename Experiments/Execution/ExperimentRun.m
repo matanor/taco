@@ -87,6 +87,7 @@ methods (Access = public)
             useNumLabeledToPrecent    = this.m_constructionParams.fileProperties.useNumLabeledToPrecent;
         end
         numLabeled = this.precentLabeledToNumLabeled(this.m_constructionParams);
+        this.m_constructionParams.numLabeled = numLabeled; % save for reporting results.
         if ~isempty(transductionSetFileFormat)
             if useNumLabeledToPrecent
                 fileNamePart = this.numLabeledToPrecent(numLabeled);

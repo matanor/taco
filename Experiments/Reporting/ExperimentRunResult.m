@@ -143,6 +143,7 @@ methods (Static)
     function R = createBigTableTitle()
         SEPERATOR = ExcelTablePrinter.SEPERATOR;
         T = ['graph (M|A)'                      SEPERATOR];
+        T = [T 'precent labeled'                SEPERATOR];
         T = [T 'num labeled'                    SEPERATOR];
         T = [T 'max iterations'                 SEPERATOR];
         T = [T 'balanced (Y|N)'                 SEPERATOR];

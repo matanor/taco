@@ -115,6 +115,8 @@ methods
         R = [R fileName SEPERATOR ];
         precentLabeled = this.m_constructionParams.precentLabeled;
         R = [R num2str(precentLabeled) SEPERATOR ];
+        numLabeled = this.m_constructionParams.numLabeled;
+        R = [R num2str(numLabeled) SEPERATOR ];
         R = [R num2str(this.m_parameterValues.maxIterations) SEPERATOR ];
         R = [R num2str(this.m_constructionParams.balanced) SEPERATOR ];
         R = [R num2str(this.m_parameterValues.useGraphHeuristics) SEPERATOR ];

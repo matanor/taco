@@ -426,8 +426,8 @@ methods (Access = public)
     
     %% createTextDataset
      
-    function R = createTextDataset(this, rootDir, graphFullPath, datasetID)
-        R.development    = [ rootDir graphFullPath];
+    function R = createTextDataset(this, graphFullPath, datasetID)
+        R.development    = graphFullPath;
         R.test = [];
         R.transductionSetFileFormat = [];
         R.isCalcPRBEP = 1;
@@ -635,26 +635,26 @@ methods (Access = public)
     
     function R = precentToNumLabeledTable(~, datasetID)
         %                                 0.01, 0.1, 1,   2.5,    5,   10,   20,    30,    50
-        numLabeled(VJGenerator.V4_W1,:) = [27   279  2794    0 13974 27948 55896  83845  139742];
-        numLabeled(VJGenerator.V4_W7,:) = [26   268  2680    0 13404 26808 53617  80426  134043];
+        numLabeled(VJGenerator.V4_W1,:) = [27   279  2794    0 13974 27948  55896  83845  139742];
+        numLabeled(VJGenerator.V4_W7,:) = [26   268  2680    0 13404 26808  53617  80426  134043];
         numLabeled(VJGenerator.V8_W1,:) = [57   572  5729    0 28645 57291 114582 171873 286455];
-        numLabeled(VJGenerator.V8_W7,:) = [42   426  4263    0 21315 42630 85260  127890 213150];
+        numLabeled(VJGenerator.V8_W7,:) = [42   426  4263    0 21315 42630  85260  127890 213150];
         numLabeled(ParamsManager.WEBKB_CONSTRUCTED,:) = ...
-                                          [0      0    48    0     0     0       0      0];
+                                          [0      0    48    0     0     0      0      0       0];
         numLabeled(ParamsManager.TWENTY_NG_4715,:) = ...
-                                          [0      0    48  105     0   500       0      0];
+                                          [0      0    48  105     0   500      0      0       0];
         numLabeled(ParamsManager.ENRON_FARMER,:) = ...
-                                          [0      0    48  105     0   500       0      0];
+                                          [0      0    48  105     0   500      0      0       0];
         numLabeled(ParamsManager.ENRON_KAMINSKI,:) = ...
-                                          [0      0    48  105     0   500       0      0];
+                                          [0      0    48  105     0   500      0      0       0];
         numLabeled(ParamsManager.REUTERS,:) = ...
-                                          [0      0    48    0     0     0       0      0];
+                                          [0      0    48    0     0     0       0      0       0];
         numLabeled(ParamsManager.AMAZON_3,:) = ...
-                                          [0      0    48  105     0   500       0      0];
+                                          [0      0    48  105     0   500      0      0       0];
         numLabeled(ParamsManager.SENTIMENT_5K,:) = ...
-                                          [0      0    48  105     0   500       0      0];
+                                          [0      0    48  105     0   500      0      0       0];
         numLabeled(ParamsManager.AMAZON_7,:) = ...
-                                          [0      0    48  105     0   500       0      0];
+                                          [0      0    48  105     0   500      0      0       0];
         
         numDatasets = size(numLabeled,1);
         for table_i=1:numDatasets
@@ -662,6 +662,7 @@ methods (Access = public)
             numLabeledToPrecentMap = containers.Map(0.1, 1); 
             remove(numLabeledToPrecentMap,0.1);
 
+            precent_i = 1;
             numLabeledToPrecentMap(0.01)  = numLabeled(table_i, precent_i);
             precent_i = precent_i + 1;
             numLabeledToPrecentMap(0.1)   = numLabeled(table_i, precent_i);
