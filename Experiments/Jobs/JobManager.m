@@ -62,15 +62,38 @@ methods (Static)
         asyncCodeFolder = '/Experiments/async';
         startDirectory  = [codeRoot asyncCodeFolder];
         
+        memInGB = 4;
+        pbsLine      = ['#PBS -l select=1:ncpus=1:mem=' num2str(memInGB) 'gb'];
+        pbsLine2     = '#PBS -mbea';
         schellScript = fopen(shellScriptPath, 'w');
         cdLine =     ['cd  ' startDirectory];
         matlabLine = [' matlab -nodesktop -nojvm -r "' functionName '(''' ...
                         fileFullPath ''',''' codeRoot ''')" -logfile ' logFile ];
+        fprintf(schellScript, [pbsLine      '\n']);   
+        fprintf(schellScript, [pbsLine2     '\n']);   
         fprintf(schellScript, [cdLine       '\n']);
         fprintf(schellScript, [matlabLine   '\n']);
         fclose(schellScript);
         R = shellScriptPath;
     end
+    
+% **** sample OPBS script
+%     #!/bin/sh
+% 
+% #PBS -N matlab_model
+% 
+% #PBS -q  new_q
+% 
+% #PBS -M  matanorb@tx.technion.ac.il
+% 
+% #PBS -mbea
+% #
+% # running built-in MATLAB multithreading option on N cores of an available node 
+% # where N=<12  (no changes in the MATLAB code are required)
+% #-------------------------------------------------------------------------------
+% #PBS -l select=1:ncpus=1:mem=40gb
+% # resource limits: max amount of memory P Gb to be used by the job
+
     
     %% Documentation for Sun Grid Engine switched (odin)
     %  -b Gives the user the possibility to  indicate  explicitly
