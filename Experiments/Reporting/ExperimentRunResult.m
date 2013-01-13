@@ -178,6 +178,8 @@ methods (Static)
         T = [T 'am_v'                           SEPERATOR];
         T = [T 'am_mu'                          SEPERATOR];
         T = [T 'am_alpha'                       SEPERATOR];
+        T = [T 'qc_mu2'                         SEPERATOR];
+        T = [T 'qc_mu3'                         SEPERATOR];
 
         R = T;
     end
