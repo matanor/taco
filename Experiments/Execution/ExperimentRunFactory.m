@@ -307,17 +307,9 @@ methods (Static)
     
     function optimal = evaluateAndFindOptimalParams...
             (optimizationJobNames, algorithmType, optimizeBy)
-        % load all optimization runs
-        numOptimizationRuns = length(optimizationJobNames);
-        optimizationRuns = [];
-        for optimization_run_i=1:numOptimizationRuns
-            singleRun = JobManager.loadJobOutput( optimizationJobNames{optimization_run_i} );
-            optimizationRuns = [optimizationRuns; singleRun]; %#ok<AGROW>
-        end
-        
         % evaluate arccording to optimization criterion
         optimal = ParameterRun.calcOptimalParams...
-            (optimizationRuns, algorithmType, optimizeBy);
+            (optimizationJobNames, algorithmType, optimizeBy);
         ExperimentRunFactory.printOptimal(optimal.values, algorithmType, optimizeBy );
     end
     

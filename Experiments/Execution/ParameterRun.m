@@ -168,12 +168,13 @@ end
 methods (Static)
     %% calcOptimalParams
     
-    function R = calcOptimalParams(tuneRuns, algorithmType, optimizeBy)
-        numTuningRuns = length(tuneRuns);
+    function R = calcOptimalParams(optimizationJobNames, algorithmType, optimizeBy)
+        numTuningRuns = length(optimizationJobNames);
         for tuning_run_i=1:numTuningRuns 
-            Logger.log(['Optimization run ' num2str(tuning_run_i) ' out of ' num2str(numTuningRuns)]);
+            Logger.log(['ParameterRun::calcOptimalParams. Optimization run ' num2str(tuning_run_i) ' out of ' num2str(numTuningRuns)]);
+            tuneRun = JobManager.loadJobOutput( optimizationJobNames{tuning_run_i} );
             scores(tuning_run_i) = ParameterRun.evaluateOptimizationRun...
-                ( tuneRuns( tuning_run_i ), algorithmType, optimizeBy ); %#ok<AGROW>
+                ( tuneRun, algorithmType, optimizeBy ); %#ok<AGROW>
         end
         
         switch optimizeBy
@@ -195,8 +196,10 @@ methods (Static)
         end
         
         [bestScore,bestRunIndex] = max(optimizationScores);
-        Logger.log(['Optimal on run ' num2str(bestRunIndex) ' with value ' num2str(bestScore)]);
-        bestRun = tuneRuns( bestRunIndex );
+        Logger.log(['ParameterRun::calcOptimalParams. Optimal on run ' num2str(bestRunIndex) ' with value ' num2str(bestScore)]);
+        bestRunFileName = optimizationJobNames{bestRunIndex};
+        Logger.log(['ParameterRun::calcOptimalParams. bestRunFileName =  ' bestRunFileName]);
+        bestRun         = JobManager.loadJobOutput( bestRunFileName );
         R.accuracy      = bestRun.accuracy_testSet(algorithmType);
         R.macroAccuracy = bestRun.macroAccuracy_testSet(algorithmType);
         R.avgPRBEP      = bestRun.calcAveragePRBEP_testSet(algorithmType);
@@ -204,13 +207,13 @@ methods (Static)
         R.macroMRR      = bestRun.calc_macroMRR_testSet(algorithmType);
         R.levenshtein   = bestRun.levenshteinDistance_testSet(algorithmType);
         R.values        = bestRun.getParams( algorithmType );
-        Logger.log('Optimal run statistics: ');
-        Logger.log(['Accuracy = '         num2str(R.accuracy)]);
-        Logger.log(['macroAccuracy = '    num2str(R.macroAccuracy)]);
-        Logger.log(['Average PRBEP = '    num2str(R.avgPRBEP)]);
-        Logger.log(['MRR = '              num2str(R.MRR)]);
-        Logger.log(['macro MRR = '        num2str(R.macroMRR)]);
-        Logger.log(['Levenshtein = '      num2str(R.levenshtein)]);
+        Logger.log( 'ParameterRun::calcOptimalParams. Optimal run statistics: ');
+        Logger.log(['ParameterRun::calcOptimalParams. Accuracy = '         num2str(R.accuracy)]);
+        Logger.log(['ParameterRun::calcOptimalParams. macroAccuracy = '    num2str(R.macroAccuracy)]);
+        Logger.log(['ParameterRun::calcOptimalParams. Average PRBEP = '    num2str(R.avgPRBEP)]);
+        Logger.log(['ParameterRun::calcOptimalParams. MRR = '              num2str(R.MRR)]);
+        Logger.log(['ParameterRun::calcOptimalParams. macro MRR = '        num2str(R.macroMRR)]);
+        Logger.log(['ParameterRun::calcOptimalParams. Levenshtein = '      num2str(R.levenshtein)]);
     end
     
     %% evaluateOptimizationRun
