@@ -17,4 +17,6 @@ function asyncSingleRun(fileFullPath, codeRoot)
     
     JobManager.saveJobOutput( singleRun, fileFullPath);
     JobManager.signalJobIsFinished( fileFullPath );
+    Logger.log(['asyncSingleRun. ' ...
+                'job done!. fileFullPath = ''' fileFullPath '''']);
 end

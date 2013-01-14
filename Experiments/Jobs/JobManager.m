@@ -64,7 +64,7 @@ methods (Static)
         
         memInGB = 4;
         pbsLine      = ['#PBS -l select=1:ncpus=1:mem=' num2str(memInGB) 'gb'];
-        pbsLine2     = '#PBS -mbea';
+        pbsLine2     = '#PBS -M  matanorb@technion.ac.il';
         schellScript = fopen(shellScriptPath, 'w');
         cdLine =     ['cd  ' startDirectory];
         matlabLine = [' matlab -nodesktop -nojvm -r "' functionName '(''' ...
