@@ -12,6 +12,12 @@ classdef CSSLMC_Result < SSLMC_Result
     
     methods (Access = public)
         
+        %% Constructor
+        
+        function this = CSSLMC_Result()
+            this.m_keepSecondOrderInResults = 0;
+        end
+        
         %% clearOutput
     
         function clearOutput(this)
@@ -19,7 +25,6 @@ classdef CSSLMC_Result < SSLMC_Result
             this.m_v        = [];
             this.m_edges_v  = [];
             this.m_vertexToEdgeMap = [];
-            this.m_keepSecondOrderInResults = 0;
         end
     
         %% set_results
