@@ -7,6 +7,7 @@ classdef CSSLMC_Result < SSLMC_Result
         m_edges_v;   % confidence on edges
         m_vertexToEdgeMap; % vertexToEdgeMap(i,j) gives the index of
                            % the edge between v_i and v_j, make the map symmetric.
+        m_keepSecondOrderInResults;
     end % (Access = private)
     
     methods (Access = public)
@@ -18,6 +19,7 @@ classdef CSSLMC_Result < SSLMC_Result
             this.m_v        = [];
             this.m_edges_v  = [];
             this.m_vertexToEdgeMap = [];
+            this.m_keepSecondOrderInResults = 0;
         end
     
         %% set_results
@@ -27,17 +29,17 @@ classdef CSSLMC_Result < SSLMC_Result
             if saveAllIterations
                 this.m_Y        = resultSource.mu;
                 this.m_v        = resultSource.v;
-                if isfield( resultSource, 'edges_v' )
+                if this.m_keepSecondOrderInResults && isfield( resultSource, 'edges_v' )
                     this.m_edges_v  = resultSource.edges_v;
                 end
             else
                 this.m_Y        = resultSource.mu       (:,:,end);
                 this.m_v        = resultSource.v        (:,:,end);
-                if isfield( resultSource, 'edges_v' )
+                if this.m_keepSecondOrderInResults && isfield( resultSource, 'edges_v' )
                     this.m_edges_v  = resultSource.edges_v  (:,:,end);
                 end
             end
-            if isfield( resultSource, 'vertexToEdgeMap' )
+            if this.m_keepSecondOrderInResults && isfield( resultSource, 'vertexToEdgeMap' )
                 this.m_vertexToEdgeMap = resultSource.vertexToEdgeMap;
             end
         end
