@@ -27,13 +27,19 @@ classdef CSSLMC_Result < SSLMC_Result
             if saveAllIterations
                 this.m_Y        = resultSource.mu;
                 this.m_v        = resultSource.v;
-                this.m_edges_v  = resultSource.edges_v;
+                if isfield( resultSource, 'edges_v' )
+                    this.m_edges_v  = resultSource.edges_v;
+                end
             else
                 this.m_Y        = resultSource.mu       (:,:,end);
                 this.m_v        = resultSource.v        (:,:,end);
-                this.m_edges_v  = resultSource.edges_v  (:,:,end);
+                if isfield( resultSource, 'edges_v' )
+                    this.m_edges_v  = resultSource.edges_v  (:,:,end);
+                end
             end
-            this.m_vertexToEdgeMap = resultSource.vertexToEdgeMap;
+            if isfield( resultSource, 'vertexToEdgeMap' )
+                this.m_vertexToEdgeMap = resultSource.vertexToEdgeMap;
+            end
         end
         
         %% add_vertex
