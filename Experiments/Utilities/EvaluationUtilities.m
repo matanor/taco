@@ -36,7 +36,16 @@ classdef EvaluationUtilities
             if (minDifference ~= 0)
                 Logger.log(['EvaluationUtilities::calcPRBEP. ' ...
                             'Precision recall difference = ' num2str(minDifference)]);
-                PRBEP = (PRBEP_precision + PRBEP_recall) / 2;
+                minDifferenceThreshold = 0.5; % more than this is just wrong
+                if (minDifference > minDifferenceThreshold)
+                    Logger.log(['EvaluationUtilities::calcPRBEP. ' ...
+                                'minDifference under threshold '...
+                                '( threshold = ' num2str(minDifferenceThreshold) '). '...
+                                'Setting to 0']);
+                    PRBEP = 0;
+                else
+                    PRBEP = (PRBEP_precision + PRBEP_recall) / 2;
+                end
             else
                 PRBEP = PRBEP_precision;
             end
