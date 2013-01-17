@@ -1,14 +1,41 @@
 classdef TextGraphs < TextReporterBase
 
+methods (Static)
+    
+    %% run
+    
+    function run(fileName)
+        this = TextGraphs();
+        this.convert(fileName);
+    end
+    
+    %% outputDirectory
+
+    function R = outputDirectory()
+        R = 'E:/technion/theses/Tex/SSL/Thesis/figures/text_graphs/';
+    end
+    
+end
+
+methods (Access = public)
+    
+%% doConvert
+
+function doConvert(this)
+    this.create();
+end
+
+end % public methods
     
 methods (Access  = private)
 
-%% createGraphs_ecml_2012
+%% create
 %  create graphs for WebKB data set with different amounts of
 %  supervision. Graphs report PRBEP and M-ACC, each tuned by 
 %  both PRBEP and M-ACC, for a total of 4 graphs.
+%  used for graph in ECML 2012
 
-function createGraphs_ecml_2012(this)
+function create(this)
     graph.key = 'graph';
     graph.value = {'webkb_constructed'};
     graph.shouldMatch = 1;
@@ -29,8 +56,14 @@ function createGraphs_ecml_2012(this)
 
     searchProperties = [graph balanced labeled_init];
 
-    outputFileName = [this.inputFileName() '.figs.tex'];
+    [~, inputFileNameOnly, ~] = fileparts(this.inputFileName());
+    outputFileName = [TextGraphs.outputDirectory() inputFileNameOnly '.figs.tex'];
+%     outputFileName = [this.inputFileName() '.figs.tex'];
     figuresFileID  = fopen(outputFileName, 'a+');
+    if (-1 == figuresFileID)
+        Logger.log(['TextGraphs::create. Unable to open output file ''' outputFileName '''']);
+        return;
+    end
 
     fprintf(figuresFileID,'\\begin{figure}[t]\n');
     fprintf(figuresFileID,'\\centering\n');
@@ -110,19 +143,19 @@ function createSingleFigure(this, figuresFileID, searchProperties, presentedKey,
 
     numLabeledRange = {'24', '48', '96', '192', '500'};
     numAlgorithms = 3;
-    stddevKey       = this.stddevKay(presentedKey);
+    stddevKey       = this.stddevKey(presentedKey);
     barSource = zeros(length(numLabeledRange), numAlgorithms);
     stddev = zeros( size(barSource) );
     MAD = 1;        AM = 2; CSSL = 3;
     for numLabeled_i=1:length(numLabeledRange)
         num_labeled.value = numLabeledRange(numLabeled_i);
         algorithms = this.findAlgorithms([searchProperties num_labeled]);
-        barSource(numLabeled_i , MAD) = str2num(algorithms.mad( presentedKey ));
-        barSource(numLabeled_i , AM) = str2num(algorithms.am( presentedKey )) ;
-        barSource(numLabeled_i , CSSL) = str2num(algorithms.diag( presentedKey )) ;
-        stddev(numLabeled_i , MAD) = str2num(algorithms.mad( stddevKey ));
-        stddev(numLabeled_i , AM) = str2num(algorithms.am( stddevKey ));
-        stddev(numLabeled_i , CSSL) = str2num(algorithms.diag( stddevKey ));
+        barSource(numLabeled_i , MAD)   = str2num(algorithms.mad( presentedKey ));
+        barSource(numLabeled_i , AM)    = str2num(algorithms.am( presentedKey )) ;
+        barSource(numLabeled_i , CSSL)  = str2num(algorithms.diag( presentedKey )) ;
+        stddev(numLabeled_i , MAD)      = str2num(algorithms.mad( stddevKey ));
+        stddev(numLabeled_i , AM)       = str2num(algorithms.am( stddevKey ));
+        stddev(numLabeled_i , CSSL)     = str2num(algorithms.diag( stddevKey ));
     end
 
     % barSource size is num options * num_algorithm
@@ -158,18 +191,16 @@ function createSingleFigure(this, figuresFileID, searchProperties, presentedKey,
     %set(gca,'XTickLabel',numLabeledRange);
     set(gca,'XScale','log');
     set(gca, 'FontSize', 22);
-    legend('MAD','AM','TACO', 'Location', 'SouthEast');
+    legend('MAD','MP','TACO', 'Location', 'SouthEast');
     xlabel('Number of Labeled Examples');
     %highLimitY = max(barSource(:)) * 1.05;
     %lowLimitY  = min(barSource(:)) * 0.9;
     set(gca,'YLim',[lowLimitY highLimitY]);
     set(gca,'XGrid','off','YGrid','on');
     ylabel(presentedKeyLabelY);
-    directory = 'C:\technion\theses\Tex\SSL\GraphSSL_Confidence_Paper\figures\';
-    fileName = ['compare_num_labelled_' optimizeByForFileName '_' presentedKeyFileName] ;
-    fileFullPath = [ directory fileName '.pdf'];
-    saveas(h, fileFullPath ); 
-    close(h);
+    
+    fileName = ['num_labelled_' optimizeByForFileName '_' presentedKeyFileName] ;
+    this.saveAndCloseFigure(h, TextGraphs.outputDirectory(), fileName, []);
 
     x = find(optimizeByForFileName=='_');
     if ~isempty(x)

@@ -1,4 +1,31 @@
 classdef TextTables < TextReporterBase
+ 
+methods (Static)
+
+%% run
+
+function run(fileName)
+    this = TextMultiDatasetGraphs();
+    this.convert(fileName);
+end
+
+%% outputDirectory
+
+function R = outputDirectory()
+    R = 'E:/technion/theses/Tex/SSL/Thesis/';
+end
+
+end % static methods
+
+methods (Access = public)
+    
+%% doConvert
+
+function doConvert(this)
+    this.createTables_ecml2012();
+end
+
+end % overrides
 
 methods (Access  = private)
    
@@ -6,8 +33,8 @@ methods (Access  = private)
 
 function createTables_ecml2012(this)
 
-    nlpGraphNames = this.nlpGraphNames();
-    numLabeledPerGraph = this.numLabeledPerGraphForTables();
+    nlpGraphNames       = this.nlpGraphNames();
+    numLabeledPerGraph  = this.numLabeledPerGraphForTables();
 
     graph.key = 'graph';
     graph.shouldMatch = 1;
@@ -69,13 +96,19 @@ function createTables_ecml2012(this)
 %         searchProperties{table_i} = [balanced num_labeled labeled_init optimize_by];
 %         table_i = table_i + 1;
 
-    outputFileName = [this.inputFileName() '.ecml2012.tex'];
+    [~, inputFileNameOnly, ~] = fileparts(this.inputFileName());
+    outputFileName = [TextTables.outputDirectory() inputFileNameOnly '.ecml2012.tex'];
+    Logger.log(['TextTables::create. Opening output ''' outputFileName '''']);
     outputFileID = fopen(outputFileName, 'w+');
+    if (-1 == outputFileID)
+        Logger.log(['TextTables::create. Unable to open output file ''' outputFileName '''']);
+        return;
+    end
 
     for table_i=1:length(searchProperties)
 
         Logger.log( ['createTables_ecml2012. table_i = ' num2str(table_i)] );
-        this.startTable_ecml2012( outputFileID, ...
+        TextTables.startTable_ecml2012( outputFileID, ...
                                   optimizeBy.leftName{table_i}, ...
                                   optimizeBy.rightName{table_i});
 
@@ -87,8 +120,7 @@ function createTables_ecml2012(this)
                 optimizeBy.leftColumn{table_i}, ...
                 optimizeBy.rightColumn{table_i});
         end
-        this.endTable_ecml2012( outputFileID, ...
-            [num_labeled graph searchProperties{table_i}] );
+        TextTables.endTable_ecml2012( outputFileID );
     end
     fclose(outputFileID);
 end
@@ -165,6 +197,10 @@ function printLine(this, outputFile, lineFormat, ...
                         );
 end
 
+end % private methods
+
+methods (Static)
+
 %% metricToString
 %  Mark highest values with bold. multiply by 100.
 %  e.g. converts stringValues = { '1'; '2'; '2'; }
@@ -172,7 +208,7 @@ end
 %         '\textbf{200.0}'
 %         '\textbf{200.0}'
 
-function R = metricToString(~, key, algorithms)
+function R = metricToString(key, algorithms)
     stringValues = {    algorithms.mad(key);
                         algorithms.am(key);
                         algorithms.diag(key) };
@@ -190,10 +226,10 @@ function R = metricToString(~, key, algorithms)
     end
     R = stringValues;
 end
-
+    
 %% startTable_ecml2012
 
-function startTable_ecml2012(~, outputFile, optimizeByLeftName, optimizeByRightName)
+function startTable_ecml2012( outputFile, optimizeByLeftName, optimizeByRightName)
     fprintf(outputFile, '\\begin{table}\n');
     fprintf(outputFile, '\\centering\n');
     fprintf(outputFile, '\\begin{tabular}{ | c | c || c | c | c || c | c | c | }\n');
@@ -203,41 +239,17 @@ function startTable_ecml2012(~, outputFile, optimizeByLeftName, optimizeByRightN
                         optimizeByLeftName, optimizeByRightName);
     fprintf(outputFile, '\\multicolumn{2}{|c||}{}  & MAD & AM  & \\algorithmName           & MAD & AM  & \\algorithmName \\\\ \n');
 end
-
+    
 %% endTable_ecml2012
-
-function endTable_ecml2012(this, outputFile, searchProperties )
-
-    algorithm.key = 'Algorithm';
-    algorithm.shouldMatch = 1;
-
-    heuristics.key = 'heuristics';
-    heuristics.value = {'0'};
-    heuristics.shouldMatch = 1;
-
-    optimize_by.key = 'optimize_by';
-    optimize_by.shouldMatch = 1;
-    optimize_by.value = { 'PRBEP' };
-
-    algorithm.value = {CSSLMC.name()};
-    diag = this.findEntries([searchProperties optimize_by ...
-                             heuristics algorithm]);
-    assert( length(diag) == 1);
-    diag = diag {1};
-
+    
+function endTable_ecml2012( outputFile )
     fprintf(outputFile, '\\hline\n');
     fprintf(outputFile, '\\end{tabular}\n');
-%        caption = ['results ' ...
-%                   ' prior init mode ' diag('labelled init') ...
-%                   ' balanced ' diag('balanced')
-%                    ];
-    fprintf(outputFile, '\\vspace{0.5cm}\n');
-
     fprintf(outputFile, '\\caption{\\multiDataSetsTableCaption}\n');
     fprintf(outputFile, '\\label{tab:table_multiple_datasets}\n' );
     fprintf(outputFile, '\\end{table}\n');
 end
     
-end % private methods
+end % static methods
     
 end % classdef

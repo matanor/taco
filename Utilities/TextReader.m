@@ -92,6 +92,10 @@ methods (Access = public)
         end
     end
     
+end % public methods
+
+methods (Access = public)
+    
     %% processSingleLine
     
     function processSingleLine(this, line, line_i) %#ok<INUSD,MANU>

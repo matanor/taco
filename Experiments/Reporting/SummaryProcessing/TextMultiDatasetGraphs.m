@@ -1,5 +1,32 @@
-classdef textMultiDatasetGraphs < SummaryReaderBase
+classdef TextMultiDatasetGraphs < TextReporterBase
    
+methods (Static)
+
+%% run
+
+function run(fileName)
+    this = TextMultiDatasetGraphs();
+    this.convert(fileName);
+end
+
+%% outputDirectory
+
+function R = outputDirectory()
+    R = 'E:/technion/theses/Tex/SSL/Thesis/figures/text_multi_datasets_bars/';
+end
+
+end % static methods
+
+methods (Access = public)
+    
+%% doConvert
+
+function doConvert(this)
+    this.createMultipleDatasetGraphs();
+end
+
+end % overrides
+
 methods (Access = private)
     
 %% createMultipleDatasetGraphs
@@ -104,23 +131,18 @@ function plotMultipleDatasetsGraph(this, dataSource, numGraphs, ...
     set(gca, 'XTickLabel',this.graphNamesForUser());
     set(gca, 'FontSize', fontSize);
     set(gca,'XGrid','off','YGrid','on');
-    set(gca, 'XTick',[]); % removes XTicks from the plot completly
+%     set(gca, 'XTick',[]); % removes XTicks from the plot completly - do
+%     not use because removes xticks labels (R2010b)
     set(gca,'YLim',yLimits);
-    legend('MAD','AM','TACO', 'Location', 'NorthWest');
+    legend('MAD','MP','TACO', 'Location', 'NorthWest');
     ylabel(presentedKeyLabelY);
 
-    directory = 'E:/technion/theses/Tex/SSL/GraphSSL_Confidence_Paper/ECML_Presentation/';
-    fileName = ['multiple_graphs_' presentedKeyFileName] ;
-    fileFullPath = [ directory fileName '.jpg'];
-    Logger.log(['Saving image to file ' fileFullPath]);
-    saveas(fig, fileFullPath ); 
-    close(fig);
+    directory = TextMultiDatasetGraphs.outputDirectory();
+    this.saveAndCloseFigure(fig, directory, ... 
+                            'multiple_graphs_', presentedKeyFileName ...
+                            );
 end
 
-
 end % private methods
-
-methods (Static)
-end % static methods
 
 end % classdef

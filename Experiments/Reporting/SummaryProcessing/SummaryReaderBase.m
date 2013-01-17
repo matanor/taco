@@ -7,6 +7,9 @@ classdef SummaryReaderBase < TextReader
 % fileName = 'C:/technion/theses/Experiments/results/2012_09_02_01 Speech Results Summary For Paper/BigTableSummary.txt'
 
 %% file name on home desktop
+% For paper 2012_TACO_in_ECML
+% fileName = 'e:/technion/theses/Experiments/results/2012_04_22_For_Paper_Graph_based_transduction_with_Confidence/BigTableSummary.txt';    
+% For paper 2012 TACO on speech EILAT IEEEI
 % fileName = 'e:/technion/theses/Experiments/results/2012_09_02_01 Speech Results Summary For Paper/BigTableSummary.txt'
 
 %% properties
@@ -31,7 +34,7 @@ end
 
 function convert(this, fileName)    
     this.load(fileName);
-    this.doConvert();
+    this.doConvert();   % overide this
     %this.createGraphs_eilat_2012();
     %this.createGraphs_ecml_2012();
     %this.createTables_ecml2012();
@@ -39,37 +42,32 @@ function convert(this, fileName)
     %this.createMultipleDatasetGraphs();
     this.clearAll();
 end
-    
-end % public ethods
-    
-methods (Access = private)
 
-%% load
-function load( this, fileName)
-    this.set_inputFileName( fileName );
-    this.init();
-    this.read(this.READ_ALL);
-    this.close();
-    this.trimHeaders();
-    this.createMaps();
-    isTrimLevenshtein = 1;
-    this.trimValues(isTrimLevenshtein);
-end
-    
 %% init
 function init(this)
     init@TextReader(this);
     this.clearAll();
 end 
-    
-%% clearAll
 
-function clearAll(this)
-    this.m_allResults = [];
-    this.m_numResults = 0;
-    this.m_resultMaps = [];
-    this.m_header = [];
+%% doConvert
+
+function doConvert(~)
+    % hook for derived classes
 end
+
+%% processSingleLine
+
+function processSingleLine(this, line, line_i) %#ok<INUSD,MANU>
+    if this.isHeader(line, line_i)
+        this.readHeader(line);
+    else
+        this.readResult(line);
+    end
+end
+    
+end % public methods
+   
+methods (Access = protected)
 
 %% findAlgorithms
 
@@ -112,6 +110,31 @@ function R = findAlgorithms(this, searchProperties)
     R.diag = diag;
     R.am = am;
     R.mad = mad;
+end
+
+end % protected methods 
+
+methods (Access = private)
+
+%% load
+function load( this, fileName)
+    this.set_inputFileName( fileName );
+    this.init();
+    this.read(this.READ_ALL);
+    this.close();
+    this.trimHeaders();
+    this.createMaps();
+    isTrimLevenshtein = 0;
+    this.trimValues(isTrimLevenshtein);
+end
+    
+%% clearAll
+
+function clearAll(this)
+    this.m_allResults = [];
+    this.m_numResults = 0;
+    this.m_resultMaps = [];
+    this.m_header = [];
 end
 
 %% findEntries
@@ -196,16 +219,6 @@ function trimHeaders(this)
     end
 end
 
-%% processSingleLine
-
-function processSingleLine(this, line, line_i) %#ok<INUSD,MANU>
-    if this.isHeader(line, line_i)
-        this.readHeader(line);
-    else
-        this.readResult(line);
-    end
-end
-
 %% readHeader
 
 function readHeader(this, line)
@@ -243,10 +256,9 @@ end %private methods
 methods (Static)
     
 function run()
-    this = ExcelToLatexConverter();
+    this = SummaryReaderBase();
     fileName = ['C:\technion\theses\Experiments\results\For Paper\' ...
                 'BigTableSummary.txt'];
-    this.clearAll();
     this.convert(fileName);
 end
 
@@ -266,17 +278,18 @@ function saveAndCloseFigure(fig, outputDirectory, fileNamePrefix, fileNameSuffix
     Logger.log(['SummaryReaderBase::saveAndCloseFigure. '...
                 'Saving figure to ''' fileFullPath '''']);
     saveas(fig, fileFullPath ); 
-    % saving directly to jpeg or tiff looks ugly (square points are missing)
-%         fileFullPath = [ outputDirectory fileName '.png'];
-%         Logger.log(['ExcelToLatexConverter::saveAndCloseFigure. '...
-%                     'Saving figure to ''' fileFullPath '''']);
-%         print(fig, '-djpeg', '-r600', fileFullPath); % -r<dots per inch>
+    % saving directly to jpeg or tiff may look ugly (square points are missing)
+    fileFullPath = [ outputDirectory fileName '.jpg'];
+    Logger.log(['ExcelToLatexConverter::saveAndCloseFigure. '...
+                'Saving figure to ''' fileFullPath '''']);
+    saveas(fig, fileFullPath ); 
+%     print(fig, '-djpeg', '-r600', fileFullPath); % -r<dots per inch>
     close(fig);        
 end
 
 %% stddevKey
 
-function R = stddevKey(~,key)
+function R = stddevKey(key)
     R = ['stddev ' key];
 end
 
