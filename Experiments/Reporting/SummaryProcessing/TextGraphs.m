@@ -47,6 +47,10 @@ function create(this)
     labeled_init.key = 'labelled init';
     labeled_init.value = {'1'};
     labeled_init.shouldMatch = 1;
+    
+    taco_objective.key = 'TACO objective';
+    taco_objective.value = {num2str(CSSLBase.OBJECTIVE_HARMONIC_MEAN)};
+    taco_objective.shouldMatch = 1;
 
     PRBEP_limit.low = 48;
     PRBEP_limit.high = 82;
@@ -54,7 +58,7 @@ function create(this)
     M_ACC_limit.low = 20;
     M_ACC_limit.high = 82;
 
-    searchProperties = [graph balanced labeled_init];
+    searchProperties = [taco_objective graph balanced labeled_init];
 
     [~, inputFileNameOnly, ~] = fileparts(this.inputFileName());
     outputFileName = [TextGraphs.outputDirectory() inputFileNameOnly '.figs.tex'];

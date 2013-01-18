@@ -87,7 +87,10 @@ function R = findAlgorithms(this, searchProperties)
 
     algorithm.value = {CSSLMC.name()};
     diag = this.findEntries([searchProperties heuristics algorithm]);
-    assert( length(diag) == 1);
+    if length(diag) ~= 1
+        Logger.log(['SummaryReaderBase::findAlgorithms. length(diag) = ' num2str(length(diag)) '. Should be 1.']);
+        assert(false);
+    end
     diag = diag {1};
 
 %         algorithm.value = {CSSLMCF.name()};
@@ -100,6 +103,11 @@ function R = findAlgorithms(this, searchProperties)
     assert( length(am) == 1);
     am = am{1};
 
+    algorithm.value = {QC.name()};
+    qc = this.findEntries([searchProperties heuristics algorithm]);
+    assert( length(qc) == 1);
+    qc = qc{1};
+
     heuristics.value = {'1'};
 
     algorithm.value = {MAD.name()};
@@ -110,6 +118,7 @@ function R = findAlgorithms(this, searchProperties)
     R.diag = diag;
     R.am = am;
     R.mad = mad;
+    R.qc = qc;
 end
 
 end % protected methods 

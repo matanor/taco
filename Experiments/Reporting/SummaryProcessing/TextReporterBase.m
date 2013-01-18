@@ -1,7 +1,29 @@
 classdef TextReporterBase < SummaryReaderBase
 
+properties (Constant)
+    WEB_KB          = ParamsManager.WEBKB_CONSTRUCTED;
+    NG_20           = ParamsManager.TWENTY_NG_4715   ;
+    ENRON_FARMER    = ParamsManager.ENRON_FARMER     ;
+    ENRON_KAMINSKI  = ParamsManager.ENRON_KAMINSKI   ;
+    REUTERS         = ParamsManager.REUTERS          ;
+    AMAZON_3        = ParamsManager.AMAZON_3         ;
+    SENTIMENT_5K    = ParamsManager.SENTIMENT_5K     ;
+    AMAZON_7        = ParamsManager.AMAZON_7         ;    
+end% constant properties
+
 methods (Static)
         
+function R = nlpGraphIDs()
+    R = [TextReporterBase.WEB_KB ...
+         TextReporterBase.NG_20 ...
+         TextReporterBase.SENTIMENT_5K ...
+         TextReporterBase.REUTERS ...
+         TextReporterBase.ENRON_FARMER ...
+         TextReporterBase.ENRON_KAMINSKI ...
+         TextReporterBase.AMAZON_3 ...
+        ];
+end
+
 %% nlpGraphNames
 
 function R = nlpGraphNames()
