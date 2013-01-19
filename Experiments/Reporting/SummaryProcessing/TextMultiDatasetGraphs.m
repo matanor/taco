@@ -36,6 +36,7 @@ properties (Constant)
     MACRO_ACC = ParamsManager.OPTIMIZE_BY_MACRO_ACCURACY;
 %     ParamsManager.OPTIMIZE_BY_LEVENSHTEIN = 7;
 
+% order of algorithms in bars
     MAD = 1;
     AM = 2; 
     QC = 3;
@@ -228,7 +229,7 @@ function plot_barGraph(this, barSource, labelY, fileNameSuffix, yLimits, ticksFo
     this.removeExtraWhiteSpaceMargin(gca); %set(gca,'LooseInset',get(gca,'TightInset'))
 %         bar(barSource,'hist','rgb');
     set(h(this.MAD),    'facecolor','Blue'); 
-    set(h(this.AM),     'facecolor','Green');
+    set(h(this.AM),     'facecolor', [0 0.543 0] );
     set(h(this.QC),     'facecolor','Cyan');
     set(h(this.CSSL),   'facecolor','Red'); 
     set(gca, 'XTickLabel',ticksForX);
