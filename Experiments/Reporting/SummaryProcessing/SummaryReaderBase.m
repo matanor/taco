@@ -121,34 +121,10 @@ function R = findAlgorithms(this, searchProperties)
     R.qc = qc;
 end
 
-end % protected methods 
-
-methods (Access = private)
-
-%% load
-function load( this, fileName)
-    this.set_inputFileName( fileName );
-    this.init();
-    this.read(this.READ_ALL);
-    this.close();
-    this.trimHeaders();
-    this.createMaps();
-    isTrimLevenshtein = 0;
-    this.trimValues(isTrimLevenshtein);
-end
-    
-%% clearAll
-
-function clearAll(this)
-    this.m_allResults = [];
-    this.m_numResults = 0;
-    this.m_resultMaps = [];
-    this.m_header = [];
-end
-
 %% findEntries
 
 function R = findEntries( this, searchProperties)
+    R = [];
     found_i = 0;
     searchKeys     = {searchProperties.key};
     searchValues   = {searchProperties.value};
@@ -177,7 +153,37 @@ function R = findEntries( this, searchProperties)
             found_i = found_i + 1;
             R{found_i} = map;
         end
-    end        
+    end  
+    if isempty(R)
+%         Logger.log(['SummaryReaderBase::findEntries. searchKeys = ' ...
+%                      '. searchValues = ' [searchValues{:}] ]);
+        assert(false);
+    end
+end
+
+end % protected methods 
+
+methods (Access = private)
+
+%% load
+function load( this, fileName)
+    this.set_inputFileName( fileName );
+    this.init();
+    this.read(this.READ_ALL);
+    this.close();
+    this.trimHeaders();
+    this.createMaps();
+    isTrimLevenshtein = 0;
+    this.trimValues(isTrimLevenshtein);
+end
+    
+%% clearAll
+
+function clearAll(this)
+    this.m_allResults = [];
+    this.m_numResults = 0;
+    this.m_resultMaps = [];
+    this.m_header = [];
 end
 
 %% createMaps
