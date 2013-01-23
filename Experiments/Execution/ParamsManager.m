@@ -72,6 +72,8 @@ properties (Constant)
     AMAZON_3          = 10;
     SENTIMENT_5K      = 11;
     AMAZON_7          = 12;
+    TIMIT_CMS_WHITE_C7_ALEX = 13;
+    TIMIT_CMS_WHITE_C7_LIHI = 14;
 end
 
 properties (Constant)
@@ -113,7 +115,7 @@ methods (Access = public)
         webkbGraphPath          = [ rootDir 'webkb/data/Rapid_Miner_Result/webkb_constructed.mat'];
         twentyNG_4715_graphPath = [ rootDir '20NG/data/twentyNG_4715.mat'];
         enronFarmerGraphPath    = [ rootDir 'enron/farmer/farmer-d'                  tfidf '.graph.mat'];
-        enronKaminskiGraphPath  = [ rootDir 'enron/farmer/farmer-d'                  tfidf '.graph.mat'];
+        enronKaminskiGraphPath  = [ rootDir 'enron/kaminski/kaminski-v'                  tfidf '.graph.mat'];
         amazon3graphPath        = [ rootDir 'amazon/books_dvd_music/books_dvd_music' tfidf '.graph.mat'];
         amazon7graphPath        = [ rootDir 'amazon/all/all'                         tfidf '.graph.mat'];
         reutersGraphPath        = [ rootDir 'reuters/reuters_4_topics'               tfidf '.graph.mat'];
@@ -132,6 +134,10 @@ methods (Access = public)
         amazon7           = this.createTextDataset(amazon7graphPath,        ParamsManager.AMAZON_7);
         reuters           = this.createTextDataset(reutersGraphPath,        ParamsManager.REUTERS);
         sentiment_5k      = this.createTextDataset(sentiment_5kGraphPath,   ParamsManager.SENTIMENT_5K);
+
+        allTextDataSets = [ {webkb_constructed}, {twentyNG_4715}, {enronFarmer}, ...
+                            {enronKaminski},     {amazon3},       {reuters}, ...
+                            {sentiment_5k} ];
         
         phon_synth_context1  = [ rootDir 'StructureSynthetic/data/context_1.mat' ];
         phon_synth_context7  = [ rootDir 'StructureSynthetic/data/context_7.mat' ];
@@ -157,14 +163,21 @@ methods (Access = public)
         timit_notWhite_c7_alex.test        = [ rootDir 'timit/features_39/trainAndTest/trainAndTest_notWhite.context7.k_10.alex.mat' ];
         timit_notWhite_c7_alex.transductionSetFileFormat = notWhite_transduction_file;
         
-        timit_cms_white_c7_alex.development = [ rootDir 'timit/features_39_cms_white/trainAndDev/trainAndDev_cms_white.context7.k_10.alex.mat' ];
-        timit_cms_white_c7_alex.test        = [ rootDir 'timit/features_39_cms_white/trainAndTest/trainAndTest_cms_white.context7.k_10.alex.mat' ];
-        timit_cms_white_c7_alex.transductionSetFileFormat = cms_white_transduction_file_format;
+        timit_cms_white_c7_alex_development = 'timit/features_39_cms_white/trainAndDev/trainAndDev_cms_white.context7.k_10.alex.mat';
+        timit_cms_white_c7_alex_test        = 'timit/features_39_cms_white/trainAndTest/trainAndTest_cms_white.context7.k_10.alex.mat' ;
+        timit_cms_white_c7_alex = this.createSpeechDataSet                  ...
+                                    (rootDir,                               ...
+                                     timit_cms_white_c7_alex_development,   ...
+                                     timit_cms_white_c7_alex_test,          ...
+                                     ParamsManager.TIMIT_CMS_WHITE_C7_ALEX);                
         
-        timit_cms_white_c7_lihi.development = [ rootDir 'timit/features_39_cms_white/trainAndDev/trainAndDev_cms_white.context7.k_10.lihi.mat' ];
-        timit_cms_white_c7_lihi.test        = [ rootDir 'timit/features_39_cms_white/trainAndTest/trainAndTest_cms_white.context7.k_10.lihi.mat' ];
-        timit_cms_white_c7_lihi.transductionSetFileFormat = cms_white_transduction_file_format;
-        timit_cms_white_c7_lihi.precentToNumLabeledTable = this.precentToNumLabeledTable_timit();
+        timit_cms_white_c7_lihi_development = 'timit/features_39_cms_white/trainAndDev/trainAndDev_cms_white.context7.k_10.lihi.mat';
+        timit_cms_white_c7_lihi_test        = 'timit/features_39_cms_white/trainAndTest/trainAndTest_cms_white.context7.k_10.lihi.mat';
+        timit_cms_white_c7_lihi = this.createSpeechDataSet                  ...
+                                    (rootDir,                               ...
+                                     timit_cms_white_c7_lihi_development,   ...
+                                     timit_cms_white_c7_lihi_test,          ...
+                                     ParamsManager.TIMIT_CMS_WHITE_C7_LIHI);        
 
         timit_cms_white_alex.development = [ rootDir 'timit/features_39_cms_white/trainAndDev/trainAndDev_cms_white.k_10.alex.mat' ];
         timit_cms_white_alex.test        = [ rootDir 'timit/features_39_cms_white/trainAndTest/trainAndTest_cms_white.k_10.alex.mat' ];
@@ -228,9 +241,12 @@ methods (Access = public)
             gammaOptimizationRange.speech = [1 100];
             gammaOptimizationRange.text = [1 2 5];
 
-            this = this.createNumericParameter( 'alpha',                alphaOptimizationRange.text );
-            this = this.createNumericParameter( 'beta',                 betaOptimizationRange.text );
-            this = this.createNumericParameter( 'labeledConfidence',    gammaOptimizationRange.text );
+            this = this.createNumericParameter( 'alpha',             ...
+                                                alphaOptimizationRange.text );
+            this = this.createNumericParameter( 'beta',              ...
+                                                betaOptimizationRange.text );
+            this = this.createNumericParameter( 'labeledConfidence', ...
+                                                gammaOptimizationRange.text );
             this = this.createNumericParameter( 'zeta',  zetaOptimizationRange );
         else
             this = this.createNumericParameter( 'alpha', [1] );
@@ -285,7 +301,7 @@ methods (Access = public)
             this = this.createNumericParameter( 'mu3', paperOprimizationRange );
             mad_k_paper_range = [10,50,100,500,1000,2000];
             this = this.createNumericParameter...
-                ( 'mad_K',   kOptimizationRange  ); % NO all vertices option
+                ( 'mad_K',   kOptimizationRange.text  ); % NO all vertices option
         else
             this = this.createNumericParameter( 'mu2', [1] );     
             this = this.createNumericParameter( 'mu3', [1] );
@@ -306,7 +322,7 @@ methods (Access = public)
             this = this.createNumericParameter( 'am_alpha', [1]);
             am_k_range_paper = [2,10,50,100,250,500,1000,2000]; % NO all vertices option
             this = this.createNumericParameter...
-                ( 'am_K',     kOptimizationRange); 
+                ( 'am_K',     kOptimizationRange.text); 
         else
             this = this.createNumericParameter( 'am_v',     [1e-4]);
             this = this.createNumericParameter( 'am_mu',    [1e-2]);
@@ -325,7 +341,7 @@ methods (Access = public)
             this = this.createNumericParameter...
                 ( 'qc_mu3',    [1e-8 1e-4 0.01 0.1 1 10 100]);
             this = this.createNumericParameter...
-                ( 'qc_K',     kOptimizationRange); 
+                ( 'qc_K',     kOptimizationRange.text); 
         else
             this = this.createNumericParameter( 'qc_mu2',   [1]);
             this = this.createNumericParameter( 'qc_mu3',   [1]);
@@ -348,8 +364,10 @@ methods (Access = public)
         
         if isTesting
             this = this.createNumericParameter( 'precentLabeled', [1] );    
+            % select 1% for text
         else
             this = this.createNumericParameter( 'precentLabeled', [1] );    
+%            webkb:  0.1, 1,   2.5,    5,   10,
         end
         %11101 - 0.01% (dev)
         %110606 - 0.1% (dev)
@@ -434,6 +452,18 @@ methods (Access = public)
         R.clearAlgorithmOutput = 0;
         R.precentToNumLabeledTable = this.precentToNumLabeledTable(datasetID);
     end
+    
+    %% createSpeechDataSet
+    
+    function R = createSpeechDataSet(this, root, devGraphFullPath, testGraphFullPath, datasetID)
+        R.development    = [root devGraphFullPath];
+        R.test           = [root testGraphFullPath];
+        cms_white_transduction_file_format = [ root 'timit/features_39_cms_white/cms_white.TrunsSet_%s.mat' ];
+        R.transductionSetFileFormat = cms_white_transduction_file_format;
+        R.isCalcPRBEP               = 0;
+        R.clearAlgorithmOutput      = 1;
+        R.precentToNumLabeledTable  = this.precentToNumLabeledTable(datasetID);
+    end    
     
     %% createNumericParameter
     
@@ -604,27 +634,6 @@ methods (Access = public)
         R = evaluationParams;
     end
     
-    %% precentToNumLabeledTable_timit
-    %  for speech, transduction sets are common to more than one graph.
-    %  so the naming scheme for the transduction sets file name is
-    %  different, this function translates from a precentage of labeled frames
-    %  in the test graph, to the precent of labeled data used, which is
-    %  part of the transduction file name scheme
-    
-    function R = precentToNumLabeledTable_timit(~)
-        % KeyType is uint32.
-        numLabeledToPrecentMap = containers.Map(0.1, 1); 
-        remove(numLabeledToPrecentMap,0.1);
-        numLabeledToPrecentMap(0.01)  = 0;
-        numLabeledToPrecentMap(0.1)  = 0;
-        numLabeledToPrecentMap(1)  = 11147;
-        numLabeledToPrecentMap(5)  = 55456;
-        numLabeledToPrecentMap(10) = 111133;
-        numLabeledToPrecentMap(20) = 221254;
-        numLabeledToPrecentMap(30) = 331793;
-        numLabeledToPrecentMap(50) = 553041;
-        R = numLabeledToPrecentMap;
-    end
     
     %% precentToNumLabeledTable
     %  for speech, transduction sets are common to more than one graph.
@@ -640,9 +649,9 @@ methods (Access = public)
         numLabeled(VJGenerator.V8_W1,:) = [57   572  5729    0 28645 57291 114582 171873 286455];
         numLabeled(VJGenerator.V8_W7,:) = [42   426  4263    0 21315 42630  85260  127890 213150];
         numLabeled(ParamsManager.WEBKB_CONSTRUCTED,:) = ...
-                                          [0      0    48    0     0     0      0      0       0];
+                                          [0      24    48    96     192     500      0      0       0];
         numLabeled(ParamsManager.TWENTY_NG_4715,:) = ...
-                                          [0      0    48  105     0   500      0      0       0];
+                                          [0      0    105   0     0   500      0      0       0];
         numLabeled(ParamsManager.ENRON_FARMER,:) = ...
                                           [0      0    48  105     0   500      0      0       0];
         numLabeled(ParamsManager.ENRON_KAMINSKI,:) = ...
@@ -650,11 +659,16 @@ methods (Access = public)
         numLabeled(ParamsManager.REUTERS,:) = ...
                                           [0      0    48    0     0     0       0      0       0];
         numLabeled(ParamsManager.AMAZON_3,:) = ...
-                                          [0      0    48  105     0   500      0      0       0];
+                                          [0      0    35  105     0   500      0      0       0];
         numLabeled(ParamsManager.SENTIMENT_5K,:) = ...
-                                          [0      0    48  105     0   500      0      0       0];
+                                          [0      0   500  105     0   500      0      0       0];
         numLabeled(ParamsManager.AMAZON_7,:) = ...
                                           [0      0    48  105     0   500      0      0       0];
+                                          %0.01, 0.1,      1, 2.5,     5,     10,    20,    30,    50
+        numLabeled(ParamsManager.TIMIT_CMS_WHITE_C7_ALEX,:) = ...
+                                          [0      0    11147    0  55456  111133 221254 331793  553041];
+        numLabeled(ParamsManager.TIMIT_CMS_WHITE_C7_LIHI,:) = ...
+                                          [0      0    11147    0  55456  111133 221254 331793  553041];
         
         numDatasets = size(numLabeled,1);
         for table_i=1:numDatasets

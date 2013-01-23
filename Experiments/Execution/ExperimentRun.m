@@ -58,42 +58,15 @@ methods (Access = public)
 %         trunsductionSets = this.m_trunsductionSets; %#ok<NASGU>
 %         save(outputFileFullPath, 'trunsductionSets');
 %     end
-    
-    %% numLabeledToPrecent
-    %  for speech, transduction sets are common to more than one graph.
-    %  so the naming scheme for the transduction sets file name is
-    %  different, this function translates from a number of labeled frames
-    %  in the test graph, to the precent of labeled data used, which is
-    %  part of the transduction file name scheme
-    
-    function R = numLabeledToPrecent(~, numLabeled)
-        numLabeledToPrecentMap = containers.Map(uint32(1), 'dummy'); % KeyType is uint32.
-        remove(numLabeledToPrecentMap,1);
-        numLabeledToPrecentMap(11147)  = '001';
-        numLabeledToPrecentMap(55456)  = '005';
-        numLabeledToPrecentMap(111133) = '010';
-        numLabeledToPrecentMap(221254) = '020';
-        numLabeledToPrecentMap(331793) = '030';
-        numLabeledToPrecentMap(553041) = '050';
-        R = numLabeledToPrecentMap(numLabeled);
-    end
         
     %% trunsductionSetsFileName
     
     function R = trunsductionSetsFileName(this)
         transductionSetFileFormat = this.m_constructionParams.fileProperties.transductionSetFileFormat;
-        useNumLabeledToPrecent = 1; % default is 1
-        if isfield(this.m_constructionParams.fileProperties,'useNumLabeledToPrecent');
-            useNumLabeledToPrecent    = this.m_constructionParams.fileProperties.useNumLabeledToPrecent;
-        end
         numLabeled = this.precentLabeledToNumLabeled(this.m_constructionParams);
         this.m_constructionParams.numLabeled = numLabeled; % save for reporting results.
         if ~isempty(transductionSetFileFormat)
-            if useNumLabeledToPrecent
-                fileNamePart = this.numLabeledToPrecent(numLabeled);
-            else
-                fileNamePart = num2str(this.m_constructionParams.precentLabeled);
-            end
+            fileNamePart = num2str(this.m_constructionParams.precentLabeled);
             R = sprintf(transductionSetFileFormat, fileNamePart);
         else
             R = this.constructTransductionSetFilePath...
