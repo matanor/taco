@@ -5,7 +5,7 @@ methods (Static)
 %% run
 
 function run(fileName)
-    this = TextMultiDatasetGraphs();
+    this = TextTables();
     this.convert(fileName);
 end
 
@@ -48,12 +48,15 @@ function createTables_ecml2012(this)
     num_iterations.shouldMatch = 1;
 
     num_labeled.key = 'num labeled';
-
-
     num_labeled.shouldMatch = 1;
+    
     labeled_init.key = 'labelled init';
     labeled_init.shouldMatch = 1;
     labeled_init.value = {'1'}; % Hoe data is initialized
+    
+    taco_objective.key = 'TACO objective';
+    taco_objective.value = {num2str(CSSLBase.OBJECTIVE_HARMONIC_MEAN)};
+    taco_objective.shouldMatch = 1;
 
 %         optimize_by.key = 'optimize_by';
 %         optimize_by.shouldMatch = 1;
@@ -61,27 +64,28 @@ function createTables_ecml2012(this)
     table_i = 1;
 
     %optimize_by.value = { 'PRBEP' };
+    generalSearchProperties = [balanced labeled_init num_iterations taco_objective];
 
-    searchProperties{table_i} = [balanced labeled_init num_iterations];
+    searchProperties{table_i} = generalSearchProperties;
     optimizeBy.leftColumn {table_i} = 'PRBEP';
     optimizeBy.rightColumn{table_i} = 'macroACC';
     optimizeBy.leftName{table_i}    = 'PRBEP';
     optimizeBy.rightName{table_i}   = 'M-ACC';
     table_i = table_i + 1;
 
-    searchProperties{table_i} = [balanced labeled_init num_iterations];
-    optimizeBy.leftColumn {table_i} = 'accuracy';
-    optimizeBy.rightColumn{table_i} = 'MRR';
-    optimizeBy.leftName{table_i}    = 'accuracy';
-    optimizeBy.rightName{table_i}   = 'MRR';
-    table_i = table_i + 1;
-
-    searchProperties{table_i} = [balanced labeled_init num_iterations];
-    optimizeBy.leftColumn {table_i} = 'macroACC';
-    optimizeBy.rightColumn{table_i} = 'macroMRR';
-    optimizeBy.leftName{table_i}    = 'M-ACC';
-    optimizeBy.rightName{table_i}   = 'M-MRR';
-    table_i = table_i + 1;
+%     searchProperties{table_i} = generalSearchProperties;
+%     optimizeBy.leftColumn {table_i} = 'accuracy';
+%     optimizeBy.rightColumn{table_i} = 'MRR';
+%     optimizeBy.leftName{table_i}    = 'accuracy';
+%     optimizeBy.rightName{table_i}   = 'MRR';
+%     table_i = table_i + 1;
+% 
+%     searchProperties{table_i} = generalSearchProperties;
+%     optimizeBy.leftColumn {table_i} = 'macroACC';
+%     optimizeBy.rightColumn{table_i} = 'macroMRR';
+%     optimizeBy.leftName{table_i}    = 'M-ACC';
+%     optimizeBy.rightName{table_i}   = 'M-MRR';
+%     table_i = table_i + 1;
 
     %optimize_by.value = { 'macroACC' };
 %         searchProperties{table_i} = [balanced num_labeled labeled_init];
@@ -146,7 +150,7 @@ function printOneDataset(this, outputFile, dataSetName, ...
     end
     numLabeled = [leftColumnResult.diag('num labeled') ' labeled' ];
 
-    lineFormat = ['%s    & ~%s~  & ~%s~ & ~%s~ & ~%s~ & ~%s~ & ~%s~ & ~%s~ \\\\ \\cline{%s-8}\n'];
+    lineFormat = ['%s    & %s  & %s & %s & %s & %s & %s & %s & %s & %s \\\\ \\cline{%s-10}\n'];
 
     key = 'avg PRBEP';
     metricName = 'PRBEP';
@@ -190,9 +194,11 @@ function printLine(this, outputFile, lineFormat, ...
                         leftMetric_results{1}, ...
                         leftMetric_results{2}, ...
                         leftMetric_results{3}, ...
+                        leftMetric_results{4}, ...
                         rightMetric_results{1},...
                         rightMetric_results{2},...
                         rightMetric_results{3},...
+                        rightMetric_results{4},...
                         columnStartHorzLine ...
                         );
 end
@@ -211,7 +217,8 @@ methods (Static)
 function R = metricToString(key, algorithms)
     stringValues = {    algorithms.mad(key);
                         algorithms.am(key);
-                        algorithms.diag(key) };
+                        algorithms.qc(key);
+                        algorithms.diag(key)};
     numericalValues = 100 * str2num(char(stringValues));
     % transform 73.21 -> 73.2 (zero out all digits beyond 1 decimal
     % point)
