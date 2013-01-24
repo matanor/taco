@@ -295,7 +295,7 @@ function saveAndCloseFigure(fig, outputDirectory, fileNamePrefix, fileNameSuffix
     saveas(fig, fileFullPath ); 
     % saving directly to jpeg or tiff may look ugly (square points are missing)
     fileFullPath = [ outputDirectory fileName '.jpg'];
-    Logger.log(['ExcelToLatexConverter::saveAndCloseFigure. '...
+    Logger.log(['SummaryReaderBase::saveAndCloseFigure. '...
                 'Saving figure to ''' fileFullPath '''']);
     saveas(fig, fileFullPath ); 
 %     print(fig, '-djpeg', '-r600', fileFullPath); % -r<dots per inch>

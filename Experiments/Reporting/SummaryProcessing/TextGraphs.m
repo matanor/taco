@@ -1,5 +1,10 @@
 classdef TextGraphs < TextReporterBase
 
+%% office
+% fileName = 'C:/technion/theses/Tex/SSL/Thesis/Results/thesis_results.txt';
+%% home
+% fileName = 'E:/technion/theses/Tex/SSL/Thesis/Results/thesis_results.txt';
+
 methods (Static)
     
     %% run
@@ -150,16 +155,18 @@ function createSingleFigure(this, figuresFileID, searchProperties, presentedKey,
     stddevKey       = this.stddevKey(presentedKey);
     barSource = zeros(length(numLabeledRange), numAlgorithms);
     stddev = zeros( size(barSource) );
-    MAD = 1;        AM = 2; CSSL = 3;
+    MAD = 1;        AM = 2; CSSL = 3; QC = 4;
     for numLabeled_i=1:length(numLabeledRange)
         num_labeled.value = numLabeledRange(numLabeled_i);
         algorithms = this.findAlgorithms([searchProperties num_labeled]);
         barSource(numLabeled_i , MAD)   = str2num(algorithms.mad( presentedKey ));
         barSource(numLabeled_i , AM)    = str2num(algorithms.am( presentedKey )) ;
         barSource(numLabeled_i , CSSL)  = str2num(algorithms.diag( presentedKey )) ;
+        barSource(numLabeled_i , QC)    = str2num(algorithms.qc( presentedKey )) ;
         stddev(numLabeled_i , MAD)      = str2num(algorithms.mad( stddevKey ));
         stddev(numLabeled_i , AM)       = str2num(algorithms.am( stddevKey ));
         stddev(numLabeled_i , CSSL)     = str2num(algorithms.diag( stddevKey ));
+        stddev(numLabeled_i , QC)       = str2num(algorithms.qc( stddevKey ));
     end
 
     % barSource size is num options * num_algorithm
@@ -171,31 +178,30 @@ function createSingleFigure(this, figuresFileID, searchProperties, presentedKey,
     grid on;
     numLabeledRangeMatrix = str2num(char(numLabeledRange));
     hold on;
-    algorithm = MAD;
     lineWidth = 4.5;
     markerSize = 13;
-    errorbar(numLabeledRangeMatrix,barSource(:,algorithm), stddev(:,algorithm),...
-            '-bs','LineWidth',lineWidth,...
-            'MarkerEdgeColor','b',...
+    allLineStyles       = { '-bs', '-g^', '-ro',  '-cv' };
+    allMarkerEdgeColors = { 'b',   'g',   'r',    'c' };
+    allLegendEntries    = { 'MAD', 'MP',  'TACO', 'QC'};
+    
+    algorithm_i = 1;
+    for algorithm_ID = [MAD AM QC CSSL]
+        lineStyle       = allLineStyles{algorithm_ID};
+        markerEdgeColor = allMarkerEdgeColors{algorithm_ID};
+        errorbar(numLabeledRangeMatrix,barSource(:,algorithm_ID), stddev(:,algorithm_ID),...
+            lineStyle,'LineWidth',lineWidth,...
+            'MarkerEdgeColor',markerEdgeColor,...
             'MarkerFaceColor','w',...
             'MarkerSize',markerSize);
-    algorithm = AM;
-    errorbar(numLabeledRangeMatrix,barSource(:,algorithm), stddev(:,algorithm),...
-            '-g^','LineWidth',lineWidth,...
-            'MarkerEdgeColor','g',...
-            'MarkerFaceColor','w',...
-            'MarkerSize',markerSize);
-    algorithm = CSSL;
-    errorbar(numLabeledRangeMatrix,barSource(:,algorithm), stddev(:,algorithm),...
-            '-ro','LineWidth',lineWidth,...
-            'MarkerEdgeColor','r',...
-            'MarkerFaceColor','w',...
-            'MarkerSize',markerSize);
+        theLegend{algorithm_i} = allLegendEntries{algorithm_ID}; %#ok<AGROW>
+        algorithm_i = algorithm_i + 1;
+    end
+
     %bar(barSource,'hist');
     %set(gca,'XTickLabel',numLabeledRange);
     set(gca,'XScale','log');
     set(gca, 'FontSize', 22);
-    legend('MAD','MP','TACO', 'Location', 'SouthEast');
+    legend(theLegend, 'Location', 'SouthEast');
     xlabel('Number of Labeled Examples');
     %highLimitY = max(barSource(:)) * 1.05;
     %lowLimitY  = min(barSource(:)) * 0.9;
