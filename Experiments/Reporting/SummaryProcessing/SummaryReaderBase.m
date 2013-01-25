@@ -28,6 +28,7 @@ function this = SummaryReaderBase()
     this.m_allResults = [];
     this.m_numResults = 0;
     this.m_resultMaps = [];
+    this.m_header = [];
 end
 
 %% convert
@@ -171,9 +172,12 @@ function load( this, fileName)
     this.init();
     this.read(this.READ_ALL);
     this.close();
+    Logger.log('SummaryReaderBase::load. Trimming headers..')
     this.trimHeaders();
+    Logger.log('SummaryReaderBase::load. Creating maps..')
     this.createMaps();
-    isTrimLevenshtein = 0;
+    isTrimLevenshtein = 1;
+    Logger.log('SummaryReaderBase::load. Trimming values..')
     this.trimValues(isTrimLevenshtein);
 end
     
@@ -189,6 +193,8 @@ end
 %% createMaps
 
 function createMaps(this)
+    try
+
     for result_i=1:length(this.m_allResults)
         map = containers.Map();
         result = this.m_allResults{result_i};
@@ -199,6 +205,14 @@ function createMaps(this)
             map(fieldName) = fieldValue;
         end
         this.m_resultMaps{result_i} = map;
+    end
+    
+    catch error
+        Logger.log(['SummaryReaderBase::createMaps. Error in result_i = ' num2str(result_i)...
+                    '. field_i = ' num2str(field_i) ...
+                    '. error = '   num2str(error.message) ...
+                    ])
+        rethrow(error);
     end
 end
 
@@ -215,12 +229,18 @@ function trimValues(this, isTrimLevenshtein)
     for result_i=1:length(this.m_resultMaps)
         map = this.m_resultMaps{result_i};
         for key_i = 1:length(trimKeys)
-            key             = trimKeys{key_i};
-            originalValue   = map(key);
-            map(key)        = SummaryReaderBase.trim(originalValue);
-            sttdev          = SummaryReaderBase.parseStddev(originalValue);
-            stddevKey       = SummaryReaderBase.stddevKey(key);
-            map(stddevKey)  = sttdev;
+            try
+                key             = trimKeys{key_i};
+                originalValue   = map(key);
+                map(key)        = SummaryReaderBase.trim(originalValue);
+                sttdev          = SummaryReaderBase.parseStddev(originalValue);
+                stddevKey       = SummaryReaderBase.stddevKey(key);
+                map(stddevKey)  = sttdev;
+            catch error
+                Logger.log(['SummaryReaderBase::trimValues. error trimming key ' key ...
+                            '. result_i = ' num2str(result_i) ...
+                            '. error = '    error.message])
+            end
         end
         this.m_resultMaps{result_i} = map;
     end        
@@ -237,8 +257,11 @@ end
 %% readHeader
 
 function readHeader(this, line)
-    this.m_header = textscan(line, '%s', 'delimiter',',');
-    this.m_header = this.m_header{1};
+    if isempty(this.m_header)
+        Logger.log(['SummaryReaderBase::readHeader. Readnig line ''' line ''''])
+        this.m_header = textscan(line, '%s', 'delimiter',',');
+        this.m_header = this.m_header{1};
+    end
 end
 
 %% readResult
@@ -263,6 +286,9 @@ function R = isHeader(this, line, line_i)
             firstToken = firstToken{1};
             R = strcmp(this.m_header{1}, firstToken);
         end
+    end
+    if R == 1
+        Logger.log(['SummaryReaderBase::isHeader. Found header on line ' num2str(line_i) ])
     end
 end
 
@@ -292,6 +318,9 @@ function saveAndCloseFigure(fig, outputDirectory, fileNamePrefix, fileNameSuffix
     fileFullPath = [ outputDirectory fileName '.pdf'];
     Logger.log(['SummaryReaderBase::saveAndCloseFigure. '...
                 'Saving figure to ''' fileFullPath '''']);
+    if ~exist(outputDirectory, 'dir')
+       mkdir(outputDirectory);
+    end
     saveas(fig, fileFullPath ); 
     % saving directly to jpeg or tiff may look ugly (square points are missing)
     fileFullPath = [ outputDirectory fileName '.jpg'];

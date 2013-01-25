@@ -4,13 +4,18 @@ methods (Static)
 
 %% office
 % fileName = 'C:/technion/theses/Tex/SSL/Thesis/Results/thesis_results.txt';
+%% home
+% fileName = 'E:/technion/theses/Tex/SSL/Thesis/Results/thesis_results.txt';
 
 %% main
 
 function main()
     clear classes;clear all;
-    fileName = 'C:/technion/theses/Tex/SSL/Thesis/Results/thesis_results.txt';
-    TextMultiDatasetGraphs.run(fileName);
+    fileName = 'E:/technion/theses/Tex/SSL/Thesis/Results/thesis_results.txt';
+    % this causes matlab to crash, maybe related to 
+    % creating a this of some class within a static function fro that class
+    % (?)
+%     TextMultiDatasetGraphs.run(fileName);
 end
 
 %% run
@@ -23,7 +28,7 @@ end
 %% outputDirectory
 
 function R = outputDirectory()
-    R = 'C:/technion/theses/Tex/SSL/Thesis/figures/text_multi_datasets_bars/';
+    R = 'E:/technion/theses/Tex/SSL/Thesis/figures/text_multi_datasets_bars/';
 end
 
 end % static methods
@@ -47,7 +52,6 @@ properties (Constant)
     MACRO_ACC = ParamsManager.OPTIMIZE_BY_MACRO_ACCURACY;
 %     ParamsManager.OPTIMIZE_BY_LEVENSHTEIN = 7;
 
-% order of algorithms in bars
     MAD = 1;
     AM = 2; 
     QC = 3;
@@ -59,8 +63,8 @@ methods (Access = private)
 %% create
 
 function create(this)
-%     results = this.gatherResults();
-%     this.graphs_byDataset(results);
+    results = this.gatherResults();
+    this.graphs_byDataset(results);
 %     this.graphs_byMetric(results);
     results = this.gatherResults_tacoVariants();
     this.graphs_byDataset_tacoVariants(results);
@@ -163,7 +167,7 @@ function results = gatherResults_tacoVariants(this)
         graph.value       = nlpGraphNames(graph_i);
         num_labeled.value = numLabeledPerGraph(graph_i);
 
-        Logger.log(['TextMultiDatasetGraphs::gatherResults. Looking for result on ''' graph.value{1} ''''...
+        Logger.log(['TextMultiDatasetGraphs::gatherResults_tacoVariants. Looking for result on ''' graph.value{1} ''''...
                     ', num_labeled = ' num2str(num_labeled.value{1})]);
 
         optimize_by.key = 'optimize_by';
@@ -244,8 +248,9 @@ function graphs_byDataset(this, results)
     nlpGraphIDs          = this.nlpGraphIDs();
     nlpGraphNamerForUser = this.graphNamesForUser();
     graphsYLimits        = this.graphsYLimits();
-    algorithmColors      = this.algorithmColors();
-    algorithmsOrder      = this.algorithmsOrder();
+    algorithmColors      = AlgorithmProperties.algorithmColors();
+    algorithmsOrderInBars= this.algorithmsOrderInBars();
+    algorithmNames       = AlgorithmProperties.algorithmNames();
     
     metric_i = 1;
     for metric_ID = metricsRange
@@ -254,12 +259,11 @@ function graphs_byDataset(this, results)
     end
     
     bar_i = 1;
-    for algorithm_id = algorithmsOrder
-        barColors{bar_i} = algorithmColors{algorithm_id}; %#ok<AGROW>
+    for algorithm_id = algorithmsOrderInBars
+        legendTacoAndBaselines{bar_i} = algorithmNames{algorithm_id}; %#ok<AGROW>
+        barColors{bar_i}              = algorithmColors{algorithm_id}; %#ok<AGROW>
         bar_i = bar_i  + 1;
     end
-    
-    legendTacoAndBaselines = { 'MAD','MP','QC','TACO' };
     
     for graph_i=1:numGraphs
         graph_ID     = nlpGraphIDs(graph_i);
@@ -473,9 +477,9 @@ function R = TACO_variants_order()
           ];
 end
 
-%% algorithmsOrder
+%% algorithmsOrderInBars
 
-function R = algorithmsOrder()
+function R = algorithmsOrderInBars()
     R = [TextMultiDatasetGraphs.MAD TextMultiDatasetGraphs.AM ...
          TextMultiDatasetGraphs.QC TextMultiDatasetGraphs.CSSL];
 end
@@ -493,20 +497,11 @@ end
 %% TACO_variants_colors
 
 function R = TACO_variants_colors()
-    R{CSSLBase.OBJECTIVE_HARMONIC_MEAN} = 'Red';
+    R{CSSLBase.OBJECTIVE_HARMONIC_MEAN}              = 'Red';
     ...CSSLBase.OBJECTIVE_MULTIPLICATIVE             ...
     R{CSSLBase.OBJECTIVE_HARMONIC_MEAN_SINGLE}       = 'Black';
     R{CSSLBase.OBJECTIVE_WEIGHTS_UNCERTAINTY}        = 'Green';
     R{CSSLBase.OBJECTIVE_WEIGHTS_UNCERTAINTY_SINGLE} = 'Blue';
-end
-
-%% algorithmColors
-
-function R = algorithmColors()
-    R{TextMultiDatasetGraphs.MAD} = 'Blue';
-    R{TextMultiDatasetGraphs.AM}   = [0 0.543 0];
-    R{TextMultiDatasetGraphs.QC}   = 'Cyan';
-    R{TextMultiDatasetGraphs.CSSL} = 'Red';
 end
 
 end %static methods

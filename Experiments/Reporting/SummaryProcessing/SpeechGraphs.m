@@ -1,29 +1,73 @@
 classdef SpeechGraphs < SummaryReaderBase
 
-%% createGraphs_eilat_2012
+%% office
+% fileName = 'C:/technion/theses/Tex/SSL/Thesis/Results/thesis_results.txt';
+%% home
+% fileName = 'E:/technion/theses/Tex/SSL/Thesis/Results/thesis_results.txt';
+
+methods (Static)
+    
+%% outputDirectory
+
+function R = outputDirectory()
+    R = 'E:/technion/theses/Tex/SSL/Thesis/figures/speech_graphs/';
+end
+
+%% run
+
+function run(fileName)
+    this = SpeechGraphs();
+    this.convert(fileName);
+end
+
+end % static methods
+
+methods (Access = public)
+    
+%% doConvert
+
+function doConvert(this)
+    this.create();
+end
+
+end % overrides
 
 methods (Access = private)
+    
+%% create
 
-%% plotDifferencesLocalVsGlobal_eilat_2012
+function create(this)
+    this.createGraphs();
+end
 
-function plotDifferencesLocalVsGlobal_eilat_2012(this, barSource)
-    [MAD AM CSSL] = SpeechGraphs.graphIDs();
+%% plotDifferencesLocalVsGlobal
+
+function plotDifferencesLocalVsGlobal(this, barSource, fileNameSuffix)
+    algorithmsOrderInSpeechBars = this.algorithmsOrderInSpeechBars();
 
     fig = figure;
 
     LOCAL = 1; GLOBAL = 2;
     bar_position_i = 1;
-    for algorithm_i = [CSSL AM MAD ]
+    for algorithm_ID = algorithmsOrderInSpeechBars
         performanceGain(:,bar_position_i) = ...
-            barSource(LOCAL,:,algorithm_i) - barSource(GLOBAL,:,algorithm_i); %#ok<AGROW>
+            barSource(LOCAL,:,algorithm_ID) - barSource(GLOBAL,:,algorithm_ID); %#ok<AGROW>
         bar_position_i = bar_position_i +1;
     end
 
     h = bar(performanceGain);
 
-    set(h(1),'facecolor','r'); 
-    set(h(2),'facecolor','g');
-    set(h(3),'facecolor','b'); 
+    algorithmColors = AlgorithmProperties.algorithmColors();
+    algorithmNames  = AlgorithmProperties.algorithmNames();
+%     dbstop in SpeechGraphs.m at 63;
+    bar_i = 1;
+    for algorithm_ID = algorithmsOrderInSpeechBars
+        singleColor = algorithmColors{algorithm_ID};
+        set(h(bar_i),'facecolor',singleColor); 
+        legendForBars{bar_i} = algorithmNames{algorithm_ID}; %#ok<AGROW>
+        bar_i = bar_i + 1;
+    end
+    
     set(gca,'XGrid','off','YGrid','on');
 
     fontSize = 22;
@@ -41,22 +85,16 @@ function plotDifferencesLocalVsGlobal_eilat_2012(this, barSource)
     ylabel('Local scaling performance gain');
     xlabel('Precentage of training set used as labeled data');
 
-    legend({'TACO', 'MP', 'MAD'}, 'Location', 'NorthEast');
+    legend(legendForBars, 'Location', 'NorthEast');
 
-    directory = 'E:/technion/theses/Tex/SSL/2012_11_IEEE_eilat_TACO_speech/figures/';
-    fileName = 'local_scaling_performance_gain' ;
-    fileFullPath = [ directory fileName '.pdf'];
-    saveas(fig, fileFullPath ); 
-    Logger.log(['ExcelToLatexConverter::plotDifferencesLocalVsGlobal_eilat_2012. '...
-                'Saving figure to ''' fileFullPath '''']);
-    close(fig);
-
+    fileNamePrefix = 'timit_performance_gain_' ;
+    this.saveAndCloseFigure(fig,            SpeechGraphs.outputDirectory(), ...
+                            fileNamePrefix, fileNameSuffix);
 end
 
-
-%% createGraphs_eilat_2012
+%% createGraphs
     
-function createGraphs_eilat_2012(this)
+function createGraphs(this)
 
     balanced.key = 'balanced';
     balanced.value = {'0'};
@@ -69,8 +107,12 @@ function createGraphs_eilat_2012(this)
     num_iterations.key = 'max iterations';
     num_iterations.value = {'20'};
     num_iterations.shouldMatch = 1;
+    
+    taco_objective.key = 'TACO objective';
+    taco_objective.value = {num2str(CSSLBase.OBJECTIVE_HARMONIC_MEAN)};
+    taco_objective.shouldMatch = 1;
 
-    searchProperties = [balanced labeled_init num_iterations];
+    searchProperties = [balanced labeled_init num_iterations taco_objective];
 
     numLabeledRange = {'11147', '55456', '111133', '221254', '331793','553041'};
 
@@ -81,17 +123,17 @@ function createGraphs_eilat_2012(this)
     optimizeByKey       = 'accuracy';
     presentedKey        = 'avg accuracy';
     yLabel              = 'Frame accuracy';
-    fileNameSuffix      = ['accuracy_context' num2str(contextSize)];
+    fileNameSuffix      = ['accuracy_test_context' num2str(contextSize)];
     yLimits             = [35 65];
     multiplySourceData = 100;
-    this.getDataAndPlot_eilat_2012...
+    this.gatherDataAndPlot...
             (   searchProperties, numLabeledRange,...
                 optimizeByKey, presentedKey, contextSize, ...
                 yLabel, fileNameSuffix, yLimits, ...
                 multiplySourceData ...
             );
-
-    % macro averaged accuracy
+        
+%     % macro averaged accuracy
 
     optimizeByKey       = 'macroACC';
     presentedKey        = 'avg macro accuracy';
@@ -99,7 +141,7 @@ function createGraphs_eilat_2012(this)
     fileNameSuffix      = ['M_ACC_context' num2str(contextSize)];
     yLimits             = [30 55];
     multiplySourceData  = 100;
-    this.getDataAndPlot_eilat_2012...
+    this.gatherDataAndPlot...
             (   searchProperties, numLabeledRange,...
                 optimizeByKey, presentedKey, contextSize, ...
                 yLabel, fileNameSuffix, yLimits, ...
@@ -114,13 +156,13 @@ function createGraphs_eilat_2012(this)
     fileNameSuffix      = ['levenshtein_test_context' num2str(contextSize)];
     yLimits             = [35 65];
     multiplySourceData  = 1;
-    this.getDataAndPlot_eilat_2012...
+    this.gatherDataAndPlot...
             (   searchProperties, numLabeledRange,...
                 optimizeByKey, presentedKey, contextSize, ...
                 yLabel, fileNameSuffix, yLimits, ...
                 multiplySourceData ...
             );
-
+        
     % levenshtein (development)
 
     optimizeByKey       = 'levenshtein';
@@ -129,7 +171,7 @@ function createGraphs_eilat_2012(this)
     fileNameSuffix      = ['levenshtein_development_context' num2str(contextSize)];
     yLimits             = [35 65];
     multiplySourceData  = 1;
-    this.getDataAndPlot_eilat_2012...
+    this.gatherDataAndPlot...
             (   searchProperties, numLabeledRange,...
                 optimizeByKey, presentedKey, contextSize, ...
                 yLabel, fileNameSuffix, yLimits, ...
@@ -144,7 +186,7 @@ function createGraphs_eilat_2012(this)
     fileNameSuffix      = ['opt_ACC_report_M_ACC_context' num2str(contextSize)];
     yLimits             = [24 50];
     multiplySourceData  = 100;
-    this.getDataAndPlot_eilat_2012...
+    this.gatherDataAndPlot...
             (   searchProperties, numLabeledRange,...
                 optimizeByKey, presentedKey, contextSize, ...
                 yLabel, fileNameSuffix, yLimits, ...
@@ -152,26 +194,28 @@ function createGraphs_eilat_2012(this)
             );
 end
 
-%% getDataAndPlot_eilat_2012
+%% gatherDataAndPlot
 
-function getDataAndPlot_eilat_2012...
+function gatherDataAndPlot...
             (   this, searchProperties, numLabeledRange,...
                 optimizeByKey, presentedKey, contextSize, ...
                 yLabel, fileNameSuffix, yLimits, ...
                 multiplySourceData ...
             )
-    barSource = getData_eilat_2012(this, searchProperties, ...
+    barSource = gatherData(this, searchProperties, ...
                                    numLabeledRange, optimizeByKey, presentedKey, contextSize);
 
     barSource = barSource * multiplySourceData;
-    this.plotSingleGraph_eilat_2012(barSource, numLabeledRange, ...
+    this.plotGraph(barSource, numLabeledRange, ...
                                     yLabel,    yLimits, fileNameSuffix, contextSize);
+                                
+    this.plotDifferencesLocalVsGlobal(barSource, fileNameSuffix);
 end
 
-%% getData_eilat_2012
+%% gatherData
 %  get the results data 
 
-function barSource = getData_eilat_2012...
+function barSource = gatherData...
         (this, searchProperties, numLabeledRange, ...
          optimizeByKey, presentedKey, contextSize)
     graph.key = 'graph';
@@ -179,7 +223,6 @@ function barSource = getData_eilat_2012...
     graph.shouldMatch = 1;
     numGraphs = length(speechGraphNames);
 
-    [MAD AM CSSL] = SpeechGraphs.graphIDs();
     num_labeled.key = 'num labeled';
     num_labeled.shouldMatch = 1;
 
@@ -189,44 +232,46 @@ function barSource = getData_eilat_2012...
 
     searchProperties = [searchProperties optimize_by];
 
-    numAlgorithms = 3;  
+    numAlgorithms = 4;  
     barSource = zeros(numGraphs, length(numLabeledRange), numAlgorithms);
 
     for graph_i = 1:numGraphs
         graph.value = speechGraphNames(graph_i);
+        Logger.log(['SpeechGraphs::gatherData. '...
+                'Searching results for graph ''' graph.value{1} '''']);
         for numLabeled_i=1:length(numLabeledRange)
             num_labeled.value = numLabeledRange(numLabeled_i);
-            Logger.log(['ExcelToLatexConverter::getData_eilat_2012. '...
+            Logger.log(['SpeechGraphs::gatherData. '...
                 'Searching for results for ' num2str(num_labeled.value{1}) ' labeled.']);
             algorithms = this.findAlgorithms([searchProperties num_labeled graph]);
-            barSource(graph_i, numLabeled_i , MAD) = str2num(algorithms.mad( presentedKey ));
-            barSource(graph_i, numLabeled_i , AM)  = str2num(algorithms.am( presentedKey )) ;
-            barSource(graph_i, numLabeled_i , CSSL)= str2num(algorithms.diag( presentedKey )) ;
+            barSource(graph_i, numLabeled_i , AlgorithmProperties.MAD) = str2num(algorithms.mad( presentedKey ));
+            barSource(graph_i, numLabeled_i , AlgorithmProperties.AM)  = str2num(algorithms.am( presentedKey )) ;
+            barSource(graph_i, numLabeled_i , AlgorithmProperties.CSSL)= str2num(algorithms.diag( presentedKey )) ;
+            barSource(graph_i, numLabeled_i , AlgorithmProperties.QC)  = str2num(algorithms.qc( presentedKey )) ;
         end
     end
 end        
 
-%% plotSingleGraph_eilat_2012
+%% plotGraph
 
-function plotSingleGraph_eilat_2012(this, barSource, numLabeledRange, ...
-                                    yLabel, yLimits, fileNameSuffix, contextSize)
-    [MAD AM CSSL] = SpeechGraphs.graphIDs();
-
+function plotGraph(this, barSource, numLabeledRange, ...
+                         yLabel, yLimits, fileNameSuffix, contextSize)
     % draw
-
-%         graphStyleRange = {'-',':'};
     speechGraphNamesForUser = {'local', 'global'};
     LOCAL = 1; GLOBAL = 2;
-    algorithmLineStyle{MAD,LOCAL}  = 'bs';
-    algorithmLineStyle{MAD,GLOBAL} = 'bs';
-    algorithmLineStyle{AM,LOCAL}   = 'g^';
-    algorithmLineStyle{AM,GLOBAL}  = 'g^';
-    algorithmLineStyle{CSSL,LOCAL} = 'ro';
-    algorithmLineStyle{CSSL,GLOBAL}= 'ro';
-    allMarkerEdgeColors{MAD} = 'b';
-    allMarkerEdgeColors{AM} = 'g';
-    allMarkerEdgeColors{CSSL} = 'r';
-    algorithmNamesForUser = {'MAD', 'MP', 'TACO'};
+    algorithmLineStyle{AlgorithmProperties.MAD,LOCAL}  = 'bs';
+    algorithmLineStyle{AlgorithmProperties.MAD,GLOBAL} = 'bs';
+    algorithmLineStyle{AlgorithmProperties.AM,LOCAL}   = 'g^';
+    algorithmLineStyle{AlgorithmProperties.AM,GLOBAL}  = 'g^';
+    algorithmLineStyle{AlgorithmProperties.CSSL,LOCAL} = 'ro';
+    algorithmLineStyle{AlgorithmProperties.CSSL,GLOBAL}= 'ro';
+    algorithmLineStyle{AlgorithmProperties.QC,GLOBAL}= 'cv';
+    algorithmLineStyle{AlgorithmProperties.QC,LOCAL} = 'cv';
+    allMarkerEdgeColors{AlgorithmProperties.MAD}  = 'b';
+    allMarkerEdgeColors{AlgorithmProperties.AM}   = 'g';
+    allMarkerEdgeColors{AlgorithmProperties.CSSL} = 'r';
+    allMarkerEdgeColors{AlgorithmProperties.QC} = 'c';
+    algorithmNamesForUser = AlgorithmProperties.algorithmNames();
 
     lineWidth = 4.5;
     markerSize = 13;
@@ -237,44 +282,44 @@ function plotSingleGraph_eilat_2012(this, barSource, numLabeledRange, ...
 
 %         this.removeExtraWhiteSpaceMargin();
 
-    speechGraphNames = SpecchGraphs.speechGraphNames(contextSize);
+    speechGraphNames = SpeechGraphs.speechGraphNames(contextSize);
     numGraphs = length(speechGraphNames);
 
-    outputDirectory = 'E:/technion/theses/Tex/SSL/2012_11_IEEE_eilat_TACO_speech/figures/';
-    fileNamePrefix  = 'timit_compare_algorithms_';
+    fileNamePrefix  = 'timit_';
 %         dbstop in ExcelToLatexConverter.m at 550;
 
+    algorithmsOrderInSpeechGraphs = this.algorithmsOrderInSpeechGraphs();
+    
     for graph_i = 1:numGraphs
-        fig = this.createFigure_algorithmCompare_eilat_2012(yLimits, yLabel, numLabeledRangeAsNumbers);
+        fig = this.create_algorithmCompareFigure(yLimits, yLabel, numLabeledRangeAsNumbers);
         allLegendItems = [];
         graphNameForUser = speechGraphNamesForUser{graph_i};
-        Logger.log(['ExcelToLatexConverter::createGraphs_eilat_2012. '...
+        Logger.log(['SpeechGraphs::createGraphs. '...
                     'graph_i = ' num2str(graph_i) '. '...
                     'speechGraphNames(graph_i) = ' speechGraphNames{graph_i}]);
-%             graphStyle = graphStyleRange{graph_i};
         graphStyle = '-';
-        for algorithm_i=[CSSL AM MAD]
-            markerEdgeColor = allMarkerEdgeColors{algorithm_i};
-            plot(numLabeledRangeAsNumbers, barSource(graph_i,:,algorithm_i), ...
-                [graphStyle algorithmLineStyle{algorithm_i,graph_i}]...
+        for algorithm_ID=algorithmsOrderInSpeechGraphs
+            markerEdgeColor = allMarkerEdgeColors{algorithm_ID};
+            plot(numLabeledRangeAsNumbers, barSource(graph_i,:,algorithm_ID), ...
+                [graphStyle algorithmLineStyle{algorithm_ID,graph_i}]...
                 ,'LineWidth',lineWidth...
                 ,'MarkerEdgeColor',markerEdgeColor...
                 ,'MarkerFaceColor','w'...
                 ,'MarkerSize',markerSize);                
-            algorithmName = algorithmNamesForUser{algorithm_i};
-%                 legendItem = [algorithmName ' / ' graphNameForUser ' scaling'];
+            algorithmName = algorithmNamesForUser{algorithm_ID};
             legendItem = [algorithmName];
             allLegendItems = [allLegendItems {legendItem}]; %#ok<AGROW>
         end
         legend(allLegendItems, 'Location', 'SouthEast');
         fileNameSuffixWithGraphName = [fileNameSuffix '_' graphNameForUser];
-        this.saveAndCloseFigure(fig, outputDirectory, fileNamePrefix, fileNameSuffixWithGraphName);
+        this.saveAndCloseFigure(fig, SpeechGraphs.outputDirectory(), ...
+                                fileNamePrefix, fileNameSuffixWithGraphName);
     end
 end
 
-%% createFigure_algorithmCompare_eilat_2012
+%% create_algorithmCompareFigure
 
-function fig = createFigure_algorithmCompare_eilat_2012(~, yLimits, yLabel, numLabeledRangeAsNumbers)
+function fig = create_algorithmCompareFigure(~, yLimits, yLabel, numLabeledRangeAsNumbers)
     fig = figure;
     hold on;
 
@@ -309,7 +354,7 @@ methods (Static)
     
 %% speechGraphNames
 
-function R = speechGraphNames(~, contextSize)
+function R = speechGraphNames(contextSize)
     if contextSize > 0
         R = {  ['trainAndTest_cms_white.context' num2str(contextSize) '.k_10.lihi'] ...
                ['trainAndTest_cms_white.context' num2str(contextSize) '.k_10.alex'], ...
@@ -321,13 +366,20 @@ function R = speechGraphNames(~, contextSize)
     end
 end
 
+%% algorithmsOrderInSpeechGraphs
 
-%% graphIDs
-    
-function [MAD AM CSSL] = graphIDs()
-    MAD = 1;        AM = 2; CSSL = 3;
+function R = algorithmsOrderInSpeechGraphs()
+    R = [AlgorithmProperties.CSSL AlgorithmProperties.AM ...
+         AlgorithmProperties.QC   AlgorithmProperties.MAD  ];
 end
-    
+
+%% algorithmsOrderInSpeechBars
+
+function R = algorithmsOrderInSpeechBars()
+    R = [AlgorithmProperties.CSSL AlgorithmProperties.AM ...
+         AlgorithmProperties.MAD  AlgorithmProperties.QC];
+end
+
 end % static methods
 
 end % classdef
