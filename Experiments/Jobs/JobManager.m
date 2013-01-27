@@ -7,10 +7,12 @@ properties( Constant)
     QUEUE_NAME_ALL = 'all_q';
     QUEUE_NAME_MEM = 'mem_q';
     QUEUE_NAME_NEW = 'new_q'; % for new server HERMES
+    QUEUE_NAME_REG = 'reg_q';
     QUEUE_ID_ALL = 1;
     QUEUE_ID_MEM = 2;
     QUEUE_ID_NEW = 3;
-    TOTAL_NUM_QUEUES = 3;
+    QUEUE_ID_REG = 4;
+    TOTAL_NUM_QUEUES = 4;
 end
 
 methods (Static)
@@ -220,6 +222,7 @@ methods (Static)
         maxJobs(JobManager.QUEUE_ID_ALL) = config.maxJobs.all_queue;
         maxJobs(JobManager.QUEUE_ID_MEM) = config.maxJobs.mem_queue;
         maxJobs(JobManager.QUEUE_ID_NEW) = config.maxJobs.new_queue;
+        maxJobs(JobManager.QUEUE_ID_REG) = config.maxJobs.reg_queue;
         config.maxJobs = maxJobs.';
     end
     
@@ -233,6 +236,8 @@ methods (Static)
                 name = JobManager.QUEUE_NAME_MEM; 
             case JobManager.QUEUE_ID_NEW
                 name = JobManager.QUEUE_NAME_NEW;
+            case JobManager.QUEUE_ID_REG
+                name = JobManager.QUEUE_NAME_REG;
             otherwise
                 Logger.log(['queueIDtoName::Error. unknown queue ID ' ...
                         num2str( id ) ]);
