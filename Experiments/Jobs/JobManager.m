@@ -64,7 +64,11 @@ methods (Static)
         asyncCodeFolder = '/Experiments/async';
         startDirectory  = [codeRoot asyncCodeFolder];
         
-        memInGB = 4;
+        configManager = ConfigManager.get();
+        config        = JobManager.loadConfig(configManager);
+        
+        memInGB      = config.memInGBperJob;
+        Logger.log(['JobManager:prepareScriptFile. memInGB = ' num2str(memInGB)]);
         pbsLine      = ['#PBS -l select=1:ncpus=1:mem=' num2str(memInGB) 'gb'];
         pbsLine2     = '#PBS -M  matanorb@technion.ac.il';
         schellScript = fopen(shellScriptPath, 'w');
