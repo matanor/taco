@@ -131,8 +131,10 @@ function R = findEntries( this, searchProperties)
     searchValues   = {searchProperties.value};
     shouldMatch    = [searchProperties.shouldMatch];
 
+    resultMaps = this.m_resultMaps; % faster to work on local than member
+    
     for result_i=1:length(this.m_resultMaps)
-        map = this.m_resultMaps{result_i};
+        map = resultMaps{result_i};
         isMatch = 1;
         for key_i = 1:length(searchKeys)
             key                  = searchKeys{key_i};
@@ -195,7 +197,10 @@ end
 function createMaps(this)
     try
 
-    for result_i=1:length(this.m_allResults)
+    numResults = length(this.m_allResults);
+    Logger.log(['SummaryReaderBase::createMaps. numResults = ' num2str(numResults)]);
+    R = cell(numResults, 1);
+    for result_i=1:numResults
         map = containers.Map();
         result = this.m_allResults{result_i};
         numFields = length(result);
@@ -204,8 +209,10 @@ function createMaps(this)
             fieldValue = result{field_i};
             map(fieldName) = fieldValue;
         end
-        this.m_resultMaps{result_i} = map;
+        R{result_i} = map; % working directly on the  this.m_resultMaps member is slow
     end
+    
+    this.m_resultMaps = R;
     
     catch error
         Logger.log(['SummaryReaderBase::createMaps. Error in result_i = ' num2str(result_i)...
@@ -226,7 +233,9 @@ function trimValues(this, isTrimLevenshtein)
        trimKeys{end+1} = 'avg levenshtein';
     end
 
-    for result_i=1:length(this.m_resultMaps)
+    numResults = length(this.m_resultMaps);
+    R = cell(numResults, 1);
+    for result_i=1:numResults
         map = this.m_resultMaps{result_i};
         for key_i = 1:length(trimKeys)
             try
@@ -242,8 +251,9 @@ function trimValues(this, isTrimLevenshtein)
                             '. error = '    error.message])
             end
         end
-        this.m_resultMaps{result_i} = map;
+        R{result_i} = map;
     end        
+    this.m_resultMaps = R;
 end
 
 %% trimHeaders
