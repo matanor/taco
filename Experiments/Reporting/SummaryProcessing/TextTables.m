@@ -2,6 +2,11 @@ classdef TextTables < TextReporterBase
  
 methods (Static)
 
+%% office
+% fileName = 'C:/technion/theses/Tex/SSL/Thesis/Results/thesis_results.txt';
+%% home
+% fileName = 'E:/technion/theses/Tex/SSL/Thesis/Results/thesis_results.txt';
+
 %% run
 
 function run(fileName)
@@ -22,13 +27,91 @@ methods (Access = public)
 %% doConvert
 
 function doConvert(this)
-    this.createTables_ecml2012();
+%     this.createTables_ecml2012();
+
+%     results = this.gatherResults_tacoVariants();
+%     this.outputTable(results);
+%     this.outputAverageResultsTable(results);
+
+    isTacoVariants = 0;
+    results = this.gatherResults_tacoBaseLines();
+    this.outputAverageResultsTable(results, isTacoVariants);
 end
 
 end % overrides
 
 methods (Access  = private)
-   
+
+%% outputAverageResultsTable
+
+function outputAverageResultsTable(this, results, isTacoVariants)
+    nlpGraphNames       = this.nlpGraphNames();
+    TACO_variants_order = this.TACO_variants_order();
+    metricKeys          = MetricProperties.metricKeys();
+    metricShortNames    = MetricProperties.metricShortNames();
+    metricOrderInTables = this.metricOrderInTables();
+    
+    allAverageResults = [];
+    for metric_ID = metricOrderInTables
+      numericResults = [];
+      for graph_i =1:length(nlpGraphNames)
+          presentedKey = metricKeys{metric_ID};
+          if isTacoVariants
+            singleResults = results(graph_i,metric_ID,:); 
+            stringResults = TextTables.tacoVariantsResults_toStrings...
+                   (singleResults, TACO_variants_order, presentedKey);
+          else
+            singleResults = results(graph_i,metric_ID); 
+            singleResults = singleResults{1};
+            stringResults = this.baselines_toStrings(presentedKey, singleResults);
+          end
+          numericResults(graph_i,:) = cellfun(@str2num,stringResults); %#ok<AGROW>
+      end
+      averageMetricResults = mean(numericResults,1);
+      rowKey = metricShortNames{metric_ID};
+      TextTables.averageTable_printLine(averageMetricResults, rowKey);
+      allAverageResults = [allAverageResults; averageMetricResults]; %#ok<AGROW>       
+    end
+    totalAverage = mean(allAverageResults, 1);
+    TextTables.averageTable_printLine(totalAverage, 'Average');
+end
+
+%% outputTable
+
+function outputTable(this, results)
+    nlpGraphNames = this.nlpGraphNames();
+    
+    leftMetric_ID  = MetricProperties.PRBEP;
+    rightMetric_ID = MetricProperties.MACRO_ACC;
+    isTacoVariants = 1;
+    outputFile = 1;
+    
+    allResults = [];
+    for graph_i =1:length(nlpGraphNames)
+        dataSetName = nlpGraphNames{graph_i};
+%         Logger.log(['TextTables::outputTable. graph name = ''' dataSetName '''']);
+        leftColumnResult   = results(graph_i,leftMetric_ID,:);
+        rightColumnResults = results(graph_i,rightMetric_ID,:);
+        dataSetResults = this.printOneDataset(outputFile, dataSetName, ...
+                                leftColumnResult, rightColumnResults, isTacoVariants);
+        allResults = [allResults; dataSetResults]; %#ok<AGROW>
+    end
+    totalAverage = mean(allResults, 1);
+    total_left   = totalAverage(1:4).';
+    total_right  = totalAverage(5:8).';
+    this.printLine(outputFile, [], [], ...
+                    cellstr(num2str(total_left)) , cellstr(num2str(total_right)), '1');
+    
+    for metric_i = 1:5
+        dataForMetric = allResults(metric_i:5:end,:);
+        metricAverage = mean(dataForMetric,1);
+        metricAverage_left   = metricAverage(1:4).';
+        metricAverage_right  = metricAverage(5:8).';
+        this.printLine(outputFile, [], [], ...
+                    cellstr(num2str(metricAverage_left)) , cellstr(num2str(metricAverage_right)), '1');
+    end
+end
+
 %% createTables_ecml2012
 
 function createTables_ecml2012(this)
@@ -119,7 +202,7 @@ function createTables_ecml2012(this)
         for graph_i = 1:length(nlpGraphNames)
             graph.value = nlpGraphNames(graph_i);
             num_labeled.value = numLabeledPerGraph(graph_i);
-            this.printOneDataset(outputFileID, graph.value{1}, ...
+            this.gatherAndPrintOneDataset(outputFileID, graph.value{1}, ...
                 [num_labeled graph searchProperties{table_i}], ...
                 optimizeBy.leftColumn{table_i}, ...
                 optimizeBy.rightColumn{table_i});
@@ -129,66 +212,123 @@ function createTables_ecml2012(this)
     fclose(outputFileID);
 end
 
-%% printOneDataset
+%% gatherAndPrintOneDataset
 
-function printOneDataset(this, outputFile, dataSetName, ...
-                         searchProperties, optimizeByLeftColumn, optimizeByRightColumn )
+function gatherAndPrintOneDataset(this, outputFile, dataSetName, ...
+                                  searchProperties, optimizeByLeftColumn, optimizeByRightColumn )
     optimize_by.key = 'optimize_by';
     optimize_by.shouldMatch = 1;
 
-    Logger.log( ['printOneDataset. data set name = ' dataSetName] );
+    Logger.log( ['gatherAndPrintOneDataset. data set name = ' dataSetName] );
 
     optimize_by.value = { optimizeByLeftColumn }; %'PRBEP' };
     leftColumnResult = this.findAlgorithms([searchProperties optimize_by]);
 
     optimize_by.value = { optimizeByRightColumn }; %'macroACC' };
     rightColumnResults = this.findAlgorithms([searchProperties optimize_by]);
+    
+    isTacoVariants = 0;
+    this.printOneDataset(outputFile, dataSetName, ...
+                         leftColumnResult, rightColumnResults, isTacoVariants);
+end
 
+%% printOneDataset
+
+function R = printOneDataset(this, outputFile, dataSetName, ...
+                         leftColumnResult, rightColumnResults, isTacoVariants)
     trimPosition = find(~isletter(dataSetName));
     if (~isempty(trimPosition))
         dataSetName = dataSetName(1:(trimPosition-1));
     end
-    numLabeled = [leftColumnResult.diag('num labeled') ' labeled' ];
+    if ~isTacoVariants
+        tacoResults = leftColumnResult.diag; 
+    else
+        tacoResults = leftColumnResult{CSSLBase.OBJECTIVE_HARMONIC_MEAN};
+        tacoResults = tacoResults{1};
+    end
+    numLabeled = [tacoResults('num labeled') ' labeled' ];
 
-    lineFormat = ['%s    & %s  & %s & %s & %s & %s & %s & %s & %s & %s \\\\ \\cline{%s-10}\n'];
-
-    key = 'avg PRBEP';
-    metricName = 'PRBEP';
-    columnStartHorzLine = '2';
+%     columnStartHorzLine = '2';
     %fprintf(outputFile, '\\\\ \\hline\n');
     fprintf(outputFile, '\\hline \\hline\n');
-    this.printLine(outputFile, lineFormat, key, [], ...
-                    leftColumnResult, rightColumnResults, metricName, columnStartHorzLine );
 
-    key = 'avg accuracy';    
-    metricName = 'ACC';
-    this.printLine(outputFile, lineFormat, key, ['\' dataSetName],...
-                    leftColumnResult, rightColumnResults, metricName, columnStartHorzLine );
-
-    key = 'avg macro accuracy'; 
-    metricName = 'M-ACC';
-    this.printLine(outputFile, lineFormat, key, numLabeled, ...
-                    leftColumnResult, rightColumnResults, metricName, columnStartHorzLine );
-
-    key = 'avg MRR'; 
-    metricName = 'MRR';
-    this.printLine(outputFile, lineFormat, key, [],...
-                    leftColumnResult, rightColumnResults, metricName, columnStartHorzLine );
-
-    key = 'avg macro MRR'; 
-    metricName = 'M-MRR';
-    columnStartHorzLine = '1';
-    this.printLine(outputFile, lineFormat, key, [],...
-                    leftColumnResult, rightColumnResults, metricName, columnStartHorzLine );
+    metricKeys          = MetricProperties.metricKeys();
+    metricShortNames    = MetricProperties.metricShortNames();
+    allLinePrefix       = {[], ['\' dataSetName], numLabeled, [], []};
+    
+    metricOrderInTables = this.metricOrderInTables();
+    numMetrics = length(metricOrderInTables);
+    metric_i = 1;
+    for metricID = metricOrderInTables
+        key         = metricKeys{metricID};
+        metricName  = metricShortNames{metricID};
+        isLastMertic = (metric_i == numMetrics);
+        linePrefix  = allLinePrefix{metric_i};
+        if isLastMertic
+            columnStartHorzLine = '1';
+        else
+            columnStartHorzLine = '2';
+        end
+        lineContents(metric_i,:) = ...
+                    this.createAndPrintLine(outputFile, key, linePrefix, ...
+                    leftColumnResult, rightColumnResults, metricName, columnStartHorzLine, ...
+                    isTacoVariants); %#ok<AGROW>
+        metric_i = metric_i + 1;
+    end
+    avgDataSetPerformance = mean(lineContents, 1);
+    leftPartAvgerage = avgDataSetPerformance(1:4).';
+    rightPartAverage = avgDataSetPerformance(5:8).';
+    this.printLine(outputFile, [], [], ...
+                    cellstr(num2str(leftPartAvgerage)) , cellstr(num2str(rightPartAverage)), '1');
+	R = lineContents;
 end
 
+%% createAndPrintLine
+
+function R = createAndPrintLine(this, outputFile, ...
+                   key, linePrefix, leftMetricValues, rightMetricValues,...
+                   metricName, columnStartHorzLine, isTacoVariants)
+    if ~isTacoVariants
+        leftMetric_stringResults  = this.baselines_toStrings(key, leftMetricValues);
+        rightMetric_stringResults = this.baselines_toStrings(key, rightMetricValues);
+    else
+        TACO_variants_order = this.TACO_variants_order();
+        leftMetric_stringResults = TextTables.tacoVariantsResults_toStrings...
+            (leftMetricValues, TACO_variants_order, key);
+        rightMetric_stringResults = TextTables.tacoVariantsResults_toStrings...
+            (rightMetricValues, TACO_variants_order, key);
+    end
+    TextTables.printLine(outputFile, linePrefix, metricName,...
+                         leftMetric_stringResults, rightMetric_stringResults, columnStartHorzLine);
+    numericResults = cellfun(@str2num,[leftMetric_stringResults rightMetric_stringResults]);
+	R = numericResults;
+end
+
+end % private methods
+
+methods (Static)
+
+%% averageTable_printLine
+
+function averageTable_printLine(numericResults, lineKey)
+    avgResultsFormat    = '%s  & %s & %s & %s & %s  \\\\ \\hline\n';
+    stringResults   = cellstr(num2str(numericResults.'));
+    resultsForPrint = TextTables.markBoldStrings(stringResults, 100);      
+       fprintf( avgResultsFormat, ...
+                lineKey,resultsForPrint{1}, ...
+                resultsForPrint{2}, ...
+                resultsForPrint{3}, ...
+                resultsForPrint{4}  ...
+              );
+end
+    
 %% printLine
 
-function printLine(this, outputFile, lineFormat, ...
-                   key, linePrefix, leftMetricValues, rightMetricValues,...
-                   metricName, columnStartHorzLine)
-    leftMetric_results  = this.metricToString(key, leftMetricValues);
-    rightMetric_results = this.metricToString(key, rightMetricValues);
+function printLine(outputFile, linePrefix, metricName, ...
+                    leftMetric_stringResults, rightMetric_stringResults, columnStartHorzLine)
+    leftMetric_results  = TextTables.markBoldStrings(leftMetric_stringResults, 100);
+    rightMetric_results = TextTables.markBoldStrings(rightMetric_stringResults, 100);
+    lineFormat = '%s    & %s  & %s & %s & %s & %s & %s & %s & %s & %s \\\\ \\cline{%s-10}\n';
     fprintf(outputFile, lineFormat, ...
                         linePrefix, metricName, ...
                         leftMetric_results{1}, ...
@@ -202,24 +342,40 @@ function printLine(this, outputFile, lineFormat, ...
                         columnStartHorzLine ...
                         );
 end
+    
+%% tacoVariantsResults_toStrings
 
-end % private methods
+function R = tacoVariantsResults_toStrings( resultAllVariants, TACO_variants_order, presentedKey )
+    taco_variant_i = 1;
+    for TACO_variant_ID = TACO_variants_order
+        variantResult = resultAllVariants{TACO_variant_ID};
+        variantResult = variantResult{1};
+        stringValues{taco_variant_i}  = variantResult(presentedKey); %#ok<AGROW>
+        taco_variant_i                = taco_variant_i + 1;
+    end
+    R = stringValues;
+end
 
-methods (Static)
+%% baselines_toStrings
 
-%% metricToString
-%  Mark highest values with bold. multiply by 100.
+function R = baselines_toStrings(key, algorithms)
+    stringValues = {    algorithms.mad(key);
+                        algorithms.am(key);
+                        algorithms.qc(key);
+                        algorithms.diag(key)};
+    R = stringValues;
+end
+
+%% markBoldStrings
+
+%  Mark highest values with bold. multiply by <multiplyFactor>.
 %  e.g. converts stringValues = { '1'; '2'; '2'; }
 %  to     '100.0'
 %         '\textbf{200.0}'
 %         '\textbf{200.0}'
 
-function R = metricToString(key, algorithms)
-    stringValues = {    algorithms.mad(key);
-                        algorithms.am(key);
-                        algorithms.qc(key);
-                        algorithms.diag(key)};
-    numericalValues = 100 * str2num(char(stringValues));
+function R = markBoldStrings(stringValues, multiplyFactor)
+    numericalValues = multiplyFactor * str2num(char(stringValues));
     % transform 73.21 -> 73.2 (zero out all digits beyond 1 decimal
     % point)
     numericalValues = round(numericalValues * 10) / 10; 
@@ -233,7 +389,7 @@ function R = metricToString(key, algorithms)
     end
     R = stringValues;
 end
-    
+
 %% startTable_ecml2012
 
 function startTable_ecml2012( outputFile, optimizeByLeftName, optimizeByRightName)
@@ -255,6 +411,24 @@ function endTable_ecml2012( outputFile )
     fprintf(outputFile, '\\caption{\\multiDataSetsTableCaption}\n');
     fprintf(outputFile, '\\label{tab:table_multiple_datasets}\n' );
     fprintf(outputFile, '\\end{table}\n');
+end
+
+%% TACO_variants_order
+
+function R = TACO_variants_order()
+    R = [CSSLBase.OBJECTIVE_HARMONIC_MEAN_SINGLE ...
+         CSSLBase.OBJECTIVE_HARMONIC_MEAN        ...CSSLBase.OBJECTIVE_MULTIPLICATIVE             ...
+         CSSLBase.OBJECTIVE_WEIGHTS_UNCERTAINTY_SINGLE ...
+         CSSLBase.OBJECTIVE_WEIGHTS_UNCERTAINTY  ...
+          ];
+end
+
+%% metricOrderInTables
+
+function R = metricOrderInTables()
+    R = [MetricProperties.PRBEP     MetricProperties.ACCURACY ...
+         MetricProperties.MACRO_ACC MetricProperties.MRR ...
+         MetricProperties.MACRO_MRR ];
 end
     
 end % static methods

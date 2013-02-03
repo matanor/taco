@@ -300,14 +300,9 @@ end
 
 function printSingleLine(~, lineResults, presentedKey, rowKey)
     TACO_variants_order  = SpeechTIMIT.TACO_variants_order();
-    taco_variant_i = 1;
-    for TACO_variant_ID = TACO_variants_order
-        variantResult = lineResults{TACO_variant_ID};
-        variantResult = variantResult{1};
-        stringValues{taco_variant_i}  = variantResult(presentedKey); %#ok<AGROW>
-        taco_variant_i                = taco_variant_i + 1;
-    end
-    stringValues = TextTables.metricToString_internal(stringValues, 1);
+    stringValues = TextTables.tacoVariantsResults_toStrings...
+                    (lineResults, TACO_variants_order, presentedKey);
+    stringValues = TextTables.markBoldStrings(stringValues, 1);
     lineFormat = '&%s & %s & %s & %s & %s \\\\ \\cline{2-6}\n';
     fprintf( lineFormat, ...., 
         rowKey, ...

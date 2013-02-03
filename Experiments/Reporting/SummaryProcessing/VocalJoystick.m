@@ -183,7 +183,8 @@ methods (Static)
 %% printSingleLine
 
 function printSingleLine(graphResult, presentedKey, rowKey)
-    resultsAsStrings  = TextTables.metricToString(presentedKey, graphResult);
+    resultsAsStrings  = TextTables.baselines_toStrings(presentedKey, graphResult);
+    resultsAsStrings  = TextTables.markBoldStrings(resultsAsStrings, 1);
     lineFormat = '%s & %s & %s & %s & %s \\\\ \\hline\n';
     fprintf( lineFormat, ...., 
         rowKey, ...

@@ -44,14 +44,6 @@ end
 end % overrides
 
 properties (Constant)
-    ACCURACY  = ParamsManager.OPTIMIZE_BY_ACCURACY;
-    PRBEP     = ParamsManager.OPTIMIZE_BY_PRBEP;
-%     ParamsManager.OPTIMIZE_ALL_1 = 3;
-    MRR       = ParamsManager.OPTIMIZE_BY_MRR;
-    MACRO_MRR = ParamsManager.OPTIMIZE_BY_MACRO_MRR;
-    MACRO_ACC = ParamsManager.OPTIMIZE_BY_MACRO_ACCURACY;
-%     ParamsManager.OPTIMIZE_BY_LEVENSHTEIN = 7;
-
     MAD = 1;
     AM = 2; 
     QC = 3;
@@ -63,125 +55,11 @@ methods (Access = private)
 %% create
 
 function create(this)
-    results = this.gatherResults();
+    results = this.gatherResults_tacoBaseLines();
     this.graphs_byDataset(results);
 %     this.graphs_byMetric(results);
     results = this.gatherResults_tacoVariants();
     this.graphs_byDataset_tacoVariants(results);
-end
-
-%% gatherResults
-
-function results = gatherResults(this)
-    balanced.key = 'balanced';
-    balanced.value = {'0'};
-    balanced.shouldMatch = 1;
-
-    num_labeled.key = 'num labeled';
-    numLabeledPerGraph = this.numLabeledPerGraphForTables();
-    num_labeled.shouldMatch = 1;
-
-    num_iterations.key = 'max iterations';
-    num_iterations.value = {'10'};
-    num_iterations.shouldMatch = 1;
-
-    labeled_init.key = 'labelled init';        
-    labeled_init.shouldMatch = 1;
-    labeled_init.value = {'1'};
-    
-    taco_objective.key = 'TACO objective';
-    taco_objective.value = {num2str(CSSLBase.OBJECTIVE_HARMONIC_MEAN)};
-    taco_objective.shouldMatch = 1;
-
-    searchProperties = [taco_objective balanced labeled_init num_iterations];
-
-    graph.key = 'graph';
-    nlpGraphNames = this.nlpGraphNames();
-    graph.shouldMatch = 1;
-    numGraphs = length(nlpGraphNames);
-
-%         for table_i=1:length(searchProperties)
-    for graph_i = 1:numGraphs
-        graph.value = nlpGraphNames(graph_i);
-        num_labeled.value = numLabeledPerGraph(graph_i);
-
-        Logger.log(['TextMultiDatasetGraphs::gatherResults. Looking for result on ''' graph.value{1} ''''...
-                    ', num_labeled = ' num2str(num_labeled.value{1})]);
-
-        optimize_by.key = 'optimize_by';
-        optimize_by.shouldMatch = 1;
-
-        metricOptimizeByName = this.metricOptimizeByName();
-        metricRange          = this.allMetricsRange();
-        
-        for metric_ID = metricRange
-            optimize_by.value = metricOptimizeByName(metric_ID);
-            results{graph_i,metric_ID} = ...
-                this.findAlgorithms([searchProperties num_labeled graph optimize_by]); %#ok<AGROW>    
-        end
-    end
-end
-
-%% gatherResults_tacoVariants
-
-function results = gatherResults_tacoVariants(this)
-    balanced.key = 'balanced';
-    balanced.value = {'0'};
-    balanced.shouldMatch = 1;
-
-    num_labeled.key = 'num labeled';
-    numLabeledPerGraph = this.numLabeledPerGraphForTables();
-    num_labeled.shouldMatch = 1;
-
-    num_iterations.key = 'max iterations';
-    num_iterations.value = {'10'};
-    num_iterations.shouldMatch = 1;
-
-    labeled_init.key = 'labelled init';        
-    labeled_init.shouldMatch = 1;
-    labeled_init.value = {'1'};
-    
-    heuristics.key = 'heuristics';
-    heuristics.value = {'0'};
-    heuristics.shouldMatch = 1;
-
-    algorithm.key = 'Algorithm';
-    algorithm.shouldMatch = 1;
-    algorithm.value = {CSSLMC.name()};
-    
-    searchProperties = [balanced labeled_init num_iterations heuristics algorithm];
-    
-    taco_objective.key = 'TACO objective';
-    taco_objective.shouldMatch = 1;
-
-    graph.key = 'graph';
-    nlpGraphNames = this.nlpGraphNames();
-    graph.shouldMatch = 1;
-    numGraphs = length(nlpGraphNames);
-    
-    TACO_variants_order  = this.TACO_variants_order();
-    metricOptimizeByName = this.metricOptimizeByName();
-    metricRange          = this.allMetricsRange();
-
-    for graph_i = 1:numGraphs
-        graph.value       = nlpGraphNames(graph_i);
-        num_labeled.value = numLabeledPerGraph(graph_i);
-
-        Logger.log(['TextMultiDatasetGraphs::gatherResults_tacoVariants. Looking for result on ''' graph.value{1} ''''...
-                    ', num_labeled = ' num2str(num_labeled.value{1})]);
-
-        optimize_by.key = 'optimize_by';
-        optimize_by.shouldMatch = 1;
-        
-        for metric_ID = metricRange
-            optimize_by.value = metricOptimizeByName(metric_ID);
-            for TACO_variant_ID = TACO_variants_order
-                taco_objective.value = {num2str(TACO_variant_ID)};
-                results{graph_i,metric_ID,TACO_variant_ID} = ...
-                    this.findEntries([searchProperties num_labeled graph optimize_by taco_objective]); %#ok<AGROW>    
-            end
-        end
-    end
 end
 
 %% graphs_byMetric
@@ -193,8 +71,8 @@ function graphs_byMetric(this, results)
     
     ticksForX        = this.graphNamesForUser();
     metricsRange     = [this.PRBEP this.ACCURACY this.MACRO_ACC this.MRR this.MACRO_MRR ];
-    metricKeys       = this.metricKeys();
-    metricShortNames = this.metricShortNames();
+    metricKeys       = MetricProperties.metricKeys();
+    metricShortNames = MetricProperties.metricShortNames();
     metricYLimits    = this.metricYLimits();
     
     for metric_ID = metricsRange
@@ -239,11 +117,13 @@ end
 function graphs_byDataset(this, results)
     
     numGraphs = size(results, 1);
-    Logger.log(['TextMultiDatasetGraphs::plot_byMetric. numGraphs = ' num2str(numGraphs)]);
+    Logger.log(['TextMultiDatasetGraphs::graphs_byDataset. numGraphs = ' num2str(numGraphs)]);
     
-    metricsRange       = [this.PRBEP this.ACCURACY this.MACRO_ACC this.MRR this.MACRO_MRR ];
-    metricKeys         = this.metricKeys();
-    metricShortNames   = this.metricShortNames();
+    metricsRange       = [MetricProperties.PRBEP        MetricProperties.ACCURACY   ...
+                          MetricProperties.MACRO_ACC    MetricProperties.MRR        ...
+                          MetricProperties.MACRO_MRR ];
+    metricKeys         = MetricProperties.metricKeys();
+    metricShortNames   = MetricProperties.metricShortNames();
     
     nlpGraphIDs          = this.nlpGraphIDs();
     nlpGraphNamerForUser = this.graphNamesForUser();
@@ -296,9 +176,9 @@ function graphs_byDataset_tacoVariants(this, results)
     numGraphs = size(results, 1);
     Logger.log(['TextMultiDatasetGraphs::graphs_byDataset_tacoVariants. numGraphs = ' num2str(numGraphs)]);
     
-    metricsRange       = [this.PRBEP this.ACCURACY this.MACRO_ACC this.MRR this.MACRO_MRR ];
-    metricKeys         = this.metricKeys();
-    metricShortNames   = this.metricShortNames();
+    metricsRange       = TextMultiDatasetGraphs.metricsOrderInPlots();
+    metricKeys         = MetricProperties.metricKeys();
+    metricShortNames   = MetricProperties.metricShortNames();
     
     nlpGraphIDs          = this.nlpGraphIDs();
     nlpGraphNamerForUser = this.graphNamesForUser();
@@ -333,7 +213,7 @@ function graphs_byDataset_tacoVariants(this, results)
                 algorithmsResults = graphResults{1,metric_ID,TACO_variant_ID};
                 algorithmsResults = algorithmsResults{1};
                 barSource(metric_i , algorithm_i)  = ...
-                    str2num(algorithmsResults( metricKey )); %#ok<ST2NM>
+                    str2num(algorithmsResults( metricKey )); %#ok<AGROW,ST2NM>
                 algorithm_i = algorithm_i + 1;
             end
             metric_i = metric_i + 1;
@@ -342,7 +222,7 @@ function graphs_byDataset_tacoVariants(this, results)
 
         presentedKeyFileName = nlpGraphNamerForUser{graph_i};
         presentedKeyFileName( presentedKeyFileName == ' ' ) = '_';
-        presentedKeyFileName = [presentedKeyFileName '_TACO'];
+        presentedKeyFileName = [presentedKeyFileName '_TACO']; %#ok<AGROW>
         this.plot_barGraph(barSource, [], presentedKeyFileName, yLimits, ...
                                       ticksForX, legendTacoVariants, colorsVariants);
         clear barSource;
@@ -395,44 +275,14 @@ end % private methods
 
 methods (Static)
 
-%% allMetricsRange
-
-function R = allMetricsRange()
-    R = [TextMultiDatasetGraphs.PRBEP     TextMultiDatasetGraphs.ACCURACY ...
-         TextMultiDatasetGraphs.MACRO_ACC TextMultiDatasetGraphs.MRR ...
-         TextMultiDatasetGraphs.MACRO_MRR ];
+%% metricsOrderInPlots
+    
+function R = metricsOrderInPlots()
+    R = [MetricProperties.PRBEP     MetricProperties.ACCURACY ...
+         MetricProperties.MACRO_ACC MetricProperties.MRR ...
+         MetricProperties.MACRO_MRR ];
 end
     
-%% metricKeys
-
-function R = metricKeys()
-    R{TextMultiDatasetGraphs.PRBEP}     = 'avg PRBEP';
-    R{TextMultiDatasetGraphs.ACCURACY}  = 'avg accuracy';
-    R{TextMultiDatasetGraphs.MACRO_ACC} = 'avg macro accuracy';
-    R{TextMultiDatasetGraphs.MRR}       = 'avg MRR';
-    R{TextMultiDatasetGraphs.MACRO_MRR} = 'avg macro MRR';
-end
-
-%% metricShortNames
-
-function R = metricShortNames()
-    R{TextMultiDatasetGraphs.PRBEP}     = 'PRBEP';
-    R{TextMultiDatasetGraphs.ACCURACY}  = 'Accuracy';
-    R{TextMultiDatasetGraphs.MACRO_ACC} = 'M-ACC';
-    R{TextMultiDatasetGraphs.MRR}       = 'MRR';
-    R{TextMultiDatasetGraphs.MACRO_MRR} = 'M-MRR';
-end
-
-%% metricOptimizeByName
-
-function R = metricOptimizeByName()
-    R{TextMultiDatasetGraphs.PRBEP}     = 'PRBEP';
-    R{TextMultiDatasetGraphs.ACCURACY}  = 'accuracy';
-    R{TextMultiDatasetGraphs.MACRO_ACC} = 'macroACC';
-    R{TextMultiDatasetGraphs.MRR}       = 'MRR';
-    R{TextMultiDatasetGraphs.MACRO_MRR} = 'macroMRR';
-end
-
 %% metricYLimits
 
 function R = metricYLimits()
