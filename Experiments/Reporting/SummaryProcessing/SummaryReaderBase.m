@@ -162,6 +162,10 @@ function R = findEntries( this, searchProperties)
 %                      '. searchValues = ' [searchValues{:}] ]);
         assert(false);
     end
+    if length(R) ~= 1
+        Logger.log(['SummaryReaderBase::findEntries. length(R) = ' num2str(length(R)) '. Should be 1.']);
+        assert(false);
+    end
 end
 
 end % protected methods 

@@ -33,9 +33,25 @@ function doConvert(this)
 %     this.outputTable(results);
 %     this.outputAverageResultsTable(results);
 
-    isTacoVariants = 0;
-    results = this.gatherResults_tacoBaseLines();
-    this.outputAverageResultsTable(results, isTacoVariants);
+    tacoVariantsResults  = this.gatherResults_tacoVariants();
+    tacoBaselinesResults = this.gatherResults_tacoBaseLines();
+    
+    for isTacoVariants = [0 1]
+        optimizeByMetric = [];
+        if isTacoVariants
+            results = tacoVariantsResults;
+        else
+            results = tacoBaselinesResults;
+        end
+        
+        this.outputAverageResultsTable(results, isTacoVariants, optimizeByMetric);
+    
+        optimizeByMetric = MetricProperties.PRBEP;
+        this.outputAverageResultsTable(results, isTacoVariants, optimizeByMetric);
+    
+        optimizeByMetric = MetricProperties.MACRO_ACC;
+        this.outputAverageResultsTable(results, isTacoVariants, optimizeByMetric);
+    end
 end
 
 end % overrides
@@ -44,24 +60,37 @@ methods (Access  = private)
 
 %% outputAverageResultsTable
 
-function outputAverageResultsTable(this, results, isTacoVariants)
+function outputAverageResultsTable(this, results, isTacoVariants, optimizeByMetric)
     nlpGraphNames       = this.nlpGraphNames();
     TACO_variants_order = this.TACO_variants_order();
     metricKeys          = MetricProperties.metricKeys();
     metricShortNames    = MetricProperties.metricShortNames();
     metricOrderInTables = this.metricOrderInTables();
+    if ~isempty(optimizeByMetric)
+        optimizeByMetricName= metricShortNames{optimizeByMetric};
+    else
+        optimizeByMetricName = 'none';
+    end
+    
+    Logger.log(['TextTables::doConvert. isTacoVariants = '    num2str(isTacoVariants) ... 
+                                    ' optimizeByMetricName = ''' optimizeByMetricName '''']);
     
     allAverageResults = [];
     for metric_ID = metricOrderInTables
       numericResults = [];
       for graph_i =1:length(nlpGraphNames)
           presentedKey = metricKeys{metric_ID};
+          if isempty(optimizeByMetric)
+              metric_for_results = metric_ID;
+          else
+              metric_for_results = optimizeByMetric;
+          end
           if isTacoVariants
-            singleResults = results(graph_i,metric_ID,:); 
+            singleResults = results(graph_i,metric_for_results,:); 
             stringResults = TextTables.tacoVariantsResults_toStrings...
                    (singleResults, TACO_variants_order, presentedKey);
           else
-            singleResults = results(graph_i,metric_ID); 
+            singleResults = results(graph_i,metric_for_results); 
             singleResults = singleResults{1};
             stringResults = this.baselines_toStrings(presentedKey, singleResults);
           end
@@ -311,7 +340,7 @@ methods (Static)
 %% averageTable_printLine
 
 function averageTable_printLine(numericResults, lineKey)
-    avgResultsFormat    = '%s  & %s & %s & %s & %s  \\\\ \\hline\n';
+    avgResultsFormat    = '~%s~  & ~%s~ & ~%s~ & ~%s~ & ~%s~  \\\\ \\hline\n';
     stringResults   = cellstr(num2str(numericResults.'));
     resultsForPrint = TextTables.markBoldStrings(stringResults, 100);      
        fprintf( avgResultsFormat, ...

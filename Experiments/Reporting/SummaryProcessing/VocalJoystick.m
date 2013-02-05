@@ -51,15 +51,20 @@ end
 %% createTables
 
 function createTables(this)
-%     results = this.gatherData_allDataSets();
-%     this.outputTable_allDataSets(results);
-    results = this.gatherData_allPrecentLabeled();
-    this.outputTable_allPercentLabeled(results);
+    for isTacoVariants = [0 1]
+        Logger.log(['VocalJoystick::createTables. isTacoVariants = ' num2str(isTacoVariants)] );
+        Logger.log('VocalJoystick::createTables. Data sets table.' );
+        results = this.gatherData_allDataSets(isTacoVariants );
+        this.outputTable_allDataSets(results, isTacoVariants );
+        Logger.log('VocalJoystick::createTables. percent labeled table.' );
+        results = this.gatherData_allPrecentLabeled(isTacoVariants);
+        this.outputTable_allPercentLabeled(results, isTacoVariants);
+    end
 end
 
 %% gatherData_allDataSets
 
-function R = gatherData_allDataSets(this)
+function R = gatherData_allDataSets(this, isTacoVariants)
     balanced.key = 'balanced';
     balanced.value = {'0'};
     balanced.shouldMatch = 1;
@@ -73,8 +78,10 @@ function R = gatherData_allDataSets(this)
     num_iterations.shouldMatch = 1;
     
     taco_objective.key = 'TACO objective';
-    taco_objective.value = {num2str(CSSLBase.OBJECTIVE_HARMONIC_MEAN)};
     taco_objective.shouldMatch = 1;
+    if ~isTacoVariants
+       taco_objective.value = {num2str(CSSLBase.OBJECTIVE_HARMONIC_MEAN)};
+    end
     
     percent_labeled.key = 'precent labeled';
     percent_labeled.value = {'1'};
@@ -83,8 +90,12 @@ function R = gatherData_allDataSets(this)
     optimize_by.key         = 'optimize_by';
     optimize_by.shouldMatch = 1;
     optimize_by.value      = {'accuracy'};
+    
+    taco_algorithm.key = 'Algorithm';
+    taco_algorithm.shouldMatch = 1;
+    taco_algorithm.value = {CSSLMC.name()};
 
-    searchProperties = [balanced labeled_init num_iterations taco_objective ...
+    searchProperties = [balanced labeled_init num_iterations ...
                         optimize_by percent_labeled];
 
     graph.key = 'graph';
@@ -92,20 +103,27 @@ function R = gatherData_allDataSets(this)
     
     graphsOrderInTable = VocalJoystick.graphsOrderInTable();
     allGraphNames      = VocalJoystick.allGraphNames();
+    TACO_variants_order= VocalJoystick.TACO_variants_order();
+    
     for graph_ID = graphsOrderInTable
         graph.value = allGraphNames(graph_ID);
-        graph_result = this.findAlgorithms([searchProperties graph]); 
-        R{graph_ID}  = graph_result;  %#ok<AGROW>
-%         R{graph_ID, AlgorithmProperties.AM}   = graph_result.am;  %#ok<AGROW>
-%         R{graph_ID, AlgorithmProperties.CSSL} = graph_result.diag;%#ok<AGROW>
-%         R{graph_ID, AlgorithmProperties.MAD}  = graph_result.mad; %#ok<AGROW>
-%         R{graph_ID, AlgorithmProperties.QC}   = graph_result.qc;  %#ok<AGROW>
+        Logger.log(['VocalJoystick::gatherData_allDataSets. Looking results for graph ''' graph.value{1} '''']);
+        if ~isTacoVariants
+            graph_result = this.findAlgorithms([searchProperties graph taco_objective]); 
+            R{graph_ID}  = graph_result;  %#ok<AGROW>
+        else
+            for TACO_variant_ID = TACO_variants_order
+                taco_objective.value = {num2str(TACO_variant_ID)};
+                R{graph_ID,TACO_variant_ID} = ...
+                    this.findEntries([searchProperties graph taco_algorithm taco_objective ]); %#ok<AGROW>    
+            end
+        end
     end
 end
 
 %% gatherData_allPrecentLabeled
 
-function R = gatherData_allPrecentLabeled(this)
+function R = gatherData_allPrecentLabeled(this, isTacoVariants)
     balanced.key            = 'balanced';
     balanced.value          = {'0'};
     balanced.shouldMatch    = 1;
@@ -119,8 +137,11 @@ function R = gatherData_allPrecentLabeled(this)
     num_iterations.shouldMatch  = 1;
     
     taco_objective.key          = 'TACO objective';
-    taco_objective.value        = {num2str(CSSLBase.OBJECTIVE_HARMONIC_MEAN)};
+    
     taco_objective.shouldMatch  = 1;
+    if ~isTacoVariants
+       taco_objective.value        = {num2str(CSSLBase.OBJECTIVE_HARMONIC_MEAN)};
+    end
     
     optimize_by.key         = 'optimize_by';
     optimize_by.shouldMatch = 1;
@@ -131,67 +152,120 @@ function R = gatherData_allPrecentLabeled(this)
     graph.shouldMatch   = 1;
     graph.value         = allGraphNames(VocalJoystick.V8_W7);
     
-    searchProperties = [balanced labeled_init num_iterations taco_objective ...
+    searchProperties = [balanced labeled_init num_iterations ...
                         optimize_by graph];
+                    
+    taco_algorithm.key = 'Algorithm';
+    taco_algorithm.shouldMatch = 1;
+    taco_algorithm.value = {CSSLMC.name()};
 
     percent_labeled.key = 'precent labeled';
     percent_labeled.shouldMatch = 1;
           
     percentLabeledRange = VocalJoystick.allPercentLabeledRange();
+    TACO_variants_order = VocalJoystick.TACO_variants_order();
     result_i = 1;
     for percentLabeled_i = percentLabeledRange
         percent_labeled.value = {num2str(percentLabeled_i)};
-        result = this.findAlgorithms([searchProperties percent_labeled]); 
-        R{result_i}  = result;  %#ok<AGROW>
+        if ~isTacoVariants
+            result = this.findAlgorithms([searchProperties percent_labeled taco_objective]); 
+            R{result_i}  = result;  %#ok<AGROW>
+        else
+            for TACO_variant_ID = TACO_variants_order
+                taco_objective.value = {num2str(TACO_variant_ID)};
+                R{result_i,TACO_variant_ID} = ...
+                    this.findEntries([searchProperties percent_labeled taco_algorithm taco_objective]); %#ok<AGROW>    
+            end
+        end
         result_i = result_i + 1;
     end
 end
 
 %% outputTable_allDataSets
 
-function outputTable_allDataSets(this,results)
+function outputTable_allDataSets(~,results, isTacoVariants )
     allGraphNamesForTables  = VocalJoystick.allGraphNamesForTables();
     graphsOrderInTable      = VocalJoystick.graphsOrderInTable();
     presentedKey            = 'avg accuracy';
     
+    allResults = [];
     for graph_ID = graphsOrderInTable
-        graphResult = results{graph_ID};
+        if ~isTacoVariants
+            graphResult = results{graph_ID};
+        else
+            graphResult = results(graph_ID,:);
+        end
         graphNameForTable = allGraphNamesForTables{graph_ID};
-        VocalJoystick.printSingleLine(graphResult, presentedKey, graphNameForTable);
+        numericLineResults = VocalJoystick.printSingleLine(graphResult, presentedKey, graphNameForTable, isTacoVariants );
+        allResults = [allResults; numericLineResults]; %#ok<AGROW>
     end
+    totalAverage = mean(allResults, 1);
+    TextTables.averageTable_printLine(totalAverage, 'Average');
 end
 
 %% outputTable_allPercentLabeled
 
-function outputTable_allPercentLabeled(~, results)
+function outputTable_allPercentLabeled(~, results, isTacoVariants)
 	allPercentLabeledRange = VocalJoystick.allPercentLabeledRange();
     presentedKey            = 'avg accuracy';
     
-    numResults = length(results);
-    for result_i = 1:numResults
-        oneResult = results{result_i};
-        rowKey    = num2str(allPercentLabeledRange(result_i));
-        rowKey    = [rowKey '\%'];
-        VocalJoystick.printSingleLine(oneResult, presentedKey, rowKey);
+    if size(results,1) ~= 1
+        numResults = size(results,1);
+    else
+        numResults = size(results,2);
     end
+    allResults = [];
+    for result_i = 1:numResults
+        if ~isTacoVariants
+            oneResult = results{result_i};
+        else
+            oneResult = results(result_i,:);
+        end
+        rowKey    = num2str(allPercentLabeledRange(result_i));
+        rowKey    = [rowKey '\%']; %#ok<AGROW>
+        numericLineResults = VocalJoystick.printSingleLine(oneResult, presentedKey, rowKey, isTacoVariants);
+        allResults = [allResults; numericLineResults]; %#ok<AGROW>
+    end
+    totalAverage = mean(allResults, 1);
+    TextTables.averageTable_printLine(totalAverage, 'Average');
 end
 
 end % private methods
 
 methods (Static)
 
+%% TACO_variants_order
+
+function R = TACO_variants_order()
+    R = [CSSLBase.OBJECTIVE_HARMONIC_MEAN_SINGLE ...
+         CSSLBase.OBJECTIVE_HARMONIC_MEAN        ...CSSLBase.OBJECTIVE_MULTIPLICATIVE             ...
+         CSSLBase.OBJECTIVE_WEIGHTS_UNCERTAINTY_SINGLE ...
+         CSSLBase.OBJECTIVE_WEIGHTS_UNCERTAINTY  ...
+          ];
+end
+    
 %% printSingleLine
 
-function printSingleLine(graphResult, presentedKey, rowKey)
-    resultsAsStrings  = TextTables.baselines_toStrings(presentedKey, graphResult);
-    resultsAsStrings  = TextTables.markBoldStrings(resultsAsStrings, 1);
-    lineFormat = '%s & %s & %s & %s & %s \\\\ \\hline\n';
+function R = printSingleLine(graphResult, presentedKey, rowKey, isTacoVariants)
+    TACO_variants_order = VocalJoystick.TACO_variants_order();
+    if ~isTacoVariants
+        resultsAsStrings  = TextTables.baselines_toStrings(presentedKey, graphResult);
+    else
+        resultsAsStrings = TextTables.tacoVariantsResults_toStrings...
+                   (graphResult, TACO_variants_order, presentedKey);
+    end
+    R = cellfun(@str2num, resultsAsStrings);
+    if size(R,1) ~= 1
+        R = R.'; % make row vector
+    end
+    resultsAsStrings  = TextTables.markBoldStrings(resultsAsStrings, 100);
+    lineFormat = '~%s~ & ~%s~ & ~%s~ & ~%s~ & ~%s~ \\\\ \\hline\n';
     fprintf( lineFormat, ...., 
         rowKey, ...
         resultsAsStrings{1}, ...
         resultsAsStrings{2}, ...
         resultsAsStrings{3}, ...
-        resultsAsStrings{4} );
+        resultsAsStrings{4} );   
 end
     
 %% allPercentLabeledRange
