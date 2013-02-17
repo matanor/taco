@@ -410,7 +410,7 @@ function plotDifferencesLocalVsGlobal(this, barSource, fileNameSuffix)
     fontSize = 22;
     set(gca, 'FontSize', fontSize);
 
-    heightAndWidth = [1024 768] * 0.9;
+    heightAndWidth = [1024 768] * 0.88;
     figurePosition = [ 1 1 heightAndWidth];
     set(fig, 'Position', figurePosition); % Maximize figure.
 %         http://dopplershifted.blogspot.co.il/2008/07/programmatically-saving-matlab-figures.html
