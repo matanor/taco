@@ -56,10 +56,10 @@ methods (Access = private)
 
 function create(this)
     results = this.gatherResults_tacoBaseLines();
-    this.graphs_byDataset(results);
-%     this.graphs_byMetric(results);
-    results = this.gatherResults_tacoVariants();
-    this.graphs_byDataset_tacoVariants(results);
+%     this.graphs_byDataset(results);
+    this.graphs_byMetric(results);
+%     results = this.gatherResults_tacoVariants();
+%     this.graphs_byDataset_tacoVariants(results);
 end
 
 %% graphs_byMetric
@@ -70,7 +70,7 @@ end
 function graphs_byMetric(this, results)
     
     ticksForX        = this.graphNamesForUser();
-    metricsRange     = [this.PRBEP this.ACCURACY this.MACRO_ACC this.MRR this.MACRO_MRR ];
+    metricsRange     = MetricProperties.allMetricsRange;
     metricKeys       = MetricProperties.metricKeys();
     metricShortNames = MetricProperties.metricShortNames();
     metricYLimits    = this.metricYLimits();
@@ -98,6 +98,17 @@ function plot_byMetric(this,                 dataSource,          ...
 
     numAlgorithms = 4;
     barSource = zeros(numGraphs, numAlgorithms);
+    
+    algorithmColors      = AlgorithmProperties.algorithmColors();
+    algorithmsOrderInBars= this.algorithmsOrderInBars();
+    algorithmNames       = AlgorithmProperties.algorithmNames();
+    
+    bar_i = 1;
+    for algorithm_id = algorithmsOrderInBars
+        legendTacoAndBaselines{bar_i} = algorithmNames{algorithm_id}; %#ok<AGROW>
+        barColors{bar_i}              = algorithmColors{algorithm_id}; %#ok<AGROW>
+        bar_i = bar_i  + 1;
+    end
 
     for graph_i = 1:numGraphs
         algorithmsResults = dataSource{graph_i};
@@ -109,7 +120,7 @@ function plot_byMetric(this,                 dataSource,          ...
     barSource = barSource * 100;
 
     this.plot_barGraph(barSource,            presentedKeyLabelY, ...
-                       presentedKeyFileName, yLimits, ticksForX);
+                       presentedKeyFileName, yLimits, ticksForX, legendTacoAndBaselines, barColors);
 end
 
 %% graphs_byDataset
@@ -286,11 +297,11 @@ end
 %% metricYLimits
 
 function R = metricYLimits()
-    R{TextMultiDatasetGraphs.PRBEP}     = [25 92];
-    R{TextMultiDatasetGraphs.ACCURACY}  = [25 92];
-    R{TextMultiDatasetGraphs.MACRO_ACC} = [25 92];
-    R{TextMultiDatasetGraphs.MRR}       = [50 95];
-    R{TextMultiDatasetGraphs.MACRO_MRR} = [50 95];
+    R{MetricProperties.PRBEP}     = [25 92];
+    R{MetricProperties.ACCURACY}  = [25 92];
+    R{MetricProperties.MACRO_ACC} = [25 92];
+    R{MetricProperties.MRR}       = [50 95];
+    R{MetricProperties.MACRO_MRR} = [50 95];
 end
 
 %% graphsYLimits
@@ -330,8 +341,8 @@ end
 %% algorithmsOrderInBars
 
 function R = algorithmsOrderInBars()
-    R = [TextMultiDatasetGraphs.MAD TextMultiDatasetGraphs.AM ...
-         TextMultiDatasetGraphs.QC TextMultiDatasetGraphs.CSSL];
+    R = [AlgorithmProperties.MAD AlgorithmProperties.AM ...
+         AlgorithmProperties.QC  AlgorithmProperties.CSSL];
 end
 
 %% TACO_variants_names
