@@ -340,6 +340,8 @@ function saveAndCloseFigure(fig, outputDirectory, fileNamePrefix, fileNameSuffix
     fileFullPath = [ outputDirectory fileName '.jpg'];
     Logger.log(['SummaryReaderBase::saveAndCloseFigure. '...
                 'Saving figure to ''' fileFullPath '''']);
+%     set(gcf, 'Color', 'w');
+%     export_fig(fileFullPath, '-m2.5 -a1');
     saveas(fig, fileFullPath ); 
 %     print(fig, '-djpeg', '-r600', fileFullPath); % -r<dots per inch>
     close(fig);        
