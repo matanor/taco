@@ -37,15 +37,21 @@ methods (Access = private)
 %% create
 
 function create(this)
-%     this.createGraphs();
-    this.createTables();
+    this.createGraphs();
+%     this.createTables();
 end
 
 %% createTables
 
 function createTables(this)
-    results = this.gatherResults_tacoVariants();
-    this.outputTable(results);
+    metricOptimizeByName = MetricProperties.metricOptimizeByName();
+    optimizeByValue = metricOptimizeByName{MetricProperties.MACRO_ACC} ;%'levenshtein';
+    results = this.gatherResults_tacoVariants(optimizeByValue);
+    
+    metricKeys = MetricProperties.metricKeys();
+    presentedKey = metricKeys{MetricProperties.MACRO_ACC};%'avg levenshtein';
+    multiplyFactor = 100; % set 1 for levenshtein
+    this.outputTable(results, presentedKey, multiplyFactor);
 end
 
 %% createGraphs
@@ -210,7 +216,7 @@ end
 
 %% gatherResults_tacoVariants
 
-function results = gatherResults_tacoVariants(this)
+function results = gatherResults_tacoVariants(this, optimizeByValue)
     balanced.key = 'balanced';
     balanced.value = {'0'};
     balanced.shouldMatch = 1;
@@ -233,7 +239,7 @@ function results = gatherResults_tacoVariants(this)
     
     optimize_by.key = 'optimize_by';
     optimize_by.shouldMatch = 1;
-    optimize_by.value = {'levenshtein'};
+    optimize_by.value = {optimizeByValue};
 
     searchProperties = [balanced    labeled_init    num_iterations ...
                         heuristics  algorithm       optimize_by];
@@ -276,9 +282,7 @@ end
 
 %% outputTable
 
-function outputTable(this, results)
-    presentedKey         = 'avg levenshtein';
-    
+function outputTable(this, results, presentedKey, multiplyFactor)
     numLabeledRange         = this.numLabeledRange();
     numLabeledPercentRange  = this.numLabeledPercentRange();
 
@@ -291,18 +295,18 @@ function outputTable(this, results)
             percentLabeled  = numLabeledPercentRange(numLabeled_i);
             rowKey          = [num2str(percentLabeled) '\%'];
             lineResults = results(graph_i,:, numLabeled_i);
-            this.printSingleLine(lineResults, presentedKey, rowKey);
+            this.printSingleLine(lineResults, presentedKey, rowKey, multiplyFactor);
         end        
     end
 end
 
 %% printSingleLine
 
-function printSingleLine(~, lineResults, presentedKey, rowKey)
+function printSingleLine(~, lineResults, presentedKey, rowKey, multiplyFactor)
     TACO_variants_order  = SpeechTIMIT.TACO_variants_order();
     stringValues = TextTables.tacoVariantsResults_toStrings...
                     (lineResults, TACO_variants_order, presentedKey);
-    stringValues = TextTables.markBoldStrings(stringValues, 1);
+    stringValues = TextTables.markBoldStrings(stringValues, multiplyFactor);
     lineFormat = '&%s & %s & %s & %s & %s \\\\ \\cline{2-6}\n';
     fprintf( lineFormat, ...., 
         rowKey, ...
