@@ -56,8 +56,8 @@ methods (Access = private)
 
 function create(this)
     results = this.gatherResults_tacoBaseLines();
-%     this.graphs_byDataset(results);
-    this.graphs_byMetric(results);
+    this.graphs_byDataset(results);
+%     this.graphs_byMetric(results);
 %     results = this.gatherResults_tacoVariants();
 %     this.graphs_byDataset_tacoVariants(results);
 end
@@ -165,17 +165,24 @@ function graphs_byDataset(this, results)
         for metric_ID = metricsRange
             algorithmsResults = graphResults{metric_ID};
             metricKey         = metricKeys  {metric_ID};
+            stddevKey = this.stddevKey(metricKey);
             barSource(metric_i , this.MAD)  = str2num(algorithmsResults.mad ( metricKey ));
             barSource(metric_i , this.AM)   = str2num(algorithmsResults.am  ( metricKey )) ;
             barSource(metric_i , this.QC)   = str2num(algorithmsResults.qc  ( metricKey )) ;
             barSource(metric_i , this.CSSL) = str2num(algorithmsResults.diag( metricKey )) ;
+            stddev   (metric_i , this.MAD)  = str2num(algorithmsResults.mad ( stddevKey ));
+            stddev   (metric_i , this.AM)   = str2num(algorithmsResults.am  ( stddevKey ));
+            stddev   (metric_i , this.CSSL) = str2num(algorithmsResults.diag( stddevKey ));
+            stddev   (metric_i , this.QC)   = str2num(algorithmsResults.qc  ( stddevKey ));
             metric_i = metric_i + 1;
         end
         barSource = barSource * 100;
+        stddev    = stddev * 100;
+        stddev = (1.96 / sqrt(20)) * stddev ; % 95 confidence intervals.
 
         presentedKeyFileName = nlpGraphNamerForUser{graph_i};
         presentedKeyFileName( presentedKeyFileName == ' ' ) = '_';
-        this.plot_barGraph(barSource, [], presentedKeyFileName, yLimits, ...
+        this.plot_barGraph(barSource, stddev, [], presentedKeyFileName, yLimits, ...
             ticksForX, legendTacoAndBaselines, barColors);
         clear barSource;
     end
@@ -242,7 +249,7 @@ end
 
 %% plot_barGraph
 
-function plot_barGraph(this, barSource, labelY, fileNameSuffix, yLimits, ...
+function plot_barGraph(this, barSource, stddev, labelY, fileNameSuffix, yLimits, ...
                              ticksForX, legendLabels, colors)
     fig = figure;
     figurePosition = [ 1 1 1280-500 1024-800];
@@ -254,7 +261,9 @@ function plot_barGraph(this, barSource, labelY, fileNameSuffix, yLimits, ...
 
 %         http://www.mathworks.com/support/solutions/en/data/1-17DC8/
 %     h = bar('v6',barSource,'hist');
-    h = bar(barSource, 'grouped');
+%     h = bar(barSource, 'grouped');
+    x = repmat((1:size(barSource, 1)).',1,size(barSource, 2));
+    [h e] = errorbarbar(x, barSource, stddev);
 %         http://dopplershifted.blogspot.co.il/2008/07/programmatically-saving-matlab-figures.html
 %       remove extra white space margins around figure
     this.removeExtraWhiteSpaceMargin(gca); %set(gca,'LooseInset',get(gca,'TightInset'))
@@ -263,6 +272,8 @@ function plot_barGraph(this, barSource, labelY, fileNameSuffix, yLimits, ...
     assert( numBars == size(barSource, 2) );
     for bar_i=1:numBars
         set(h(bar_i),    'facecolor',colors{bar_i}); 
+        set(e(bar_i),    'Color',    'k'); 
+        set(e(bar_i),    'LineWidth',1.5); 
     end
     set(gca, 'XTickLabel',ticksForX);
         
