@@ -130,7 +130,22 @@ end
 end
 
 methods (Static)
-        
+    
+%% confidenceIntervalFactor
+
+function R = confidenceIntervalFactor()
+    R = (1.96 / sqrt(20));
+end
+
+%% toConfidenceIntervals
+
+function R = toConfidenceIntervals( stddev )
+    confidenceIntervalFactor = TextReporterBase.confidenceIntervalFactor();
+    R = confidenceIntervalFactor * stddev ; % 95 confidence intervals.
+end
+
+%% nlpGraphIDs
+
 function R = nlpGraphIDs()
     R = [TextReporterBase.WEB_KB ...
          TextReporterBase.NG_20 ...
