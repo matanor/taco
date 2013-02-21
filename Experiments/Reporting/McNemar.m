@@ -40,31 +40,31 @@ function calculate(correct, prediction_a, prediction_b)
     end
 
     if (n01 + n10 < 10)
-        disp( 'Number of disagreements are small so may not be reliable.' );
+        Logger.log( 'Number of disagreements are small so may not be reliable.' );
     end
 
-    disp([ 'Total: ' num2str(total)]);
+    Logger.log([ 'Total: ' num2str(total)]);
 
-    disp([ 'Accuracy: File A: ' num2str(1.0 - a_accuracy) ', File B: ' num2str(1.0 - b_accuracy) ]);
+    Logger.log([ 'Accuracy: File A: ' num2str(a_accuracy) ', File B: ' num2str(b_accuracy) ]);
     significant = 0;
     if (total > 3.841459)
         significant = 1;
-        disp('Significant at P=.05');
+        Logger.log('Significant at P=.05');
         if (total > 6.64) 
-            disp('Significant at P=.01');
+            Logger.log('Significant at P=.01');
         end
         if (total > 10.83)
-            disp('Significant at P=.001');
+            Logger.log('Significant at P=.001');
         end
     end
 
-    disp(['Results significant according to McNemar''''s test: ' num2str(significant)]);
+    Logger.log(['Results significant according to McNemar''''s test: ' num2str(significant)]);
     if (a_accuracy > b_accuracy) 
-        disp('Better system: A ');
+        Logger.log('Better system: A ');
     elseif (a_accuracy < b_accuracy) 
-        disp('Better system: B ');
+        Logger.log('Better system: B ');
     else
-        disp('System performance the same.');
+        Logger.log('System performance the same.');
     end
 end
     
