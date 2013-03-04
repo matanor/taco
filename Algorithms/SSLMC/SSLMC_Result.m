@@ -47,8 +47,15 @@ methods (Access = public )
     
     function r = prediction(this)
         scoreMatrix = this.getFinalScoreMatrix();
-        [~,indices] = max(scoreMatrix,[],2);
-        r = indices;
+        if (~isempty(scoreMatrix))
+            [~,indices] = max(scoreMatrix,[],2);
+            r = indices;
+        elseif (~isempty(this.m_prediction))
+            Logger.log('SSLMC_Result::prediction. scores are empty, returning cached prediction');
+            r = this.m_prediction;
+        else
+            r = [];
+        end
     end
 
     %% predictionConfidence

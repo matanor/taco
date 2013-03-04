@@ -75,6 +75,22 @@ properties( Constant)
     STRUCTURED_NO_VERTEX = 0;
 end
 
+methods (Static)
+    
+    %% variantName
+    
+    function name = variantName( variant_ID )
+        idToNameTable{CSSLBase.OBJECTIVE_HARMONIC_MEAN} = 'TACO';
+        idToNameTable{CSSLBase.OBJECTIVE_MULTIPLICATIVE} = [];
+        idToNameTable{CSSLBase.OBJECTIVE_WEIGHTS_UNCERTAINTY} = 'TACO-E';
+        idToNameTable{CSSLBase.OBJECTIVE_ADDITIVE} = [];
+        idToNameTable{CSSLBase.OBJECTIVE_WEIGHTS_UNCERTAINTY_SINGLE} = 'TACO-SE';
+        idToNameTable{CSSLBase.OBJECTIVE_HARMONIC_MEAN_SINGLE} = 'TACO-S';
+        name = idToNameTable{variant_ID};
+    end
+    
+end % static methods
+
 methods (Access=public)
     
     %% constructor

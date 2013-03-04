@@ -18,7 +18,7 @@ end
     
 %% calculate
     
-function calculate(correct, prediction_a, prediction_b)
+function R = calculate(correct, prediction_a, prediction_b)
 
     a_correct = (correct == prediction_a);
     b_correct = (correct == prediction_b);
@@ -47,25 +47,34 @@ function calculate(correct, prediction_a, prediction_b)
 
     Logger.log([ 'Accuracy: File A: ' num2str(a_accuracy) ', File B: ' num2str(b_accuracy) ]);
     significant = 0;
+    p_value = 0;
     if (total > 3.841459)
         significant = 1;
         Logger.log('Significant at P=.05');
+        p_value = 0.05;
         if (total > 6.64) 
             Logger.log('Significant at P=.01');
+            p_value = 0.01;
         end
         if (total > 10.83)
             Logger.log('Significant at P=.001');
+            p_value = 0.001;
         end
     end
 
     Logger.log(['Results significant according to McNemar''''s test: ' num2str(significant)]);
     if (a_accuracy > b_accuracy) 
         Logger.log('Better system: A ');
+        betterSystem = 'A';
     elseif (a_accuracy < b_accuracy) 
         Logger.log('Better system: B ');
+        betterSystem = 'B';
     else
         Logger.log('System performance the same.');
+        betterSystem = '0';
     end
+    R.p_value = p_value;
+    R.betterSystem = betterSystem;
 end
     
 end % static methods
