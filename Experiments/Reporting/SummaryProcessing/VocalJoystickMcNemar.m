@@ -15,6 +15,9 @@ methods (Static)
         
         inputRoot = 'C:/technion/theses/Matlab/Data/McNemar/thesis/baselines';
         dirwalk(inputRoot, @VocalJoystickMcNemar.mcnemar_test_baselines); %varargin
+        
+        inputRoot = 'C:/technion/theses/Matlab/Data/McNemar/thesis/timit/baselines';
+        dirwalk(inputRoot, @VocalJoystickMcNemar.mcnemar_test_baselines); %varargin
     end
     
     %% mcnemar_test_baselines
