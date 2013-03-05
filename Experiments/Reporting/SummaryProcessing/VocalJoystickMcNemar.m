@@ -152,7 +152,7 @@ methods (Static)
 
         inputDir = [inputRoot resultDir];
         parameterRunRange = 1; % 1 is TACO in this experiment
-        VocalJoystickMcNemar.copyExperimentRuns(inputDir, outputDir,...
+        McNemar.copyExperimentRuns(inputDir, outputDir,...
                    experimentMappingOnePercentVJ_8_7, parameterRunRange);
 
         %%% 2012_11_29_02 %%%
@@ -161,7 +161,7 @@ methods (Static)
             
         inputDir = [inputRoot resultDir];
         parameterRunRange = 1;
-        VocalJoystickMcNemar.copyExperimentRuns(inputDir, outputDir,...
+        McNemar.copyExperimentRuns(inputDir, outputDir,...
                    experimentMappingOnePercentVJ_8_7, parameterRunRange);
 
         %%% 2012_11_29_03 %%%
@@ -178,7 +178,7 @@ methods (Static)
             
         inputDir = [inputRoot resultDir];
         parameterRunRange = 1; % 1 is TACO in this experiment
-        VocalJoystickMcNemar.copyExperimentRuns(inputDir, outputDir,...
+        McNemar.copyExperimentRuns(inputDir, outputDir,...
                                        experimentMappingOnePercent, parameterRunRange);
 
         %%% 2012_11_29_04 %%%
@@ -187,7 +187,7 @@ methods (Static)
 
         inputDir = [inputRoot resultDir];
         parameterRunRange = 1; % 1 is ALL baselines in this experiment
-        VocalJoystickMcNemar.copyExperimentRuns(inputDir, outputDir,...
+        McNemar.copyExperimentRuns(inputDir, outputDir,...
                                        experimentMappingOnePercent, parameterRunRange);
 
         %%% 2013_01_30_02 %%%
@@ -202,7 +202,7 @@ methods (Static)
         
         inputDir = [inputRoot resultDir];
         parameterRunRange = 1; % 1 is TACO in this experiment
-        VocalJoystickMcNemar.copyExperimentRuns(inputDir, outputDir,...
+        McNemar.copyExperimentRuns(inputDir, outputDir,...
                                        experimentMappingUnderOnePercent, parameterRunRange);
         
         %%% 2012_12_02_01 %%%
@@ -211,7 +211,7 @@ methods (Static)
         
         inputDir = [inputRoot resultDir];
         parameterRunRange = 1; % 1 is ALL baselines in this experiment
-        VocalJoystickMcNemar.copyExperimentRuns(inputDir, outputDir,...
+        McNemar.copyExperimentRuns(inputDir, outputDir,...
                                        experimentMappingUnderOnePercent, parameterRunRange);
         
         %%% 2012_12_04_01 %%%
@@ -226,7 +226,7 @@ methods (Static)
                 
         inputDir = [inputRoot resultDir];
         parameterRunRange = 1; % 1 is TACO in this experiment
-        VocalJoystickMcNemar.copyExperimentRuns(inputDir, outputDir,...
+        McNemar.copyExperimentRuns(inputDir, outputDir,...
                    experimentMapping_moreOnePercent, parameterRunRange);
         
         %%% 2012_12_05_01 %%%
@@ -235,7 +235,7 @@ methods (Static)
         
         inputDir = [inputRoot resultDir];
         parameterRunRange = 1; % 1 is ALL baselines in this experiment
-        VocalJoystickMcNemar.copyExperimentRuns(inputDir, outputDir,...
+        McNemar.copyExperimentRuns(inputDir, outputDir,...
                    experimentMapping_moreOnePercent, parameterRunRange);
     end
     
@@ -261,7 +261,7 @@ methods (Static)
         
         inputDir = [inputRoot resultDir];
         parameterRunRange = 1:3;
-        VocalJoystickMcNemar.copyExperimentRuns(inputDir, outputDir,...
+        McNemar.copyExperimentRuns(inputDir, outputDir,...
                                        experimentMapping, parameterRunRange);
                                    
         %%% 2013_01_31_01 %%%
@@ -280,7 +280,7 @@ methods (Static)
         
         inputDir = [inputRoot resultDir];
         parameterRunRange = 1;
-        VocalJoystickMcNemar.copyExperimentRuns(inputDir, outputDir,...
+        McNemar.copyExperimentRuns(inputDir, outputDir,...
                                        experimentMapping, parameterRunRange);
         
         %%% 2013_02_02_01 %%%
@@ -295,7 +295,7 @@ methods (Static)
                 'VJ/VJ-4-7/1/', 2 },...
               { 'Experiment_run_3_trainAndDev.instances.v8.w1.k_10.lihi_1/',...
                 'VJ/VJ-8-1/1/', 3 } };
-        VocalJoystickMcNemar.copyExperimentRuns(inputDir, outputDir,...
+        McNemar.copyExperimentRuns(inputDir, outputDir,...
                                        experimentMappingOnePercent, parameterRunRange);   
                                
         %%% 2012_11_29_01 %%%
@@ -306,13 +306,13 @@ methods (Static)
         experimentMapping = ...
             { { 'Experiment_run_1_trainAndDev.instances.v8.w7.k_10.lihi_4263/',...
                 'VJ/VJ-8-7/1/', 1 } };
-        VocalJoystickMcNemar.copyExperimentRuns(inputDir, outputDir,...
+        McNemar.copyExperimentRuns(inputDir, outputDir,...
                                        experimentMapping, parameterRunRange_noVariant3);
         %%% 2012_11_29_03 %%%
         
         resultDir = '2012_11_29_03_VJ_v4_w17_v_8_w1_TACO/';
         inputDir = [inputRoot resultDir];
-        VocalJoystickMcNemar.copyExperimentRuns(inputDir, outputDir,...
+        McNemar.copyExperimentRuns(inputDir, outputDir,...
                                        experimentMappingOnePercent, parameterRunRange_noVariant3);    
                              
         %%% 2012_12_04_01 %%%
@@ -326,39 +326,8 @@ methods (Static)
         resultDir = '2012_12_04_01_VJ_v8_w7_10_20_precent_TACO/';
         inputDir = [inputRoot resultDir];
 
-        VocalJoystickMcNemar.copyExperimentRuns(inputDir, outputDir,...
+        McNemar.copyExperimentRuns(inputDir, outputDir,...
                                        experimentMapping, parameterRunRange_noVariant3);    
-    end
-    
-    %% copyExperimentRuns
-    
-    function copyExperimentRuns(inputDir, outputDir, ...
-                                experimentMapping, parameterRunRange)
-        numExperiments = length(experimentMapping);
-        for experiment_i=1:numExperiments
-            mapping = experimentMapping{experiment_i};
-            experimentInputDir = mapping{1};
-            experimentOutputDir = mapping{2};
-            experiment_ID = mapping{3};
-            experimentPath = [inputDir experimentInputDir ];
-            outputPath     = [outputDir experimentOutputDir ];
-            VocalJoystickMcNemar.copyParameterRuns(experimentPath,experiment_ID,...
-                                          outputPath,parameterRunRange)
-        end
-    end
-    
-    %% copyParameterRuns
-    
-    function copyParameterRuns(experimentPath, experiment_ID, outputPath, parameterRunRange)   
-        for parameter_run_i=parameterRunRange
-            parameterDir = ['Parameters_run_' num2str(parameter_run_i)];
-            fileName = ['Evaluation.' num2str(experiment_ID) ...
-                        '.' num2str(parameter_run_i) '.1.accuracy.mat.out.mat'];
-            
-            FileHelper.CopyFileRenameIfExists...
-                    ([experimentPath parameterDir '/accuracy/' fileName ], ...
-                     [outputPath fileName] );
-        end
     end
 
 end

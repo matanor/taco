@@ -18,7 +18,11 @@ methods (Access = public)
     end
     
     function R = shouldRun(this, algorithmsType)
-        R = this.m_algorithms( algorithmsType );
+        if algorithmsType > length(this.m_algorithms)
+            R = 0;
+        else
+            R = this.m_algorithms( algorithmsType );
+        end
     end
     
     function R = algorithmsRange(this)

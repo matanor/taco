@@ -76,6 +76,37 @@ function R = calculate(correct, prediction_a, prediction_b)
     R.p_value = p_value;
     R.betterSystem = betterSystem;
 end
+
+%% copyExperimentRuns
+
+function copyExperimentRuns(inputDir, outputDir, ...
+                            experimentMapping, parameterRunRange)
+    numExperiments = length(experimentMapping);
+    for experiment_i=1:numExperiments
+        mapping = experimentMapping{experiment_i};
+        experimentInputDir = mapping{1};
+        experimentOutputDir = mapping{2};
+        experiment_ID = mapping{3};
+        experimentPath = [inputDir experimentInputDir ];
+        outputPath     = [outputDir experimentOutputDir ];
+        McNemar.copyParameterRuns(experimentPath,experiment_ID,...
+                                      outputPath,parameterRunRange)
+    end
+end
+
+%% copyParameterRuns
+
+function copyParameterRuns(experimentPath, experiment_ID, outputPath, parameterRunRange)   
+    for parameter_run_i=parameterRunRange
+        parameterDir = ['Parameters_run_' num2str(parameter_run_i)];
+        fileName = ['Evaluation.' num2str(experiment_ID) ...
+                    '.' num2str(parameter_run_i) '.1.accuracy.mat.out.mat'];
+
+        FileHelper.CopyFileRenameIfExists...
+                ([experimentPath parameterDir '/accuracy/' fileName ], ...
+                 [outputPath fileName] );
+    end
+end
     
 end % static methods
 
