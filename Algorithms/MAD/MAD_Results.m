@@ -96,7 +96,9 @@ classdef MAD_Results < SSLMC_Result
         function r = getFinalScoreMatrix(this)
 %             Logger.log('MAD::getFinalPredictionMatrix');
             r = this.m_Y(:,:,end);
-            r(:,end) = [];
+            if ~isempty(r)
+                r(:,end) = [];
+            end
         end
         
         %% probabilities

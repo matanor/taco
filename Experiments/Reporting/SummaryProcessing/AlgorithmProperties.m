@@ -1,10 +1,10 @@
 classdef AlgorithmProperties < handle
     
 properties (Constant)
-    MAD = 1;
-    AM = 2; 
-    QC = 3;
-    CSSL = 4;
+    MAD = SingleRun.MAD;
+    AM = SingleRun.AM; 
+    QC = SingleRun.QC;
+    CSSL = SingleRun.CSSLMC;
 end % constant
 
 methods (Static)
